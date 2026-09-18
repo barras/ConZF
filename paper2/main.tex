@@ -15,6 +15,7 @@
 \declaretheorem[name=Definition,sibling=theorem,style=definition]{definition}
 \declaretheorem[name=Remark,sibling=theorem,style=remark]{remark}
 \declaretheorem[name=Claim,sibling=theorem,style=remark]{claim}
+\declaretheorem[name=Conjecture,sibling=theorem]{conjecture}
 \declaretheorem[name=Example,sibling=theorem,style=remark]{example}
 \setlist[itemize]{parsep=0pt,topsep=2pt,before=\leavevmode}
 \setlist[enumerate]{parsep=0pt,topsep=2pt,before=\leavevmode}
@@ -767,17 +768,16 @@ half-steps are far below an inaccessible: everything in the tower is
 modelled in $V_{\lambda_\omega}$ for the countable-cofinality
 $\lambda_\omega$ of Theorem~\ref{thm:univ}.
 
-\section{The upper bound: hereditarily bounded set models}\label{sec:upper}
+\section{The upper bound: a model of definable functions}\label{sec:upper}
 
-This section sets out the model that would give the $\le^{?}$ steps, and
-proves the two lemmas that address the obstruction met in
-\cite[Prop.~4.4]{paper1}. What it does not do is complete the soundness
-proof; the status is recorded at the end. The reader should know in
-advance that the closure ordinals as defined in \S\ref{sec:closure} are
-too small (Example~\ref{ex:sat}), so that the model of \S\ref{sec:adm} is
-not a model; Remark~\ref{rem:nosat} gives the repair we expect to work,
-under which most of \S\ref{sec:adm}--\ref{sec:transfer} becomes
-unnecessary.
+This section sets out a model that would give the $\le^{?}$ steps. It
+proves that the model is sound provided its universe extents exist, and
+it reduces their existence to one statement, a rank lemma in the style
+of Section~\ref{sec:rank}, which is not proved
+(Conjecture~\ref{conj:rank}). An earlier version of the section, kept in
+the history of the repository, used Howard-style majorants and a
+retraction between structures; \S\ref{sec:examples} records why it was
+abandoned.
 
 \paragraph{Why a set model, and which one.}
 The natural model of $\CIC_\omega+\EM$ is Werner's: $\Prop$ is
@@ -789,114 +789,65 @@ $|X|\to V_{\kappa_0}$, and $\Sigma x{:}X.\,f\,x$ must land in
 $V_{\kappa_0}$. Replacing set-theoretic function spaces by Kleene-tracked
 ones does not help \cite[Prop.~4.4]{paper1}, and term models do not
 survive an impredicative $\Prop$ with excluded middle. So the function
-spaces must be cut down by a semantic condition that (a) every
-term-definable function satisfies, (b) is preserved by application,
-recursion, and abstraction, and (c) bounds $\sup_x\rk f(x)$ below
-$\lambda_0$ whenever the domain is small. Condition (c) is the content of
-Section~\ref{sec:rank} for $\Lang$-terms: a definable family has a rank
-majorant computed from its shape. Conditions (a)--(b) say the majorant
-must be attached to \emph{elements}, not just to terms, so that a
-variable $f$ in a context carries one. This is Howard's majorizability,
-with ordinals in place of numbers and with functionals over ordinals as
-majorants at higher types.
+spaces must be cut down. No condition on the \emph{values} of a function
+can do it: a universe extent below an inaccessible is singular, and a
+cofinal family over a small index type satisfies every pointwise bound
+(Example~\ref{ex:climb}). What Section~\ref{sec:model} uses instead is
+that the functions of $\ZFh$ are terms, and that the rank of a term's
+value is bounded by an ordinal function of the ranks of its parameters,
+under which $\lambda$ is closed. The model below imports exactly this.
+Its function spaces, where they are not small, consist of the functions
+\emph{definable by a term from parameters of bounded content}, the
+content of a parameter being the supremum of the ranks of the small
+types it contains; and the extent $\lambda_N$ of $\Type_N$ is an ordinal
+such that a type-valued term with parameters of content below
+$\gamma<\lambda_N$ has rank below some $\delta<\lambda_N$. With that
+definition of $\lambda_N$ type formation is sound by construction, and
+the whole difficulty is the existence of such ordinals.
 
 \paragraph{Plan of the construction.}
-The definitions below are given in the order in which they are used,
-and the construction has two phases. The first phase determines the
-universe extents $\lambda_0<\lambda_1<\cdots$ by a recursion on the
-level $N$: codes and their full decoding (\S\ref{sec:codes}) and the
-full evaluation of terms with its hybrid majorants (\S\ref{sec:hybrid})
-are defined once and for all, independently of the extents except for
-the universe constants; then
-(\S\ref{sec:closure}) stage $N$ of the recursion, given
-$\lambda_0,\dots,\lambda_{N-1}$, defines closure functions
-$\nu^N_{t,\theta}$ by taking suprema of majorants over auxiliary
-structures whose universe $U_N$ is cut at a variable ordinal $\alpha$
-and whose higher universes are arbitrary, and sets $\lambda_N$ to be the
-least ordinal closed under them. Nothing in this phase refers to
-$\lambda_j$ for $j\ge N$, and nothing in it refers to the model. The
-second phase (\S\ref{sec:adm}--\ref{sec:transfer}) takes all the
-$\lambda_j$ as fixed and defines the model: the retraction
-$r^N_\alpha$ from the model onto the auxiliary structure with $U_N$ cut
-at $\alpha$ and the true higher universes, the admissible elements, and
-the decoding $\El$. Its main lemma, the transfer, says that the
-retraction of an admissible environment is one of the environments over
-which $\nu^N$ took its supremum; this is the sense in which the first
-phase chose the $\lambda_N$ correctly, and it is why the suprema of the
-first phase range over arbitrary higher extents. Forward references in
-the first phase to the model are motivation only.
+The definitions are given in the order in which they are used. Codes and
+their full decoding (\S\ref{sec:codes}) and the evaluation of terms over
+the full decoding relative to a truth assignment (\S\ref{sec:hybrid})
+are Werner's and make no reference to the model. Then
+(\S\ref{sec:closure}) the extents are determined by recursion on the
+level $N$: given $\lambda_0,\dots,\lambda_{N-1}$, an ordinal $\lambda$ is
+\emph{$N$-closed} if the structure whose universe $U_N$ is cut at
+$\lambda$, with the true lower universes and arbitrary higher ones, has
+the bounded-rank property just described, and $\lambda_N$ is the least
+$N$-closed ordinal. Nothing at stage $N$ refers to $\lambda_j$ for
+$j>N$. Finally (\S\ref{sec:adm}), with all the extents fixed, the model
+is the partial equivalence relation of hereditary agreement on the
+generated elements, and its soundness is proved. The existence of
+$N$-closed ordinals is discussed in \S\ref{sec:ranklemma}.
 
 \subsection{Codes and full decoding}\label{sec:codes}
 
-Throughout, $\lambda_0<\lambda_1<\cdots$ are the extents produced by
-\S\ref{sec:closure}, with supremum $\lambda_\omega$; until that section
-they are arbitrary ordinals, and the definitions of this section and
-the next do not depend on them except through the universes
-$U_i:=\{c:\rk(c)<\lambda_i\}$.
-
-\begin{definition}[codes]\label{def:codes2}
-The class of \emph{codes} is defined by recursion on rank: the constants
+\begin{definition}[structures and codes]\label{def:codes2}
+A \emph{structure} is an increasing sequence of ordinals
+$\vec\epsilon=(\epsilon_0<\epsilon_1<\cdots)$ above $\omega$, the
+\emph{extents}. The class of \emph{codes} of the structure is defined by
+recursion on rank: the constants
 $\bot,\top,\code\Prop,\code{\mathbf n},\code\N$ are codes, of finite
-rank, where $\bot$ is the empty set; the \emph{universe constant} $\code{\U_i}:=\langle\lambda_i,\mathsf U\rangle$
-is a code, of rank $\lambda_i+1$; if $c$ is a code, $G$ a function from
+rank, where $\bot$ is the empty set; the \emph{universe constant}
+$\code{\U_i}:=\langle\epsilon_i,\mathsf U\rangle$ is a code, of rank
+$\epsilon_i+1$; if $c$ is a code, $G$ a function from
 $V_{\rk(c)\cdot\omega}$ to codes, and $R\subseteq V_{\rk(c)\cdot\omega}^2$,
 then $\code\Pi(c,G)$, $\code\Sigma(c,G)$, $\code W(c,G)$, $\code/(c,R)$
-are codes. Codes of rank below any $\alpha$ form a set. Put
-$U_i:=\{c:\rk(c)<\lambda_i\}$ and $\ell(c):=$ the least $i$ with $c\in U_i$,
-the \emph{sort level}; so $\code{\U_i}\in U_{i+1}\setminus U_i$. The rank
-of the universe constant is chosen so that $U_i\subseteq V_{\rk(\code{\U_i})\cdot\omega}$,
-which the family domains below require. Consequently the codes that
-mention no universe constant are independent of the $\lambda_j$, and a
-code mentioning $\code{\U_j}$ depends on $\lambda_j$ only through this
-rank; in the auxiliary structures of \S\ref{sec:closure}, where $U_j$
-is cut at some ordinal $\gamma$, the universe constant is
-$\langle\gamma,\mathsf U\rangle$. The \emph{value level} is
-$\kappa(\code{\U_i}):=i$, $\kappa:=0$ for the other constants,
-$\kappa(\code\Pi(c,G)):=\sup_a\kappa(G(a))$,
-$\kappa(\code\Sigma(c,G))=\kappa(\code W(c,G)):=\max(\kappa(c),\sup_a\kappa(G(a)))$,
-$\kappa(\code/(c,R)):=\kappa(c)$.
-\end{definition}
+are codes. Codes of rank below any ordinal form a set. Put
+$U_i:=\{c:\rk(c)<\epsilon_i\}$, so that
+$\code{\U_i}\in U_{i+1}\setminus U_i$. The rank of the universe constant
+is chosen so that $U_i\subseteq V_{\rk(\code{\U_i})\cdot\omega}$, which
+the family domains require. The codes that mention no universe constant
+do not depend on the structure.
 
-\begin{definition}[majorants]\label{def:M}
-For an ordinal $\theta$ define sets $\mathbb M_\theta^{(\delta)}$ by
-recursion on $\delta$. A \emph{majorant of degree $<\delta$ over $\theta$} is a
-triple $m=(m_{\mathrm o},m_{\mathrm p},m_{\mathrm f})$ of an \emph{ordinal
-part} $m_{\mathrm o}\in\theta$, a \emph{pair part} $m_{\mathrm p}=\langle m_1,m_2\rangle$
-with $m_1,m_2\in\mathbb M_\theta^{(\beta)}$, and a \emph{function part}
-$m_{\mathrm f}:\mathbb M_{\theta'}^{(\beta)}\to\mathbb M_\theta^{(\beta)}$ monotone,
-for some $\beta<\delta$ and $\theta'\le\theta$ (the domain may be
-over a smaller ordinal than the values, as for $\lambda x{:}\N.\,\Type_0$),
-each of the three parts being optional
-(written $-$ when absent), with at least one present.
-$\mathbb M_\theta:=\bigcup_\delta\mathbb M_\theta^{(\delta)}$ is a set, and
-$\mathbb M:=\bigcup_\theta\mathbb M_\theta$ is the class of majorants; each
-majorant is a set. The order is $m\le m'$ iff every part present in $m$
-is present in $m'$ and is $\le$ there: ordinals as ordinals, pairs
-componentwise, functions pointwise on the common domain. Joins
-$m\sqcup m'$ and suprema of sets of majorants are taken componentwise,
-an absent part being neutral. A function part is applied to an
-arbitrary majorant $\mu$, inside or outside its domain, by monotone
-extension, $m_{\mathrm f}(\mu):=\sup\{m_{\mathrm f}(\chi):\chi\in\mathrm{dom}\,m_{\mathrm f},\ \chi\le\mu\}$,
-a set supremum; on the domain this is $m_{\mathrm f}$ itself, and every
-value of the extension is a supremum of values on the domain. The \emph{leaves} of $m$ are the ordinals
-occurring in it, recursively through pairs and through all values of
-function parts; $m$ is \emph{hereditarily below $\lambda$} if all its
-leaves are, and the \emph{leaf supremum} of $m$ is their supremum. We
-write $\beta$ for the majorant $(\beta,-,-)$, and $\hat\beta$ for the
-\emph{hereditary constant}, whose ordinal part is $\beta$, whose pair
-part is $\langle\hat\beta,\hat\beta\rangle$, and whose function part is
-constantly $\hat\beta$, at each degree.
+Given $\lambda_0<\dots<\lambda_{N-1}$, an ordinal $\alpha>\lambda_{N-1}$
+(or $\alpha>\omega$ if $N=0$), and an increasing sequence $\vec\alpha'$
+of ordinals above $\alpha$, the \emph{$(N,\alpha,\vec\alpha')$-structure}
+has extents $\lambda_0,\dots,\lambda_{N-1},\alpha,\alpha'_{N+1},\alpha'_{N+2},\dots$:
+the lower universes are the given ones, $U_N$ is \emph{cut at} $\alpha$,
+and the higher universes are arbitrary.
 \end{definition}
-
-The three parts exist because the shape of a fibre varies with the
-argument of a dependent function: for $f:\Pi b{:}\mathbf 2.\,B(b)$ with
-$B(0)$ a base type and $B(1)$ a function type, the canonical majorant of
-$f$ at an input covering both $0$ and $1$ must bound an ordinal-shaped
-element and a function at once (\S\ref{sec:examples}). Keeping the parts
-separate and joins componentwise is essential: reading the ordinal part
-of a big code into the function part would let a $\Type_2$ branch bound
-the values of a $\Type_0\to\Type_0$ branch, and the pollution of
-Example~\ref{ex:hetero} would return through the join.
 
 \begin{definition}[full decoding]\label{def:Elf}
 By recursion on codes define the set $\El^{\mathrm f}(c)$, Werner's decoding:
@@ -917,1452 +868,654 @@ $\El^{\mathrm f}(c)\subseteq V_{\rk(c)\cdot\omega}$, so every family $G$ is
 defined on all of $\El^{\mathrm f}(c)$.
 \end{definition}
 
-\begin{definition}[majorization and canonical majorants]\label{def:codesbd}
-By recursion on codes define, for $e\in\El^{\mathrm f}(c)$ and $m\in\mathbb M$,
-the relation $e\lhd_c m$ (``$m$ majorizes $e$'') and the canonical
-majorant $\hat e\in\mathbb M$:
-\begin{itemize}
-\item Constants and universes: $e\lhd m$ iff $m_{\mathrm o}$ is present and
-  $\rk e<m_{\mathrm o}$; $\hat e:=\rk e+1$.
-\item Pairs, $c=\code\Sigma(c',G)$: $\langle a,b\rangle\lhd m$ iff
-  $m_{\mathrm p}=\langle m_1,m_2\rangle$ is present, $a\lhd_{c'}m_1$, and
-  $b\lhd_{G(a)}m_2$; $\widehat{\langle a,b\rangle}:=(-,\langle\hat a,\hat b\rangle,-)$.
-\item Trees, $c=\code W(c',G)$: $t\lhd m$ iff $m_{\mathrm p}=\langle h,m'\rangle$
-  is present, $h$ is an ordinal exceeding the height of $t$, and every
-  label of $t$ is majorized by $m'$; $\hat t:=(-,\langle\mathrm{height}(t)+1,\ \sup_a\hat a\rangle,-)$
-  over the labels $a$ of $t$.
-\item Classes, $c=\code/(c',R)$: $[x]\lhd m$ iff $x'\lhd_{c'}m$ for some
-  $x'\in[x]$; $\widehat{[x]}:=$ the pointwise infimum of the $\hat{x}'$
-  over the members.
-\item Functions, $c=\code\Pi(c',G)$: $f\lhd m$ iff $m_{\mathrm f}$ is present
-  with domain containing $\mathbb M_{\theta}^{(\rk c'+1)}$ for
-  $\theta:=\rk(c')\cdot\omega$, and $f(a)\lhd_{G(a)}m_{\mathrm f}(\hat a)$ for
-  every $a\in\El^{\mathrm f}(c')$; and
-  $\hat f:=(-,-,\varphi)$ with $\varphi(\chi):=\sup\{\widehat{f(a)}:a\in\El^{\mathrm f}(c'),\ \hat a\le\chi\}$
-  on that domain.
-\item Truth values: $\star\lhd m$ iff $m_{\mathrm o}$ is present and
-  positive; $\hat\star:=1$.
-\end{itemize}
-\end{definition}
+\subsection{Evaluation relative to a truth assignment}\label{sec:hybrid}
 
-\begin{lemma}\label{lem:Mbasic}
-For $e\in\El^{\mathrm f}(c)$: (1) $\hat e\in\mathbb M_{\rk(c)\cdot\omega}^{(\rk c+1)}$
-and $e\lhd\hat e$; (2) $\hat e$ is the least majorant of $e$, and
-$e\lhd m\le m'$ implies $e\lhd m'$; (3) $\hat f$ is monotone, and
-$\hat e$ is hereditarily below $\rk(c)\cdot\omega$; (4) the suprema and
-joins in Definition~\ref{def:M} preserve monotonicity of function parts.
-\end{lemma}
-\begin{proof}
-All by induction on codes. For (1) at $\Pi$, the domain requirement is
-met because $\hat a\in\mathbb M^{(\rk c'+1)}_{\rk(c')\cdot\omega}$ by induction,
-and the values $\widehat{f(a)}$ have degree $\le\rk G(a)+1<\rk c+1$. For
-(2) at $\Pi$, $f\lhd m$ gives $\widehat{f(a)}\le m_{\mathrm f}(\hat a)\le m_{\mathrm f}(\chi)$
-for $\hat a\le\chi$ by monotonicity, so $\varphi\le m_{\mathrm f}$; upward
-closure uses monotonicity of $m'_{\mathrm f}$ in the same way. (3) is
-$\El^{\mathrm f}(c)\subseteq V_{\rk(c)\cdot\omega}$.
-\end{proof}
-
-\begin{example}[why the $\lambda_i$ must be closed under Hartogs numbers]\label{ex:set}
-Let $\mathsf{set}:=Wx{:}\Type_0.\,x$ and define $T:\mathsf{set}\to\Type_0$ by
-$W$-recursion, $T(\mathsf{tree}\,X\,d):=(\Sigma x{:}X.\,T(d\,x))\to\Prop$.
-Then $\rk T(t)\ge\omega+\mathrm{height}(t)$, and $T(t)$ must lie in $U_0$,
-so every tree over a small type must have height below $\lambda_0$. A
-tree over $X\in U_0$ has height below $\hartogs(\PP(X))$, and trees over
-$\N$ realise every countable height, so $\lambda_0$ must be closed under
-$\alpha\mapsto\hartogs(V_{\alpha+1})$; in $\ZFC$ this makes it a strong
-limit cardinal, of cofinality $\omega$ if obtained by an $\omega$-iteration.
-This is the ordinal Miquel's footnote and Section~\ref{sec:rank} both
-point at.
-\end{example}
-
-The model will consist of the \emph{admissible} elements of the full
-decoding, with function spaces restricted to admissible arguments. Which
-elements are admissible is decided by term majorants, defined next
-without reference to admissibility.
-
-\subsection{Evaluation and hybrid term majorants}\label{sec:hybrid}
-
-\begin{definition}[$N$-small and $N$-big variables]\label{def:smallbig}
-Let $\Gamma$ be a context, $x{:}A\in\Gamma$, and $N\ge1$. The variable
-$x$ is \emph{$N$-small} if $\Gamma'\vdash A:\Prop$ or $\Gamma'\vdash A:\Type_j$
-with $j<N$ is derivable, where $\Gamma'$ is the prefix of $\Gamma$ before
-$x$, and \emph{$N$-big} otherwise, i.e.\ if the least sort of $A$ is
-$\Type_j$ with $j\ge N$. Since sorts are cumulative and every type has
-a least sort, this is a syntactic property of the context. ``Small'' and
-``big'' without qualification mean $1$-small and $1$-big. Semantically,
-by Lemma~\ref{lem:tyform}, an $N$-small variable's type decodes to a code
-of level below $N$, whose full decoding is fixed by every retraction
-$r^N_\alpha$; an $N$-big variable ranges over elements that the level-$N$
-construction must control.
-
-The \emph{syntactic value level} $\vl(T)$ of a type $T$ is defined by
-$\vl(\Prop):=0$, $\vl(\Type_i):=i$, $\vl(\Pi x{:}A.B):=\vl(B)$,
-$\vl(\Sigma x{:}A.B)=\vl(Wx{:}A.B):=\max(\vl A,\vl B)$, $\vl(A/R):=\vl(A)$,
-and $\vl(T):=j$ for any other type $T$ whose least sort is $\Type_j$
-(and $0$ if it is $\Prop$). The value level of a term $t$ with
-$\Gamma\vdash t:T$ is $\vl(T)$; it bounds the value level $\kappa$ of
-the code of $T$ in every environment, and it is the level at which the
-closure functions of \S\ref{sec:closure} will bound $t$.
-\end{definition}
-
-\begin{definition}[full evaluation]\label{def:fulleval}
-For a term $t$ and an environment $\rho$ assigning sets to variables,
-define $\sem t\rho$ by recursion on $t$; the clauses are Werner's, made
-total by returning $\emptyset$ where a clause does not apply. Since
-$\emptyset$ is the code $\bot$, a family $a\mapsto\sem B\rho[x{:=}a]$ is
-code-valued on its whole domain $V_{\rk\sem A\rho\cdot\omega}$ whenever
-$B$ is a type, and so every type former evaluates to a code in every
-environment, junk or not.
-\begin{itemize}
-\item $\sem x\rho:=\rho(x)$; $\sem{\Prop}\rho:=\code\Prop$, $\sem{\Type_i}\rho:=\code{\U_i}$,
-  $\sem{\mathbf n}\rho:=\code{\mathbf n}$, $\sem\N\rho:=\code\N$.
-\item $\sem{\Pi x{:}A.B}\rho:=\code\Pi(\sem A\rho,\ a\mapsto\sem B\rho[x{:=}a])$
-  with the family taken on $V_{\rk\sem A\rho\cdot\omega}$, and likewise
-  $\Sigma$ and $W$; $\sem{A/R}\rho:=\code/(\sem A\rho,\{(a,a'):\sem R\rho[x{:=}a,x'{:=}a']=\top\})$;
-  propositional formers are identified with truth values as in
-  \cite[Def.~4.1]{paper1}, with $\sem{a=_A a'}\rho:=[\sem a\rho=\sem{a'}\rho]$,
-  $\sem{\|A\|}\rho:=[\El^{\mathrm f}(\sem A\rho)\ne\emptyset]$, and
-  $\sem{\Pi x{:}A.P}\rho:=[\forall a\in\El^{\mathrm f}(\sem A\rho).\ \sem P\rho[x{:=}a]=\top]$
-  when $P$ is a proposition.
-\item $\sem{\lambda x.b}\rho:=$ the function $a\mapsto\sem b\rho[x{:=}a]$ on
-  $\El^{\mathrm f}(\sem A\rho)$; $\sem{f\,a}\rho:=\sem f\rho(\sem a\rho)$;
-  $\sem{\langle a,b\rangle}\rho:=\langle\sem a\rho,\sem b\rho\rangle$;
-  $\sem{\mathsf{tree}\,a\,d}\rho:=$ the tree with root $\sem a\rho$ and
-  subtrees $\sem d\rho(y)$; $\sem{[a]_R}\rho:=$ the class of $\sem a\rho$;
-  $\sem{\mathbf k_{\mathbf n}}\rho:=k$, $\sem 0\rho:=0$, $\sem{\mathsf S\,m}\rho:=\sem m\rho+1$;
-  all proofs and propositional constants evaluate to $\star$.
-\item The eliminators are the corresponding set-theoretic recursions on
-  the actual value of their argument: $\mathsf{ind}^{\mathbf n}$ and
-  $\mathsf{ind}^\Sigma$ by case, $\mathsf{ind}^\N$ by primitive recursion,
-  $\mathsf{ind}^W$ by recursion on the well-founded tree,
-  $\mathsf{ind}^{\mathsf{Acc}}$ by recursion along the accessible part of
-  the set relation $\sem R\rho$, $\mathsf{ind}^=$ by $f$ at the argument,
-  $\mathsf{ind}^{\|\|}$ to $\star$, and $\mathsf{ind}^/f\,h\,q$ to the common
-  value of $f$ on the members of $q$ if they agree and $\emptyset$
-  otherwise.
-\end{itemize}
-The \emph{model's} interpretation, defined in \S\ref{sec:adm}, is this
-evaluation with abstractions restricted to admissible arguments; on
-admissible environments the two agree except for those domains.
-\end{definition}
-
-\begin{remark}[what the full evaluation does and does not assert]
-Definition~\ref{def:fulleval} is a total $\ZF$-definable function on syntax
-and environments, for arbitrary ordinals $\lambda_i$: each clause forms
-a set from sets by pairing, powerset, and the recursion theorem, and
-$U_i$ is a set whatever $\lambda_i$ is. It asserts nothing: not that a
-type lands in its universe, nor that a term lands in its type. Werner's
-evaluation is definable in the same way for any $\kappa_i$; what needs
-$\kappa_i$ inaccessible is the theorem that the evaluation is sound for
-\emph{every} set environment, and \cite[Prop.~4.4]{paper1} shows that
-this theorem is false below an inaccessible: a cofinal $f:X\to U_0$ is a
-legitimate value for the context $X{:}\Type_0,\ f{:}X\to\Type_0$, and
-$\sem{\Sigma x{:}X.\,f\,x}\rho$ is a code of rank $\lambda_0$, not in
-$U_0$. Soundness is therefore a statement about a class of environments,
-and \S\ref{sec:adm} is the choice of that class. The domain
-$V_{\rk(c)\cdot\omega}$ of families has no semantic content; it makes a
-family a total set function fixed by the code, so that codes exist
-before the $\lambda_i$ and before admissibility are defined.
-\end{remark}
-
-\begin{definition}[hybrid majorants]\label{def:hyb}
-Let $t$ be a term in context $\Gamma$, $\rho$ an environment assigning to
-each variable an element of the full decoding of its type, and $\tau$ an
-assignment to each big variable $F$ (Definition~\ref{def:smallbig}) of a
-majorant $m_F\ge\hat\rho(F)$.
-Define $M_t(\rho,\tau)$ by recursion on $t$:
-\begin{itemize}
-\item a big variable $F$ of the context $\Gamma$ has majorant $m_F$;
-  every other variable, that is, a small variable of $\Gamma$ or a
-  variable bound within $t$ whether small or big, has majorant
-  $\widehat{\rho(x)}$, the canonical majorant of its actual value;
-\item $M_{f\,a}:=M_f\bigl(\widehat{\sem a\rho}\bigr)$, the majorant of $f$
-  at the canonical majorant of the \emph{actual} value of $a$;
-\item $M_{\lambda x{:}A.b}:=(-,-,\varphi)$ with
-  $\varphi(\chi):=\sup\{M_b(\rho[x{:=}a],\tau):a\in\El^{\mathrm f}(c),\ \hat a\le\chi\}$
-  for $c:=\sem A\rho$, on the domain $\mathbb M^{(\rk c+1)}_{\rk(c)\cdot\omega}$
-  (the domain that $\lhd_{\code\Pi(c,\cdot)}$ requires); every function
-  part below has the domain that its syntactic type prescribes in the
-  same way, and function majorants are applied by monotone extension;
-\item the eliminators are functions, and their majorants are function
-  parts that branch on the actual argument and are assembled from the
-  majorants of the step terms. With $c$ the code of the argument type
-  and $\chi$ ranging over the domain prescribed by $c$:
-  \begin{itemize}
-  \item $M_{\mathsf{ind}^{\mathbf n}_C\vec c}(\chi):=\sup\{M_{c_j}:j<n,\ j+1\le\chi_{\mathrm o}\}$;
-  \item $M_{\mathsf{ind}^\N_C c\,f}(\chi):=\sup\{\mu_m:m<\omega,\ m+1\le\chi_{\mathrm o}\}$
-    where $\mu_0:=M_c$ and $\mu_{m+1}:=M_f(\hat m)(\mu_m)$;
-  \item $M_{\mathsf{ind}^\Sigma_C f}(\chi):=\sup\{M_f(\hat a)(\hat b):\langle a,b\rangle\in\El^{\mathrm f}(c),\ \widehat{\langle a,b\rangle}\le\chi\}$;
-  \item $M_{\mathsf{ind}^W_C f}(\chi):=\sup\{\mu(t):t\in\El^{\mathrm f}(c),\ \hat t\le\chi\}$,
-    where for a tree $t=\mathsf{tree}\,a\,d$ the majorant $\mu(t)$ is
-    defined by recursion on the well-founded tree as
-    $\mu(t):=M_f(\hat a)(\hat d)(\mu_d)$, with $\mu_d$ the function
-    majorant $\chi'\mapsto\sup\{\mu(d(b)):\hat b\le\chi'\}$ on the domain
-    prescribed by the code of the branching type at $a$;
-  \item $M_{\mathsf{ind}^=_C f}(\chi_1)(\chi_2)(\chi_3):=\sup\{M_f(\hat a):a\in\El^{\mathrm f}(c),\ \hat a\le\chi_1,\ \hat a\le\chi_2\}$,
-    the actual argument being a pair of equal elements and a proof;
-  \item $M_{\mathsf{ind}^{\|\|}_C f}:=1$, the target being a proposition;
-  \item $M_{\mathsf{ind}^/_C f\,h}(\chi):=\sup\{\inf_{a\in q}M_f(\hat a):q\in\El^{\mathrm f}(c),\ \hat q\le\chi\}$,
-    the infimum being over the members of the class $q$, which are
-    determined by the relation carried by the quotient code; it
-    majorizes the common value $f(a)$ because $\lhd$ is closed under
-    infima, while $M_f(\hat q)$ need not, the infimum $\hat q$ of the
-    members' majorants not being attained in general;
-  \item $M_{\mathsf{ind}^{\mathsf{Acc}}_C f}(\chi)(\chi'):=\sup\{\mu(x):x\in\El^{\mathrm f}(c)\text{ accessible for }\sem R\rho,\ \hat x\le\chi\}$,
-    where $\mu(x):=M_f(\hat x)(\mu_x)$ by recursion along the accessible
-    part of the set relation $\sem R\rho$, with $\mu_x$ the function
-    majorant $\chi''\mapsto(-,-,1\mapsto\sup\{\mu(y):\sem R\rho(y,x)=\top,\ \hat y\le\chi''\})$
-    on the domain prescribed by $c$, the inner function part taking
-    the proof argument.
-  \end{itemize}
-  In every clause the ordinals occurring in the result are ordinals
-  occurring in values of the step majorants $M_f$, $M_c$, $M_{c_j}$, by
-  monotone extension; this is what the proofs of \S\ref{sec:closure}
-  use;
-\item a type former $\code Q(c,G)$ has majorant $\max(M_c,\ \sup_a M_{G}(\hat a))+3$,
-  the rank bound of a pair of its components; quotients add one; propositional terms,
-  $\mathsf{refl}$, $|{-}|$, proofs, and axioms have majorant $1$; and the
-  majorant of a code as an element of a universe is its rank plus one.
-\end{itemize}
-\end{definition}
-
-By induction on $t$, $\sem t\rho\lhd M_t(\rho,\tau)$ whenever every
-bound variable met in the evaluation takes a value in the full decoding
-of its type, in particular in the model (Lemma~\ref{lem:termadm}); in
-the auxiliary structures of \S\ref{sec:closure} this can fail for the
-recursive function of a $W$- or $\mathsf{Acc}$-recursion, and there the
-majorants are only summed, not used as bounds (Lemma~\ref{lem:auxrank}).
-The examples of
-\S\ref{sec:examples} explain the two design choices, branching on actual
-values and suprema over actual elements. One point deserves care: the
-value of a term, and hence the branch an eliminator takes, can depend on
-the truth values of universe-quantified propositions, in two distinct
-ways. For a term-defined step of an $\mathsf{Acc}$-recursion this
-dependence is only apparent: a recursive call at $y$ needs a proof of
-$R\,y\,x$, which the step can obtain only from provable instances, true
-in every model, or from a hypothesis $h$ in the context, true in every
-environment that types the context. So for a fixed typed $\rho$ the
-value is determined, and what varies between the $\alpha$-model and the
-$\lambda$-model is whether $\rho$ is typed at all, since $\rho(h)$ has a
-type in one and not the other. For an admissible element that is not the
-denotation of a term the dependence is genuine: the step is an arbitrary
-set function receiving the recursive-call function $\mathrm{rec}$ as an
-argument, and $\mathrm{rec}(y)$ is the empty function or a value
-function according to the truth of $R\,y\,x$, which a set function can
-inspect. No term can do this, but the environments of
-\S\ref{sec:adm} contain such elements. The majorant of the recursion
-itself is unaffected in both cases; what is affected is a later
-heterogeneous eliminator branching on the result. This is why the
-closure functions below quantify over truth assignments and over
-environments typed under each assignment, rather than over models.
+The function spaces of the model will consist of definable functions,
+and definitions may contain propositions that quantify over those very
+function spaces. To define ``definable'' before truth in the model, all
+propositions are evaluated relative to an arbitrary assignment of truth
+values; truth in the model is one such assignment, chosen afterwards
+(Definition~\ref{def:truth}).
 
 \begin{definition}[truth assignments]\label{def:sigma}
-A \emph{truth assignment} $\sigma$ assigns a truth value to every pair
-$(\forall X{:}\Type_i.\,P,\ \rho)$ or $(\exists X{:}\Type_i.\,P,\ \rho)$ of
-a universe-quantified proposition and an environment for its free
-variables. The \emph{$\sigma$-evaluation} $\sem t^\sigma\rho$ is the
-set-theoretic evaluation in which a universe-quantified proposition is
-read off from $\sigma$ and every other construct is computed; the
-\emph{actual} truth of the model is one particular $\sigma$. An
-environment is a \emph{$\sigma$-environment for $\Gamma$} if each
-$\rho(x)$ lies in $\El^{\mathrm f}(\sem{\Gamma(x)}^\sigma\rho)$. Hybrid
-majorants $M^\sigma_t(\rho,\tau)$ are computed with $\sigma$-evaluation.
+A \emph{formed proposition} is a term of one of the forms
+$\Pi x{:}A.P$ with $P$ a proposition, $\|A\|$, $a=_Aa'$, or
+$\mathsf{Acc}_R\,x$. A \emph{truth assignment} $\sigma$ assigns a truth
+value $\sigma(Q,\rho)\in\{\bot,\top\}$ to every pair of a formed
+proposition $Q$ and an environment $\rho$ for its free variables.
 \end{definition}
 
-An equation between codes is not an atom of $\sigma$: it is decided by
-the codes. So a hypothesis $q:B(a)=A'$ in $\Gamma$ forces, under every
-$\sigma$ for which $\rho$ is a $\sigma$-environment, the value
-$\sem a^\sigma\rho$ to select the branch of $B$ that decodes to $A'$.
-This is what lets the majorant branch on actual values without
-depending on which $\sigma$ is the actual one.
-
-\subsection{Auxiliary models and closure ordinals}\label{sec:closure}
-
-\paragraph{Auxiliary models.}
-This is the first phase: the extents are determined by recursion on a
-level $N$, and at stage $N$ the ordinals $\lambda_0,\dots,\lambda_{N-1}$
-are given and $\lambda_N$ is to be found.
-For an ordinal $\alpha$ and an increasing sequence
-$\vec\alpha'=(\alpha'_{N+1}<\alpha'_{N+2}<\cdots)$ of ordinals above $\alpha$, the
-\emph{$(N,\alpha,\vec\alpha')$-model} has universes $U_j:=\{c:\rk c<\lambda_j\}$
-for $j<N$, $U_N:=\{c:\rk c<\alpha\}$, and $U_j:=\{c:\rk c<\alpha'_j\}$ for
-$j>N$. The lower universes are the true ones; the higher ones are
-arbitrary, and the closure functions below take a supremum over
-$\vec\alpha'$ as well, so that nothing at stage $N$ depends on
-$\lambda_j$ for $j>N$. That this supremum is a set is
-Lemma~\ref{lem:stab}. The auxiliary model is a structure over which
-suprema are taken and is not claimed to be a model.
-
-\begin{definition}[witness trees]\label{def:wtree}
-An \emph{$N$-witness tree} $\theta$ for a term $t$ in context $\Gamma$
-assigns to each $N$-big variable $F$ of $\Gamma$ that is free in $t$ a
-term $t_F$ in some context $\Gamma_F$, having there a type of syntactic
-value level at most $\vl(\Gamma(F))$, together with an $N$-witness tree
-$\theta_F$ for $t_F$; the assignment is required to be well founded.
-Being finitely branching and well founded, $\theta$ is a finite tree,
-and there are countably many pairs $(t,\theta)$. The root $t$ may have
-any type; the closure functions below are defined only when its value
-level is at most $N$, while witness terms may have any value level, as
-for $Y{:}\Type_{N+1}$. The bound on the value level of witnesses is
-what makes the supremum over higher extents bounded in
-Lemma~\ref{lem:stab}: with $\lambda Z.\,\Type_N$ admitted as a witness
-for $F{:}\Type_{N+1}\to\Type_N$, the root $F\,Y$ would receive the
-majorant $\alpha'_{N+1}+2$.
-\end{definition}
-
-\begin{definition}[witnessed environments]\label{def:wenv}
-Fix $N$, an ordinal $\alpha$, higher extents $\vec\alpha'$, a truth
-assignment $\sigma$ (Definition~\ref{def:sigma}), and a pair $(t,\theta)$
-with $t$ in context $\Gamma$. A \emph{witnessed
-$(N,\alpha,\vec\alpha',\sigma)$-environment for $(t,\theta)$} is a pair
-$(\rho,\tau)$, defined by recursion on $\theta$, such that
+\begin{definition}[$\sigma$-evaluation]\label{def:fulleval}
+Fix a structure and a truth assignment $\sigma$. For a term $t$ and an
+environment $\rho$ assigning sets to variables, define $\sem t^\sigma\rho$
+by recursion on $t$; the clauses are Werner's, made total by returning
+$\emptyset$ where a clause does not apply. The \emph{family} of a binder
+$x{:}A$ with body $B$ at $\rho$ is the function on
+$V_{\rk(c)\cdot\omega}$, for $c:=\sem A^\sigma\rho$, whose value at $a$ is
+$\sem B^\sigma\rho[x{:=}a]$ if $a\in\El^{\mathrm f}(c)$ and this value is a
+code, and $\bot$ otherwise. Since $\emptyset$ is the code $\bot$, every
+type former evaluates to a code in every environment, junk or not.
 \begin{itemize}
-\item $\rho$ is a $\sigma$-environment for $\Gamma$ in the
-  $(N,\alpha,\vec\alpha')$-structure: for every $x{:}A$ in $\Gamma$,
-  $\rho(x)\in\El^{\mathrm f}(\sem A^\sigma\rho)$, where $\sem A^\sigma\rho$
-  is a code by Definition~\ref{def:fulleval}, whether or not it lies in any
-  universe;
-\item $\tau$ assigns a majorant $\tau(F)$ to each $N$-big variable $F$ of
-  $\Gamma$ free in $t$;
-\item for each such $F$ there is a witnessed
-  $(N,\alpha,\vec\alpha',\sigma)$-environment $(\rho_F,\tau_F)$ for
-  $(t_F,\theta_F)$ with
-  \[
-  \tau(F)=M^\sigma_{t_F}(\rho_F,\tau_F)\qquad\text{and}\qquad
-  \rho(F)\lhd_{\sem{\Gamma(F)}^\sigma\rho}\tau(F).
-  \]
+\item $\sem x^\sigma\rho:=\rho(x)$; $\sem{\Prop}^\sigma\rho:=\code\Prop$,
+  $\sem{\Type_i}^\sigma\rho:=\code{\U_i}$,
+  $\sem{\mathbf n}^\sigma\rho:=\code{\mathbf n}$, $\sem\N^\sigma\rho:=\code\N$.
+\item A formed proposition $Q$ evaluates to $\sigma(Q,\rho)$, a truth
+  value, identified with the code $\bot$ or $\top$ as in
+  \cite[Def.~4.1]{paper1}. This is the only clause that consults
+  $\sigma$. Propositions that are variables, applications, or
+  eliminator terms are computed by the clauses below like any other
+  term. All proofs and propositional constants evaluate to $\star$.
+\item $\sem{\Pi x{:}A.B}^\sigma\rho:=\code\Pi(\sem A^\sigma\rho,G)$ when $B$
+  is not a proposition, with $G$ the family of the binder, and likewise
+  $\Sigma$ and $W$; $\sem{A/R}^\sigma\rho:=\code/(\sem A^\sigma\rho,R')$
+  with $R'$ the set of pairs $(a,a')$ of elements of
+  $\El^{\mathrm f}(\sem A^\sigma\rho)$ such that
+  $\sem{R\,x\,x'}^\sigma\rho[x{:=}a,x'{:=}a']=\top$.
+\item $\sem{\lambda x{:}A.b}^\sigma\rho:=$ the function
+  $a\mapsto\sem b^\sigma\rho[x{:=}a]$ on $\El^{\mathrm f}(\sem A^\sigma\rho)$;
+  $\sem{f\,a}^\sigma\rho:=\sem f^\sigma\rho(\sem a^\sigma\rho)$.
+\item A pair $\langle a,b\rangle$ evaluates to the pair of the values;
+  $\mathsf{tree}\,a\,d$ to the tree with root $\sem a^\sigma\rho$ and
+  subtrees $\sem d^\sigma\rho(y)$; $[a]_R$ to the class of
+  $\sem a^\sigma\rho$; $\mathbf k_{\mathbf n}$ to $k$, $0$ to $0$, and
+  $\mathsf S\,m$ to $\sem m^\sigma\rho+1$.
+\item $\mathsf{ind}^{\mathbf n}$ and $\mathsf{ind}^\Sigma$ evaluate by
+  case on the actual argument, $\mathsf{ind}^\N$ by primitive recursion,
+  $\mathsf{ind}^W$ by recursion on the well-founded tree,
+  $\mathsf{ind}^=_Cf$ to $\sem f^\sigma\rho$ at the argument,
+  $\mathsf{ind}^{\|\|}$ to $\star$, and $\mathsf{ind}^/_Cf\,h$ at a class
+  $q$ to the common value of $\sem f^\sigma\rho$ on the members of $q$ if
+  they agree and to $\emptyset$ otherwise.
+\item $\mathsf{ind}^{\mathsf{Acc}}_Cf$ for a relation $R$ on $X$: let
+  $D:=\{x\in\El^{\mathrm f}(\sem X^\sigma\rho):\sigma(\mathsf{Acc}_R\,x,\rho[x])=\top\}$
+  and let $\prec$ be the relation
+  $\sem{R\,y\,x}^\sigma\rho[y,x]=\top$ restricted to $D$. If $\prec$ is
+  well founded, the value is the function $V$ on $D$ defined by
+  recursion along $\prec$, $V(x)(\star):=\sem f^\sigma\rho(x)(\mathrm{rec}_x)$,
+  where $\mathrm{rec}_x(y)$ is the function $\star\mapsto V(y)(\star)$ if
+  $y\in D$ and $y\prec x$, and the empty function otherwise; outside
+  $D$, and if $\prec$ is not well founded, the value is $\emptyset$. So
+  the recursion runs over the elements that $\sigma$ declares
+  accessible, and whether they are is $\sigma$'s business.
 \end{itemize}
-$N$-small variables, and $N$-big variables not free in $t$, are
-constrained only by the first clause. The \emph{leaf supremum} of
-$(\rho,\tau)$ is the leaf supremum of $M^\sigma_t(\rho,\tau)$; it is
-well defined because $\tau$ is part of the data.
 \end{definition}
 
-Two facts are needed before a supremum over these environments can be
-formed: that for fixed extents they form a set, and that the class of
-truth assignments, which is a proper class of class functions, matters
-only through a set.
+\begin{remark}[what the evaluation does and does not assert]
+Definition~\ref{def:fulleval} is a total $\ZF$-definable function of the
+structure, the truth assignment (restricted to a set, see
+Lemma~\ref{lem:sigmaloc}), the term, and the environment: each clause
+forms a set from sets by pairing, powerset, and the recursion theorem,
+and $U_i$ is a set whatever the extents are. It asserts nothing: not
+that a type lands in its universe, nor that a term lands in its type,
+nor that $\sigma$ is coherent. Werner's evaluation is definable in the
+same way for any $\kappa_i$; what needs $\kappa_i$ inaccessible is the
+theorem that the evaluation is sound for \emph{every} set environment,
+and \cite[Prop.~4.4]{paper1} shows that this theorem is false below an
+inaccessible: a cofinal $f:X\to U_0$ is a legitimate value for the
+context $X{:}\Type_0,\ f{:}X\to\Type_0$, and
+$\sem{\Sigma x{:}X.\,f\,x}\rho$ is a code of rank $\epsilon_0$, not in
+$U_0$. Soundness is therefore a statement about a class of environments
+and one truth assignment, and \S\ref{sec:adm} is the choice of both. The
+domain $V_{\rk(c)\cdot\omega}$ of families has no semantic content; it
+makes a family a total set function fixed by the code.
+\end{remark}
 
 \begin{lemma}[locality in $\sigma$]\label{lem:sigmaloc}
-Fix $N,\alpha,\vec\alpha'$, a term $t$ in context $\Gamma$, and a set
-$E$ of environments for $\Gamma$. There are sets $S_{t,E}$, of pairs of
-a universe-quantified proposition and an environment, and $V_{t,E}$,
-such that for every $\rho\in E$ and every truth assignment $\sigma$:
+Fix a structure, a term $t$ in context $\Gamma$, and a set $E$ of
+environments for $\Gamma$. There are sets $S_{t,E}$, of pairs of a
+formed proposition and an environment, and $V_{t,E}$, such that for
+every $\rho\in E$ and every truth assignment $\sigma$:
 $\sem t^\sigma\rho\in V_{t,E}$; and if $\sigma'$ agrees with $\sigma$ on
-$S_{t,E}$ then $\sem{t}^{\sigma'}\rho=\sem t^\sigma\rho$ and
-$M^{\sigma'}_t(\rho,\tau)=M^\sigma_t(\rho,\tau)$ for every $\tau$.
+$S_{t,E}$ then $\sem{t}^{\sigma'}\rho=\sem t^\sigma\rho$.
 \end{lemma}
 \begin{proof}
 By induction on $t$, defining $S_{t,E}$ and $V_{t,E}$ together.
 \emph{Variables and constants:} $S:=\emptyset$; $V:=\{\rho(x):\rho\in E\}$,
-or the constant's value. \emph{Universe-quantified propositions}
-$Q=\forall X{:}\Type_i.\,P$ or $\exists X{:}\Type_i.\,P$: $S_{Q,E}:=\{(Q,\rho):\rho\in E\}$
-and $V:=\{\bot,\top\}$; this is the only clause that consults $\sigma$.
-\emph{Binders} $\Pi x{:}A.B$, and likewise $\Sigma$, $W$, quotients,
-abstractions, and propositional quantifiers over non-universe types:
-$V_{A,E}$ is a set by induction, so
+or the constant's value. \emph{Formed propositions} $Q$:
+$S_{Q,E}:=\{(Q,\rho):\rho\in E\}$ and $V:=\{\bot,\top\}$; the subterms of
+$Q$ are not evaluated. \emph{Binders} $\Pi x{:}A.B$, and likewise
+$\Sigma$, $W$, quotients, and abstractions: $V_{A,E}$ is a set by
+induction, so
 $E':=\{\rho[x{:=}a]:\rho\in E,\ a\in V_{\rk(c)\cdot\omega},\ c\in V_{A,E}\}$
 is a set; put $S:=S_{A,E}\cup S_{B,E'}$ and let $V$ consist of the
-codes, functions, or truth values that the corresponding clause of
+codes or functions that the corresponding clause of
 Definition~\ref{def:fulleval} forms from a member of $V_{A,E}$ and a
 function into $V_{B,E'}$; this is a set. \emph{Application} $f\,a$:
 $S:=S_{f,E}\cup S_{a,E}$ and $V:=\{F(A):F\in V_{f,E},\ A\in V_{a,E}\}\cup\{\emptyset\}$.
 \emph{Pairs, constructors, and data:} componentwise. \emph{Eliminators:}
 the recursion runs along an actual datum, which lies in the set
 $V_{a,E}$ for the argument $a$, and the step functions are values in the
-sets $V_{f,E}$ of the step terms; the environments the recursion
-produces for the step terms therefore lie in a set $E''$ obtained from
-$E$ by adjoining components, subtrees, predecessors, or members drawn
-from members of $V_{a,E}$, and $S$ is the union of the $S_{f,E''}$ over
-the step terms, $V$ the set of possible results. For $\mathsf{ind}^{\mathsf{Acc}}$
-the relation $\sem R^\sigma$ varies with $\sigma$, but the recursion
-visits only elements of the domain, a member of $V_{X,E}$, so $E''$ is a
-set independent of $\sigma$. In each clause the evaluation consults
-$\sigma$ only at pairs in $S$, so two assignments agreeing on $S$ give
-the same value, by the same induction; and $M^\sigma_t(\rho,\tau)$ is
-computed from $\sigma$-values of subterms at environments in these
-sets, so it agrees as well.
+sets $V_{f,E}$ of the step terms; so the result lies in a set. For
+$\mathsf{ind}^{\mathsf{Acc}}$ add to $S$ the pairs
+$(\mathsf{Acc}_R\,x,\rho[x])$ and the $S$-sets of $R\,y\,x$ over the
+environments $\rho[y,x]$ with $x,y$ drawn from members of $V_{X,E}$. In
+each clause the evaluation consults $\sigma$ only at pairs in $S$, so
+two assignments agreeing on $S$ give the same value, by the same
+induction.
 \end{proof}
 
-\begin{lemma}[witnessed environments form a set]\label{lem:envset}
-Fix $N,\alpha,\vec\alpha'$ and $(t,\theta)$. There are a set $E_{t,\theta}$
-of environments and a set $S_{t,\theta}$ of pairs such that every
-witnessed $(N,\alpha,\vec\alpha',\sigma)$-environment $(\rho,\tau)$, for
-any $\sigma$, has $\rho\in E_{t,\theta}$; for each $\rho\in E_{t,\theta}$
-and each $\sigma$ the possible $\tau$ form a set; and
-$M^\sigma_t(\rho,\tau)$ depends on $\sigma$ only through
-$\sigma{\restriction}S_{t,\theta}$.
-\end{lemma}
-\begin{proof}
-By recursion on $\theta$ and, inside it, on the length of $\Gamma$. For
-the empty context $E:=\{\emptyset\}$. Given the set $E_{<x}$ of possible
-restrictions of $\rho$ to the prefix before $x{:}A$, the codes
-$\sem A^\sigma\rho$ for $\rho\in E_{<x}$ and all $\sigma$ lie in
-$V_{A,E_{<x}}$ by Lemma~\ref{lem:sigmaloc}, so the possible values
-$\rho(x)$ lie in $\bigcup\{\El^{\mathrm f}(c):c\in V_{A,E_{<x}}\}$, a
-set, and $E_{\le x}$ is the set of extensions. For an $N$-big $F$ free in
-$t$, the witnessed environments for $(t_F,\theta_F)$ have $\rho_F$ in a
-set and, for each, $\tau_F$ in a set, by the recursion on $\theta$; so
-the possible values $\tau(F)=M^\sigma_{t_F}(\rho_F,\tau_F)$ form a set.
-Finally $S_{t,\theta}:=S_{t,E_{t,\theta}}\cup\bigcup_F S_{t_F,\theta_F}$.
-\end{proof}
+So although the truth assignments form a proper class of class
+functions, a supremum or a quantifier over all of them, for a fixed
+term and a set of environments, ranges over the set $2^{S_{t,E}}$.
 
-\begin{definition}[closure functions at level $N$]\label{def:nu}
-Let $t$ have value level at most $N$ and let $\theta$ be an $N$-witness
-tree for $t$. For an ordinal $\beta$ put
-\[
-\nu^{N,0}_{t,\theta}(\beta):=\sup\{\text{leaf supremum of }(\rho,\tau):\
-\vec\alpha',\ \sigma,\ (\rho,\tau)\text{ a witnessed }(N,\beta,\vec\alpha',\sigma)\text{-environment for }(t,\theta)\},
-\]
-the supremum over all higher extents $\vec\alpha'$ above $\beta$, all
-truth assignments $\sigma$, and all witnessed environments in the
-$(N,\beta,\vec\alpha')$-structure, and
-\[
-\nu^N_{t,\theta}(\alpha):=\sup_{\beta\le\alpha}\nu^{N,0}_{t,\theta}(\beta).
-\]
-\end{definition}
+\subsection{Content, generated environments, and closed ordinals}\label{sec:closure}
 
-\begin{lemma}[higher-input stability]\label{lem:stab}
-Let $t$ have value level at most $N$. For fixed $\beta$ and $\vec\alpha'$
-the leaf suprema of the witnessed $(N,\beta,\vec\alpha',\sigma)$-environments
-for $(t,\theta)$, over all $\sigma$, are bounded by an ordinal
-$\mu_{t,\theta}(\beta,\vec\alpha')$; and there is an ordinal
-$B_{t,\theta}(\beta)$ with $\mu_{t,\theta}(\beta,\vec\alpha')\le B_{t,\theta}(\beta)$
-for every $\vec\alpha'$.
-\end{lemma}
-The first half is Lemmas~\ref{lem:sigmaloc} and \ref{lem:envset}. The
-restriction to value level at most $N$ is necessary for the second: the
-term $\Type_{N+1}$ has majorant $\alpha'_{N+1}+2$ in the
-$(N,\beta,\vec\alpha')$-structure. The proof of the second half is an
-analogue, in the auxiliary structure, of the rank lemma of
-Section~\ref{sec:rank}, and is prepared by a definition and a lemma.
+Throughout this subsection a level $N$ and ordinals
+$\lambda_0<\dots<\lambda_{N-1}$ are fixed; they are the extents already
+determined. Everything is relative to an
+$(N,\alpha,\vec\alpha')$-structure.
 
 \begin{definition}[content]\label{def:content}
-Fix $N$ and an $(N,\beta,\vec\alpha')$-structure. For a code $c$ of
-value level $\kappa(c)\le N$ and $e\in\El^{\mathrm f}(c)$, the
-\emph{content} $\|e\|$ is the leaf supremum of the canonical majorant
-$\hat e$; the content $\|c\|$ of the code is $\sup\{\|e\|:e\in\El^{\mathrm f}(c)\}$.
-For a code $c$ with $\kappa(c)>N$ put $\|c\|:=0$ and $\|e\|:=0$ for its
-elements. An environment $\rho$ for a context $\Gamma$ has content
-$<\gamma$ if $\|\rho(x)\|<\gamma$ for every variable $x$ whose type has
-syntactic value level at most $N$.
+For a code $c$ and $e\in\El^{\mathrm f}(c)$ define the \emph{$N$-content}
+$\|e\|_c$, an ordinal, by recursion on $c$:
+\begin{itemize}
+\item $\|e\|_c:=0$ for $c$ one of $\bot,\top,\code\Prop,\code{\mathbf n},\code\N$;
+\item for $c=\code{\U_j}$, where $e$ is a code in $U_j$:
+  $\|e\|_c:=\rk(e)+1$ if $j\le N$, and $\|e\|_c:=0$ if $j>N$;
+\item $\|\langle a,b\rangle\|_{\code\Sigma(c',G)}:=\max(\|a\|_{c'},\|b\|_{G(a)})$;
+\item $\|t\|_{\code W(c',G)}:=$ the supremum of $\|a\|_{c'}$ over the labels
+  $a$ of the tree $t$;
+\item $\|q\|_{\code/(c',R)}:=\min\{\|a\|_{c'}:a\in q\}$;
+\item $\|f\|_{\code\Pi(c',G)}:=\sup\{\|f(a)\|_{G(a)}:a\in\El^{\mathrm f}(c')\}$.
+\end{itemize}
 \end{definition}
-Unwinding Definition~\ref{def:codesbd}: for a code as an element of a
-universe the content is its rank plus one; for a function it is the
-supremum of the contents of its values, the inputs contributing
-nothing; for a pair or a class the maximum, respectively infimum, over
-components or members; for a tree the maximum of its height plus one
-and the contents of its labels. Since $\El^{\mathrm f}(c)\subseteq V_{\rk(c)\cdot\omega}$,
-$\|c\|\le\rk(c)\cdot\omega$; and $\|c\|<\beta\cdot\omega$ for $c$ in any
-universe $U_j$, $j\le N$, of the structure, while for $\code{\U_j}$
-itself $\|\code{\U_j}\|\le\beta+1$ if $j=N$ and $\le\lambda_j+1$ if
-$j<N$.
 
-\begin{lemma}[rank lemma in the auxiliary structure]\label{lem:auxrank}
-Fix $N$ and $\beta$. For every term $t$ in context $\Gamma$ with
-$\vl(t)\le N$ there is a $\ZF$-definable ordinal function
-$g_t:\mathrm{On}\to\mathrm{On}$, depending only on $t$, $\Gamma$, $\beta$,
-and $\lambda_0,\dots,\lambda_{N-1}$, such that for every
-$\vec\alpha'$, every $\sigma$, and every $\sigma$-environment $\rho$ for
-$\Gamma$ in the $(N,\beta,\vec\alpha')$-structure of content $<\gamma$:
-$\|\sem t^\sigma\rho\|<g_t(\gamma)$, the content being taken in the
-code $\sem T^\sigma\rho$ of $t$'s type when $\sem t^\sigma\rho$ lies in
-its decoding, and the statement being vacuous otherwise.
-\end{lemma}
-\begin{proof}
-By induction on $t$, with $g_t$ monotone; all bounds below are uniform
-in $\vec\alpha'$ and $\sigma$ because nothing in them mentions a
-universe above $N$ except as an index set.
-\emph{Variables:} $\|\rho(x)\|<\gamma$ by hypothesis; $g_x(\gamma):=\gamma$.
-\emph{Constants:} finite, or $\lambda_j+2$ for $\Type_j$ with $j<N$
-(the term $\Type_N$ has value level $N+1$).
-\emph{Application $f\,a$}, with $f:\Pi x{:}A.B$ and $\vl(B)\le N$: the
-value is $\sem f\rho(\sem a\rho)$, whose content is at most the content
-of the function $\sem f\rho$, which is the supremum of the contents of
-its values; so $g_{f\,a}:=g_f$. (The argument's content, which may be
-undefined or huge when $\vl(A)>N$, is not used.)
-\emph{Abstraction $\lambda x{:}A.\,b$:} the content of the function is
-$\sup_a\|\sem b\rho[x{:=}a]\|$ over $a\in\El^{\mathrm f}(\sem A\rho)$. If
-$\vl(A)>N$ the extended environment has the same content and
-$g:=g_b$. If $\vl(A)\le N$ then $\|a\|\le\|\sem A\rho\|<g_A(\gamma)$ by
-induction ($A$ is a type term of value level $\le N$, hence a root), so
-$g_{\lambda x.b}(\gamma):=g_b(\max(\gamma,g_A(\gamma)))$.
-\emph{Pairs, constructors, numerals, classes:} the maximum of the
-components' bounds, or $\omega$.
-\emph{Type formers} $\Pi x{:}A.B$, $\Sigma$, $W$, $A/R$ at sort
-$\Type_i$, $i\le N$: the value is the code $\code Q(\sem A\rho,G)$ with
-$G(a)=\sem B\rho[x{:=}a]$ or $\bot$; its content is its rank plus one,
-and its rank is at most $\max(\rk\sem A\rho,\sup_a\rk G(a))+3$. Both
-$\rk\sem A\rho$ and $\rk G(a)$ are contents, of $\sem A\rho$ as an
-element of $\code{\U_j}$ and of $G(a)$ as an element of $\code{\U_k}$,
-bounded by $g_A(\gamma)$ and $g_B(\max(\gamma,g_A(\gamma)))$
-respectively, the latter uniformly in $a$ since $\|a\|<g_A(\gamma)$
-when $\vl(A)\le N$ and $a$ is irrelevant to the content otherwise.
-\emph{Propositions, proofs, axioms:} content $1$.
-\emph{Eliminators for $\mathbf n$, $\N$, $\Sigma$, $=$, $\|\cdot\|$, and
-quotients:} the value is a step function applied to components of the
-datum and, for $\N$, to the value at the predecessor; contents are
-bounded by $g$ of the step term iterated finitely often, or by the
-component's content, which is at most the datum's content (or
-irrelevant if the datum has value level $>N$, in which case only its
-level-$\le N$ components are used, and those have content bounded by
-the type terms of the components, by induction). For $\mathsf{ind}^\N$
-the bound is $\sup_n g_s^{n}(\gamma)$ over the step $s$, an ordinal.
-\emph{$W$-recursion} $\mathsf{ind}^W s\,w$ with $w:Wx{:}A.B$ and step
-$s=\lambda x\,d\,r.\,b$ (or a variable, which is the trivial case): the
-value at a tree $w$ is $\sem b$ at the environment extended by the label,
-the subtree function, and the recursive function $r_w$, whose values
-are the values at the subtrees. By induction on the tree, if the
-values at all subtrees have content $<\delta$ then the value at $w$ has
-content $<g_b(\max(\gamma,\delta,\ \|\text{label}\|,\ \|d\|))$, where
-the label's content is $<g_A(\gamma)$ if $\vl(A)\le N$ and irrelevant
-otherwise, and $\|d\|$ is the supremum of the subtrees' contents, which
-is at most the tree's content. Let $h(w)$ be the height of $w$. Then
-the content of the value at $w$ is below the $h(w)$-th iterate of the
-monotone function $\delta\mapsto g_b(\max(\gamma,\delta,g_A(\gamma),\|w\|))$,
-and $\|w\|$ is bounded by $g$ of the type term $Wx{:}A.B$, which is a
-root of value level at most $N$ when $\vl(W x{:}A.B)\le N$; when the
-tree's type has value level $>N$ (a big label type $A$), its height is
-still bounded: every node has children indexed by $\El^{\mathrm f}(\sem B\rho[x{:=}a])$,
-a set of rank below $g_B(\gamma')\cdot\omega$ for
-$\gamma':=\max(\gamma,g_A(\gamma))$ by induction, so
-$h(w)<\hartogs(V_{g_B(\gamma')\cdot\omega})$, the labels contributing
-nothing to the height. So $g_{\mathsf{ind}^W s\,w}$ is the corresponding
-iterate, an ordinal depending on $\gamma$ only.
-\emph{$\mathsf{Acc}$-recursion} $\mathsf{ind}^{\mathsf{Acc}}s\,x\,p$ along
-$R$ on $X$ with step $s=\lambda x\,r.\,b$: the value at $x$ is $\sem b$
-at the environment extended by $x$ and the recursive function $r_x$ on
-the predecessors of $x$; $\sem b$ applies $r_x$ only at the values of
-the finitely many subterms of $b$ of type $X$ in the finitely many
-environments the evaluation of $b$ produces, and those environments
-differ from the given one only in bound variables of $b$ whose types
-have value level $\le N$ (a bound variable of higher value level would
-make the containing subterm of value level $>N$, and such subterms are
-not evaluated for their value but only for their truth value or as
-inputs). So the set of predecessors at which $r_x$ is inspected has
-size at most that of $V_{\delta}$ for $\delta:=\sup$ of the $g$-bounds
-of those bound variables' types, and the tree of inspected predecessors
-below $x$, which is well founded because $x$ is accessible, has height
-below $\hartogs(V_{\delta+\omega})$. The value at $x$ depends only on
-$r_x$ at inspected predecessors, so by induction along that tree its
-content is below the $\hartogs(V_{\delta+\omega})$-th iterate of
-$\delta'\mapsto g_b(\max(\gamma,\delta'))$, where the content of $x$
-itself is irrelevant if $\vl(X)>N$ and $<g_X(\gamma)$ otherwise. When
-$s$ is a variable its values lie in the cut decodings and the trivial
-bound applies.
-\end{proof}
+So the content of an element is the supremum of the ranks of the types
+of level at most $N$ that occur in it as values, through all arguments
+and all components. It is computed fibrewise: an element of
+$\Pi b{:}\mathbf 2.\,B(b)$ with $B(0)=\Type_{N+5}$ and $B(1)=\Type_N$ has
+the content of its value at $1$, whatever its value at $0$ is. Three
+cases orient the definition. The identity on $U_N$ has content $\alpha$,
+the cut. A family $\N\to U_N$ whose ranks are cofinal in $\alpha$ has
+content $\alpha$. And if $c\in U_j$ with $j\le N$ then every
+$e\in\El^{\mathrm f}(c)$ has $\|e\|_c\le\rk(c)$, because a universe
+constant mentioned by $c$ has rank below $\rk(c)$ and so extent below
+$\rk(c)$: the elements of a small type have small content.
 
-The two recursion cases are where the auxiliary structure differs from
-a model: the recursive function $r_w$ or $r_x$ has values outside the
-cut universe when the recursion climbs, so it is not an element of the
-cut decoding of its type, and the majorant $M^\sigma_t$, which sums over
-elements of the cut decodings, does not majorize the value. The lemma
-bounds the value anyway, by the height of the recursion, exactly as
-$\wfrec$ is bounded in Lemma~\ref{lem:rank}. This unsoundness of the
-majorants in the auxiliary structure is harmless: the first phase only
-takes suprema of majorants, and in the second phase the transfer is
-applied only at cuts above every reached rank.
-
-\begin{proof}[Proof of the second half of Lemma~\ref{lem:stab}]
-We prove, by induction on the number of nodes of $\theta$ and, for a
-fixed number, on $|\Gamma|+|t|$, the following stronger statement:
-there is an ordinal $B_{t,\theta}(\beta)$ such that for all
-$\vec\alpha'$, $\sigma$, all witnessed $(N,\beta,\vec\alpha',\sigma)$-environments
-$(\rho,\tau)$ for $(t,\theta)$ on a prefix of $\Gamma$, and all
-$\sigma$-extensions $\rho'$ of $\rho$ to the rest of $\Gamma$ by
-arbitrary values, with unwitnessed variables carrying the canonical
-majorants of their values, every leaf of $M^\sigma_t(\rho',\tau)$ is
-below $B_{t,\theta}(\beta)$. This is the form in which the induction
-passes under binders. Write $\gamma$ for a bound on the content of
-$\rho'$: every value $\rho'(x)$ whose type $A$ has $\vl(A)\le N$ lies in
-$\El^{\mathrm f}(\sem A\rho')$, and $A$ is a type term of value level
-$\le N$ in a shorter context, so $\|\rho'(x)\|<g_A(\gamma_{<x})$ by
-Lemma~\ref{lem:auxrank} applied to the prefix; by induction on the
-context, all contents are below an ordinal $\gamma_\Gamma(\beta)$
-depending only on $\Gamma$ and $\beta$. Now the cases.
-\emph{Small or unwitnessed variables:} the majorant is $\widehat{\rho'(x)}$,
-whose leaves are below $\|\rho'(x)\|<\gamma_\Gamma$.
-\emph{Witnessed variables $F$ as the root:} $\vl(F)\le N$, the majorant
-is $M^\sigma_{t_F}(\rho_F,\tau_F)$, and the induction hypothesis for
-$(t_F,\theta_F)$, with fewer nodes, applies.
-\emph{Constants:} finite or $\lambda_j+2$, $j<N$.
-\emph{Application $f\,a$:} $M_{f\,a}=M_f(\widehat{\sem a\rho'})$ by
-monotone extension, whose leaves are among the leaves of $M_f$; and
-$\vl(f)=\vl(B)\le N$ with $|f|<|t|$. The argument contributes only
-through its canonical majorant as an input, never through its leaves.
-\emph{Abstraction $\lambda x{:}A.\,b$:} the function part is
-$\chi\mapsto\sup\{M^\sigma_b(\rho'[x{:=}a],\tau):a\in\El^{\mathrm f}(\sem A\rho'),\ \hat a\le\chi\}$;
-its leaves are leaves of the majorants $M^\sigma_b(\rho'[x{:=}a],\tau)$,
-which are instances of the induction hypothesis for $b$ in the context
-$\Gamma,x{:}A$ (the bound variable being an unwitnessed extension), with
-$|\Gamma,x{:}A|+|b|<|\Gamma|+|\lambda x{:}A.\,b|$; the bound $B_{b,\theta}(\beta)$
-is uniform in $a$. Inputs $\chi$ are not leaves.
-\emph{Pairs, constructors, and data:} componentwise; a component of a
-term of value level $\le N$ has value level $\le N$, by the clauses for
-$\vl$.
-\emph{Type formers at sort $\Type_i$, $i\le N$:} the majorant is
-$\max(M_A,\sup_aM_{\lambda x.B}(\hat a))+3$, whose leaves are among those
-of $M_A$ and $M_{\lambda x.B}$, both terms of value level $\le i$ and
-smaller than $t$.
-\emph{Propositions, proofs, axioms:} $1$.
-\emph{Eliminators:} in every clause of Definition~\ref{def:hyb} the
-majorant of an eliminator is assembled from the majorants of the step
-terms, applied to canonical majorants of actual data and to
-majorants of recursive calls, together with infima and suprema over
-actual members and branches; by monotone extension all its leaves are
-leaves of the step terms' majorants, and the step terms have value
-level $\le N$ (their type ends in the motive) and are smaller than
-$t$. The recursion along a tree or an accessible part does not
-accumulate: each node's majorant is a value of the step majorant, and
-the induction hypothesis bounds all values of the step majorant at
-once. (This is where the hybrid definition matters: a syntactic
-majorant that added a constant at every node would grow with the
-height of the datum, which is unbounded in $\vec\alpha'$ for a datum of
-higher level.)
-This exhausts the clauses, and $B_{t,\theta}(\beta)$ is the maximum of
-the bounds used, which depend only on $t$, $\Gamma$, $\theta$, and
-$\beta$.
-\end{proof}
-
-The case that the earlier sketch of this lemma missed is the recursion
-case of Lemma~\ref{lem:auxrank}: a term of value level $N$ can use
-higher-level data directly, through a recursor, and not only through
-propositions and applications, and the \emph{value} of such a
-recursion is not bounded by its majorant in the auxiliary structure.
-What bounds the value is the height of the part of the datum that a
-term can inspect, which is indexed by level-$\le N$ types; and what
-bounds the majorant is that it is assembled from step majorants whose
-leaves are bounded uniformly over all inputs.
-
-\begin{lemma}\label{lem:nuset}
-By Lemma~\ref{lem:stab}, for every $(t,\theta)$ with $t$ of value
-level at most $N$: $\nu^{N,0}_{t,\theta}(\beta)$ and
-$\nu^N_{t,\theta}(\alpha)$ are ordinals; $\nu^N_{t,\theta}$ is monotone
-and $\nu^N_{t,\theta}\ge\nu^{N,0}_{t,\theta}$; and $\alpha\mapsto\nu^N_{t,\theta}(\alpha)$
-is $\ZF$-definable from $\lambda_0,\dots,\lambda_{N-1}$, without
-reference to $\lambda_j$ for $j\ge N$.
-\end{lemma}
-\begin{proof}
-For fixed $\beta$ and $\vec\alpha'$ the leaf suprema range over a set:
-$\rho$ over $E_{t,\theta}$, $\tau$ over a set for each $\rho$, and
-$\sigma$ through the set $2^{S_{t,\theta}}$ of restrictions, by
-Lemma~\ref{lem:envset}. So their supremum $\mu_{t,\theta}(\beta,\vec\alpha')$
-is an ordinal, and by Lemma~\ref{lem:stab} the class
-$\{\mu_{t,\theta}(\beta,\vec\alpha'):\vec\alpha'\}$ is bounded, so
-$\nu^{N,0}_{t,\theta}(\beta)$ is an ordinal; then $\nu^N_{t,\theta}(\alpha)$
-is a supremum of $\alpha+1$ ordinals. Monotonicity and the inequality
-hold by construction. For definability, every quantifier in
-Definitions~\ref{def:wenv} and \ref{def:nu} ranges over a set
-constructed by the recursions of Lemmas~\ref{lem:sigmaloc} and
-\ref{lem:envset}, except the one over $\vec\alpha'$, which is a
-supremum of a class function of $\vec\alpha'$ shown bounded by
-Lemma~\ref{lem:stab} and hence a set supremum; the parameters are the
-lower universes and their universe constants.
-\end{proof}
-
-\begin{remark}[why the supremum over $\beta\le\alpha$]
-The inner function $\nu^{N,0}_{t,\theta}$ need not be monotone, and the
-naive argument ``more codes give more environments'' is wrong. An
-$N$-big value $F$ on the domain $U_N^\beta$ is a set function on the
-codes of rank below $\beta$; in the $(N,\alpha,\vec\alpha')$-structure
-for $\alpha>\beta$ its type decodes to functions on the codes of rank
-below $\alpha$, of which $F$ is not one. So the witnessed environments
-at $\beta$ are not among those at $\alpha$. For the same reason
-$\nu^{N,0}$ has no continuity at limits: a value on $U_N^{\alpha_\omega}$
-has no counterpart at any $\alpha_n$, short of the retraction of
-\S\ref{sec:adm}, which the first phase does not have. The closure
-argument below uses monotonicity only, so it is built into
-$\nu^N_{t,\theta}$ by definition, at no cost: the transfer lemma
-delivers a bound of the form $\nu^{N,0}_{t,\theta}(\alpha)$, and
-$\nu^{N,0}\le\nu^N$.
-\end{remark}
-
-Only $N$-big variables are restricted by witnesses, because the transfer
-at level $N$ (Lemma~\ref{lem:transfer}) fixes everything of level below
-$N$.
+\begin{definition}[generated environments]\label{def:wenv}
+A \emph{generation tree} $\theta$ for a context $\Gamma$ assigns to each
+variable $x$ of $\Gamma$ either the mark \emph{free} or a triple
+$(\Gamma_x,t_x,\theta_x)$ of a context, a term in that context, and a
+generation tree for $\Gamma_x$; it is required to be well founded, hence
+is a finite tree, and there are countably many triples
+$(\Gamma,t,\theta)$. For an ordinal $\gamma$ and a truth assignment
+$\sigma$, a \emph{$\gamma$-generated $\sigma$-environment for
+$(\Gamma,\theta)$} is defined by recursion on $\theta$ as an environment
+$\rho$ such that
+\begin{itemize}
+\item $\rho$ is a $\sigma$-environment: $\rho(x)\in\El^{\mathrm f}(\sem A^\sigma\rho)$
+  for every $x{:}A$ in $\Gamma$, the code $\sem A^\sigma\rho$ being
+  computed from the earlier values;
+\item if $x$ is free then $\|\rho(x)\|_{\sem A^\sigma\rho}<\gamma$;
+\item if $x$ has the triple $(\Gamma_x,t_x,\theta_x)$ then
+  $\rho(x)=\sem{t_x}^{\sigma_x}\rho_x$ for some truth assignment $\sigma_x$
+  and some $\gamma$-generated $\sigma_x$-environment $\rho_x$ for
+  $(\Gamma_x,\theta_x)$.
+\end{itemize}
+Each node of the tree may use its own truth assignment. For a fixed
+structure, $(\Gamma,\theta)$, and $\gamma$, the $\gamma$-generated
+environments over all truth assignments form a set, by recursion on
+$\theta$ and on the length of $\Gamma$, using Lemma~\ref{lem:sigmaloc}
+to see that the possible codes $\sem A^\sigma\rho$ form a set.
+\end{definition}
 
 \begin{definition}[closed ordinals]\label{def:closed}
-Given $\lambda_0<\dots<\lambda_{N-1}$, an ordinal $\lambda>\lambda_{N-1}$
-(or $\lambda>\omega$ if $N=0$) is \emph{$N$-closed} if it is a limit,
-$\hartogs(V_{\beta+1})<\lambda$ for every $\beta<\lambda$, and
-$\nu^N_{t,\theta}(\beta)<\lambda$ for every $\beta<\lambda$ and every pair
-$(t,\theta)$ with $t$ of value level at most $N$. Then $\lambda_N$ is the
-least $N$-closed ordinal.
+An ordinal $\lambda>\lambda_{N-1}$ (or $\lambda>\omega$ if $N=0$) is
+\emph{$N$-closed} if for every context $\Gamma$, every term $t$ with
+$\Gamma\vdash t:\Type_N$, every generation tree $\theta$ for $\Gamma$,
+and every $\gamma<\lambda$ there is $\delta<\lambda$ such that
+\[
+\rk\sem t^\sigma\rho<\delta
+\]
+for every sequence $\vec\alpha'$ of higher extents, every truth
+assignment $\sigma$, and every $\gamma$-generated $\sigma$-environment
+$\rho$ for $(\Gamma,\theta)$ in the $(N,\lambda,\vec\alpha')$-structure.
+The extent $\lambda_N$ is the least $N$-closed ordinal, if there is one.
 \end{definition}
 
-\begin{lemma}\label{lem:closedex}
-An $N$-closed ordinal exists, so
-$\lambda_N$ is defined; and $\lambda_N$ has cofinality $\omega$.
+This is a property of $\lambda$ stated in the structure cut at $\lambda$
+itself; it refers to $\lambda_j$ for $j<N$ and to no higher extent,
+since the higher extents are quantified. An $N$-closed ordinal is a
+limit, and $\beta\cdot\omega<\lambda$ for $\beta<\lambda$: apply the
+definition to $X{:}\Type_N\vdash X\to\N:\Type_N$ with $X$ free, whose
+value at a code of rank $\beta$ has rank above $\beta\cdot\omega$ by the
+convention on family domains. It is closed under Hartogs numbers in the
+sense of Example~\ref{ex:set}, by the term of that example. And no
+$N$-closed ordinal is reached by iterating a definable type operator:
+for the operator $t$ of Example~\ref{ex:sat}, the term
+$\Sigma n{:}\N.\,t^n(\N)$ has no parameters, so its rank in the structure
+cut at $\lambda$ is below $\lambda$.
+
+\begin{conjecture}[rank lemma]\label{conj:rank}
+For every $N$, every $(\Gamma,t,\theta)$ with $\Gamma\vdash t:\Type_N$,
+and every ordinal $\gamma$ there is an ordinal $G_{t,\theta}(\gamma)$
+such that $\rk\sem t^\sigma\rho<G_{t,\theta}(\gamma)$ for every cut
+$\alpha>\max(\gamma,\lambda_{N-1})$, every $\vec\alpha'$, every $\sigma$, and
+every $\gamma$-generated $\sigma$-environment $\rho$ for
+$(\Gamma,\theta)$ in the $(N,\alpha,\vec\alpha')$-structure.
+\end{conjecture}
+
+The conjecture says that the supremum of the ranks, taken over
+\emph{all} structures at once, is a set. It is the analogue of
+Lemma~\ref{lem:rank}: there the majorant $f_t$ is a total ordinal
+function, computed in the universe, and $\lambda$ is a closure point of
+it; here $G_{t,\theta}$ is to be a total ordinal function that does not
+depend on the cut. It is discussed in \S\ref{sec:ranklemma}.
+
+\begin{lemma}[existence of closed ordinals]\label{lem:closedex}
+Assume Conjecture~\ref{conj:rank} at level $N$. Then an $N$-closed
+ordinal exists, so $\lambda_N$ is defined.
 \end{lemma}
 \begin{proof}
-Enumerate the countably many pairs as $(t_k,\theta_k)_{k\in\omega}$.
-Put $\alpha_0:=\lambda_{N-1}+1$ (or $\omega+1$) and
-\[
-\alpha_{n+1}:=\sup\bigl(\{\hartogs(V_{\alpha_n+1})\}\cup\{\nu^N_{t_k,\theta_k}(\alpha_n):k\le n\}\bigr)+1,
-\]
-a successor of a finite supremum of ordinals by Lemma~\ref{lem:nuset},
-and $\lambda:=\sup_n\alpha_n$. The sequence is strictly increasing, so
-$\lambda$ is a limit of cofinality $\omega$ above $\lambda_{N-1}$. Let
-$\beta<\lambda$ and $k\in\omega$; choose $n\ge k$ with $\beta<\alpha_n$.
-Then $\nu^N_{t_k,\theta_k}(\beta)\le\nu^N_{t_k,\theta_k}(\alpha_n)<\alpha_{n+1}<\lambda$
-by monotonicity (Lemma~\ref{lem:nuset}), and
-$\hartogs(V_{\beta+1})\le\hartogs(V_{\alpha_n+1})<\alpha_{n+1}<\lambda$.
-So $\lambda$ is $N$-closed, and the least $N$-closed ordinal exists.
-For its cofinality, run the same iteration from
-$\alpha_0:=\lambda_{N-1}+1$ but note that, $\lambda_N$ being $N$-closed
-and a limit, each $\alpha_n<\lambda_N$ by induction; so the resulting
-closed ordinal $\lambda'=\sup_n\alpha_n$ satisfies $\lambda'\le\lambda_N$,
-hence $\lambda'=\lambda_N$ by leastness, and $\lambda_N$ has cofinality
-$\omega$.
+Take $G_{t,\theta}(\gamma)$ least, so that it is monotone in $\gamma$, and
+enumerate the countably many triples as $(\Gamma_k,t_k,\theta_k)$. Put
+$\alpha_0:=\lambda_{N-1}+1$ (or $\omega+1$) and
+$\alpha_{n+1}:=\max\{G_{t_k,\theta_k}(\alpha_n):k\le n\}+1$, and let
+$\lambda:=\sup_n\alpha_n$. Given the $k$-th triple and $\gamma<\lambda$,
+choose $n\ge k$ with $\gamma\le\alpha_n$ and put
+$\delta:=G_{t_k,\theta_k}(\alpha_n)<\alpha_{n+1}<\lambda$. The structure
+cut at $\lambda$ is one of those the conjecture quantifies over, since
+$\lambda>\gamma$, so every $\gamma$-generated environment in it gives
+$\rk\sem{t_k}^\sigma\rho<G_{t_k,\theta_k}(\gamma)\le\delta$. So $\lambda$
+is $N$-closed, and the least $N$-closed ordinal exists.
 \end{proof}
 
-So the sequence $(\lambda_N)$ is defined by recursion on $N$, each
-stage using only the full decoding, the majorants, and the previous
-stages; nothing about admissibility or the retraction is presupposed,
-and nothing about $\lambda_j$ for $j>N$, by Lemma~\ref{lem:nuset}. In
-$\ZFC$ the $\lambda_N$ are strong limit cardinals by
-Example~\ref{ex:set}. The proofs above use of the eliminator clauses of
-Definition~\ref{def:hyb} only that every leaf of an eliminator's
-majorant is a leaf of a step majorant, which the clauses make explicit.
+\subsection{The model}\label{sec:adm}
 
-\begin{example}[the closure functions saturate, and the closure condition is too weak]\label{ex:sat}
-The lemmas of this subsection are correct, but the ordinals they
-produce are not the right ones. In the structure with $U_N$ cut at
-$\alpha$, a bound variable of universe type ranges over codes of rank
-below $\alpha$, and the recursive function of an $\mathsf{Acc}$- or
-$W$-recursion, which is a bound variable of the step term, ranges over
-functions into the cut universe. So the majorant of a rank-raising
-recursion saturates at about $\alpha+3$ whatever the rank of its actual
-value: this is the unsoundness of the majorants in the auxiliary
-structure noted after Lemma~\ref{lem:auxrank}, and it is not harmless.
-It makes $\nu^N_{t,\theta}(\alpha)$ about $\alpha$ plus a small ordinal
-for every $(t,\theta)$, so closure under the $\nu^N_{t,\theta}$ is nearly
-vacuous and $\lambda_N$ is the least ordinal $\eta>\lambda_{N-1}$ closed
-under $\alpha\mapsto\hartogs(V_{\alpha+1})$.
+From here on assume that $\lambda_N$ exists for every $N$, and work in
+the \emph{true structure}, whose extents are the $\lambda_N$. For each
+$N$ it is the $(N,\lambda_N,\vec\lambda_{>N})$-structure, one of those
+quantified over in the definition of $N$-closed.
 
-For that $\lambda_N$ the type-formation lemma is false. For
-$X:\Type_N$ let $\mathrm{WO}(X)$ be the type of well-founded linear
-orders $R$ on $X$, and for $o=(R,\dots):\mathrm{WO}(X)$ define
-$T_o:X\to\Type_N$ by $\mathsf{Acc}$-recursion with motive $\Type_N$,
-\[
-T_o(x):=\bigl(\Sigma y{:}X.\,\Sigma h{:}R\,y\,x.\,T_o(y)\bigr)\to\Prop ,
-\]
-which is well typed at $\Type_N$, and put
-$t(X):=\Sigma o{:}\mathrm{WO}(X).\,\Sigma x{:}X.\,T_o(x):\Type_N$. Then
-$\rk T_o(x)$ is at least the order type of $x$ in $R$, so
-$\rk t(X)\ge\hartogs(\El(X))$; and $\El(T_o(x))$ is a cumulative
-hierarchy of height the order type of $x$, so the ranks $r_n$ of
-$t^n(\N)$ satisfy $r_{n+1}\ge\hartogs(V_{r_n})$. Each $t^n(\N)$ has rank
-below $\eta$ and lies in $U_N$, and $n\mapsto t^n(\N)$ is a term, by
-$\mathsf{ind}^\N$ with motive $\Type_N$. But
-$\Sigma n{:}\N.\,t^n(\N):\Type_N$ has rank $\sup_nr_n=\eta=\lambda_N$ and
-is not in $U_N$. Lemma~\ref{lem:transfer} does not apply to it, since no
-cut below $\lambda_N$ lies above the ranks reached; and no repair of
-that lemma can help, because the defect is in the definition of
-$\lambda_N$.
+\begin{definition}[generated elements]\label{def:adm}
+For each $N$ let $\mathcal A_N$ be the class of all values
+$\sem t^\sigma\rho$, for a term $t$ in a context $\Gamma$, a generation
+tree $\theta$ for $\Gamma$, a truth assignment $\sigma$, and a
+$\gamma$-generated $\sigma$-environment $\rho$ for $(\Gamma,\theta)$ with
+$\gamma<\lambda_N$, the content being the $N$-content. The class of
+\emph{generated elements} is $\mathcal A:=\bigcap_N\mathcal A_N$.
+\end{definition}
 
-In Section~\ref{sec:rank} the same iteration is harmless because the
-majorant $f_t$ is a total ordinal function, computed in the universe
-and not in a cut of it, so that closure under the majorant of
-$n\mapsto t^n(\omega)$ puts $\sup_nf_t^n(\omega)$ below $\lambda$. The
-closure functions here must likewise not saturate.
-\end{example}
+\begin{lemma}\label{lem:termadm}
+(1) If $e\in\El^{\mathrm f}(c)$ for a code $c$ in some universe and
+$\|e\|_c<\lambda_N$, then $e\in\mathcal A_N$. (2) If $\rho$ is a
+$\sigma$-environment for $\Gamma$ with all values in $\mathcal A_N$, then
+$\sem t^\sigma\rho\in\mathcal A_N$ for every term $t$ in $\Gamma$. (3) If
+$c\in U_i$ and $e\in\El^{\mathrm f}(c)$ then $e\in\mathcal A_N$ for every
+$N\ge i$; and every code in every universe is in $\mathcal A$.
+\end{lemma}
+\begin{proof}
+(1) Take the context $X{:}\Type_i,\ x{:}X$ with $c\in U_i$, both
+variables free, $\rho(X):=c$, $\rho(x):=e$, and $t:=x$; the content of
+$c$ as an element of $\code{\U_i}$ is $\rk(c)+1<\lambda_N$ if $i\le N$
+and $0$ otherwise. (2) Graft the generation trees of the values onto
+the variables of $\Gamma$; there are finitely many, so the maximum of
+their bounds $\gamma$ is below $\lambda_N$. (3) By the remark after
+Definition~\ref{def:content}, $\|e\|_c\le\rk(c)<\lambda_i\le\lambda_N$;
+a code in $U_i$ is an element of $\code{\U_i}$ of content $\rk+1<\lambda_N$
+for $N\ge i$ and $0$ for $N<i$.
+\end{proof}
 
-\begin{remark}[the repair, not carried out]\label{rem:nosat}
-Take the supremum over the cut as well. For an ordinal $\gamma$ let
-$\bar\nu^N_{t,\theta}(\gamma)$ be the supremum, over \emph{all} cuts
-$\alpha\ge\gamma$, all $\vec\alpha'$, all $\sigma$, and all witnessed
-$(N,\alpha,\vec\alpha',\sigma)$-environments for $(t,\theta)$, of the
-$\gamma$-leaves $\ell_\gamma(M^\sigma_t(\rho,\tau))$ of
-Definition~\ref{def:relmaj}, made monotone in $\gamma$ as before, and
-let $\lambda_N$ be the least limit ordinal above $\lambda_{N-1}$ closed
-under Hartogs numbers and under every $\bar\nu^N_{t,\theta}$. The
-$\gamma$-leaves are needed because the full leaf supremum of
-$M_{\lambda X{:}\Type_N.X}$ is the cut itself. In a cut above every rank
-reached the majorants are sound and do not saturate, so
-$\bar\nu^N$ of the term $\Sigma n{:}\N.\,t^n(\N)$ is at least $\eta$ and
-$\lambda_N>\eta$, as it must be; and no term can diagonalize against
-$\lambda_N$, whose defining sequence uses the closure functions of all
-terms at once.
+So only the elements of types that are not small at level $N$ are
+restricted by $\mathcal A_N$: a function $\Type_N\to\Type_N$ must be the
+value of a term whose parameters have content below $\lambda_N$, while
+every function between two types in $U_N$ is its own parameter.
 
-Two consequences. First, the definition now needs a \emph{cut-stability
-lemma}: for fixed $(t,\theta)$ and $\gamma$ the $\gamma$-leaves are
-bounded as the cut grows. We expect this to hold for the reason
-Lemma~\ref{lem:stab} holds in the higher extents: witnessed environments
-are small whatever the cut, a bound variable summed under
-$\hat a\le\chi$ with $\chi$ hereditarily below $\gamma$ takes values
-below $\gamma$, and a term applies its function arguments only at
-values it has reached, so nothing at small inputs depends on the
-cut except through truth values, over which the supremum is already
-taken. The proof should be a cut-free form of Lemma~\ref{lem:auxrank},
-in which the bound on a function majorant is a function of the bounds
-on its inputs; it has not been written. Second, the model's own
-structure, with $U_N$ cut at $\lambda_N$ and the true higher universes,
-is then \emph{one of the structures over which $\bar\nu^N$ takes its
-supremum}, and an admissible environment with its witnesses is a
-witnessed environment of it, since
-$M^{\mathcal A}_{t_F}\le M_{t_F}$ and $\lhd$ is upward closed. So for a
-family $\lambda x.B$ over a code $c\in U_N$ and
-$\gamma>\rk(c)\cdot\omega$,
-\[
-\sup_{a\in\El(c)}\rk\sem B\rho[x{:=}a]\ \le\ \ell_\gamma\bigl(M_{\lambda x.B}(\rho,\tau)\bigr)\ \le\ \bar\nu^N_{\lambda x.B,\theta}(\gamma)\ <\ \lambda_N
-\]
-directly, by soundness of the majorants in the model and closure.
-No transfer between structures is needed, hence no retraction, no
-bounded support, and no comparison of majorants across cuts: all of
-\S\ref{sec:transfer}, Definition~\ref{def:retr}, the support clause of
-Definition~\ref{def:adm}, Lemma~\ref{lem:bspres}, and
-Remark~\ref{rem:gap} would be deleted, admissibility would mean
-hereditarily majorized by a term majorant and nothing else, and the
-element $H$ of Example~\ref{ex:probe} would simply be admissible, which
-does no harm once nothing has to commute with a retraction. This is
-the shape of the argument of Section~\ref{sec:model}: a rank lemma
-proved in the universe, and a model cut out at a closure point. The
-whole weight of the construction would then rest on the cut-stability
-lemma.
-\end{remark}
+The model is a partial equivalence relation on the full decoding. It
+cannot simply be the generated elements with equality, for two reasons.
+A generated function is defined on the whole full decoding of its
+domain, non-generated arguments included, and two functions that agree
+on the generated arguments must be equal in the model for the rule
+$\xi$ to hold. And a parameter of bounded content may distinguish two
+such functions, so not every generated element respects that equality;
+those that do not are excluded.
 
-\subsection{The retraction, admissible elements, and the model}\label{sec:adm}
-
-\begin{definition}[retraction at level $N$]\label{def:retr}
-From here on all the extents $\lambda_j$ are fixed by \S\ref{sec:closure};
-the retraction plays no part in determining them. For a level $N$ and
-an ordinal $\alpha$ define by recursion on codes maps $r^N_\alpha$ from
-codes and elements of the model to those of the
-$(N,\alpha,\vec\lambda_{>N})$-model, whose higher universes are the true
-ones, and $e^N_\alpha$ in the other direction:
+\begin{definition}[the partial equivalence relation]\label{def:per}
+By recursion on the ranks of codes define simultaneously when two codes
+are \emph{equivalent}, $c\approx c'$, and, for equivalent codes, when
+$e\in\El^{\mathrm f}(c)$ and $e'\in\El^{\mathrm f}(c')$ are
+\emph{related}, $e\sim_{c,c'}e'$:
 \begin{itemize}
-\item both are the identity on constants and on every code and element
-  of level other than $N$ that has no component at level $N$; on a
-  universe element $X\in U_N$, $r^N_\alpha X:=X$ if $\rk X<\alpha$ and
-  $\bot$ otherwise, and $e^N_\alpha$ is the inclusion;
-\item $r^N_\alpha\code\Pi(c,G):=\code\Pi(r^N_\alpha c,\ a'\mapsto r^N_\alpha G(e^N_\alpha a'))$
-  and likewise for $\Sigma$ and $W$; for quotients
-  $r^N_\alpha\code/(c,R):=\code/(r^N_\alpha c,\ R')$ with
-  $R':=\{(r^N_\alpha x,r^N_\alpha y):(x,y)\in R\}$, the image of $R$;
-  $e^N_\alpha$ on codes extends a family by $\bot$ off the image of
-  $e^N_\alpha$ and pulls a relation back, $R'':=\{(x,y):(r^N_\alpha x,r^N_\alpha y)\in R'\}$;
-\item $r^N_\alpha(F)(a'):=r^N_\alpha\bigl(F(e^N_\alpha a')\bigr)$ for a function
-  $F$ on $\El^{\mathrm f}(c)$ and $a'\in\El^{\mathrm f}(r^N_\alpha c)$ in the
-  $(N,\alpha)$-model; $e^N_\alpha(F')(a):=e^N_\alpha\bigl(F'(r^N_\alpha a)\bigr)$;
-  pairs and trees componentwise, $r^N_\alpha\langle a,b\rangle:=\langle r^N_\alpha a,r^N_\alpha b\rangle$
-  and $r^N_\alpha(\mathsf{tree}\,a\,d):=\mathsf{tree}\,(r^N_\alpha a)\,(b'\mapsto r^N_\alpha d(e^N_\alpha b'))$,
-  with $e^N_\alpha$ likewise; classes by $r^N_\alpha[x]_R:=[r^N_\alpha x]_{R'}$
-  and $e^N_\alpha[x']_{R'}:=[e^N_\alpha x']_R$; truth values unchanged.
+\item a constant is equivalent to itself only, and its elements are
+  related when equal; truth values are related when equal;
+\item $\code{\U_i}\approx\code{\U_i}$, and $X\sim X'$ for $X,X'\in U_i$
+  iff $X\approx X'$;
+\item $\code Q(c,G)\approx\code Q(c',G')$ for $Q$ one of $\Pi,\Sigma,W$ iff
+  $c\approx c'$ and $G(a)\approx G'(a')$ whenever $a\sim_{c,c'}a'$;
+  $\code/(c,R)\approx\code/(c',R')$ iff $c\approx c'$ and
+  $R(a_1,a_2)\leftrightarrow R'(a'_1,a'_2)$ whenever
+  $a_1\sim a'_1$ and $a_2\sim a'_2$;
+\item $f\sim f'$ at $\code\Pi(c,G)\approx\code\Pi(c',G')$ iff
+  $f,f'\in\mathcal A$ and $f(a)\sim_{G(a),G'(a')}f'(a')$ whenever
+  $a\sim_{c,c'}a'$;
+\item pairs are related componentwise; trees are related when their
+  roots are and their subtrees at related children are, by recursion on
+  the trees; classes are related when they have related members.
 \end{itemize}
-These clauses define $r^N_\alpha$ and $e^N_\alpha$ as set maps by
-recursion on codes, with no side condition, once $e^N_\alpha$ on a class
-is taken to be $\emptyset$ when $[e^N_\alpha x']_R$ depends on the
-representative $x'$. So there is no circularity with
-Definition~\ref{def:adm}, where bounded support is defined from these
-maps. What does need a condition is that $r^N_\alpha$ maps
-$\El^{\mathrm f}(c)$ into $\El^{\mathrm f}(r^N_\alpha c)$ and that
-$r^N_\alpha e^N_\alpha=\mathrm{id}$; this is proved by induction on codes
-for the admissible codes and elements of \S\ref{sec:adm}, the step at a
-code using bounded support only of its proper constituents. For a pair
-$\langle a,b\rangle$ with $b\in\El^{\mathrm f}(G(a))$, the retracted
-second component must lie in $\El^{\mathrm f}(r^N_\alpha G(e^N_\alpha r^N_\alpha a))$,
-the fibre of the retracted code at $r^N_\alpha a$, and $e^N_\alpha r^N_\alpha a$
-need not be $a$; the two fibres agree when $r^N_\alpha G(a)$ depends on
-$a$ only through $r^N_\alpha a$, which is the bounded support of the
-family $G$ at $\alpha$ above its support. The same applies to the
-subtree function of a tree. For a class, $r^N_\alpha$ is well defined
-by construction of $R'$, and $e^N_\alpha$ is well defined when
-$x\sim_R e^N_\alpha r^N_\alpha x$ for all $x$; this holds when the
-relation $R$, as a function into $\Prop$, has bounded support at
-$\alpha$ above its support, since then $R(x,y)=R(e^N_\alpha r^N_\alpha x,y)$
-for all $y$, and $\sim_R$ is reflexive. On codes of rank below
-$\alpha$ and their elements, $r^N_\alpha$ and $e^N_\alpha$ are the
-identity, by induction on codes, and no condition is needed.
-So $r^N_\alpha$ acts on a code or element of level above $N$ only by
-restricting, through its families and arguments, everything at level
-$N$ to rank below $\alpha$; it never collapses a higher-level object.
-Then $r^N_\alpha e^N_\alpha=\mathrm{id}$; $r^N_\alpha$ is the identity on
-elements of hereditary rank below $\alpha$ and on elements of level
-below $N$; $\widehat{r^N_\alpha a}\le\hat a$; and the retractions are
-compatible, $r^N_\alpha=r^N_\alpha\circ r^{N'}_{\alpha'}$ for $N\le N'$,
-which one proves by a simultaneous induction on codes for $r$ and $e$,
-using that both extend by $\bot$ uniformly, so that
-$e^{N'}e^{N}=e^{N}$ on values.
-\end{definition}
-
-\begin{example}[an element with unbounded support]\label{ex:probe}
-Let $H:(\Type_0\to\Type_0)\to\N$ be $H(G):=0$ if $G$ is the identity on
-all of $U_0$ and $1$ otherwise. $H$ is majorized by the constant $2$, the
-majorant of $\lambda G.\,1$, so without a support condition it would be
-admissible. But for every $\alpha<\lambda_0$ and every extension
-$e^i_\alpha$ of $\alpha$-elements to $\lambda$-elements,
-$e^i_\alpha r^i_\alpha(\mathrm{id})\ne\mathrm{id}$, so $H(e^i_\alpha r^i_\alpha(\mathrm{id}))=1\ne H(\mathrm{id})$
-and no retraction commutes with the application $H(\mathrm{id})$. A
-term cannot behave like $H$: $\sem{\lambda G.\,b}\rho$ applies $G$ only
-to arguments that $b$ builds, of rank bounded by the majorants. This is
-the bounded-support condition of Definition~\ref{def:adm}, and the
-seventh correction.
-\end{example}
-
-\begin{definition}[relative majorants and $\alpha$-leaves]\label{def:relmaj}
-For a class $\mathcal X$ of sets, the \emph{$\mathcal X$-majorant}
-$M^{\mathcal X}_t(\rho,\tau)$ is defined by the clauses of
-Definition~\ref{def:hyb} with one change: the abstraction clause sums
-only over arguments in $\mathcal X$,
+Write $\sim_c$ for $\sim_{c,c}$. The \emph{model} decodes a code $c$ with
+$c\approx c$ as
 \[
-M^{\mathcal X}_{\lambda x.b}(\rho,\tau)(\chi):=\sup\{M^{\mathcal X}_b(\rho[x{:=}a],\tau):a\in\El^{\mathrm f}(\sem A\rho)\cap\mathcal X,\ \hat a\le\chi\}.
+\El(c):=\{e\in\El^{\mathrm f}(c):e\sim_ce\},
 \]
-So $M^{\mathcal X}_t\le M_t$ pointwise, $M^{\mathcal X}_t$ is monotone in
-$\mathcal X$, and $M^V_t=M_t$. For an ordinal $\alpha$ the
-\emph{$\alpha$-leaves} of a majorant $m$ are: its ordinal part; the
-$\alpha$-leaves of the components of its pair part; and the
-$\alpha$-leaves of $m_{\mathrm f}(\chi)$ for those $\chi$ in the domain
-of the function part that are hereditarily below $\alpha$. Their
-supremum is $\ell_\alpha(m)$, and $\ell_\alpha(m)\le\ell(m)$, the leaf
-supremum.
+with $\sim_c$ as its equality.
 \end{definition}
 
-The $\alpha$-leaves are what the type-formation lemma needs, and the
-distinction is not cosmetic. In the model, $M_{\lambda X{:}\Type_i.X}$ has
-the value $\sup\{\rk X+1:X\in U_i,\ \hat X\le\chi\}=\lambda_i$ at every
-input $\chi\ge\lambda_i$ in its domain, so its leaf supremum is
-$\lambda_i$; in the structure with $U_i$ cut at $\alpha$ the same
-majorant has leaf supremum $\alpha$. No retraction can make the two
-leaf suprema equal, and an earlier version of Lemma~\ref{lem:transfer}
-claimed exactly that. What is true is that the two agree at inputs
-hereditarily below $\alpha$, and a type family $\lambda x.B$ over a
-code $c\in U_i$ is only ever applied to inputs $\hat a$ with
-$a\in\El^{\mathrm f}(c)\subseteq V_{\rk(c)\cdot\omega}$, hereditarily
-below any $\alpha>\rk(c)\cdot\omega$.
+By induction on codes, $\approx$ and $\sim$ are symmetric and
+transitive, $a\sim a'$ implies $a\sim a$, and $\El(c)\subseteq\mathcal A$:
+at $\Pi$ by definition, and at the other codes because a pair, a tree,
+or a class of generated elements is the value of the corresponding
+constructor term, a relation $R$ being a parameter of content $0$, and
+because every code is generated (Lemma~\ref{lem:termadm}).
 
-\begin{definition}[admissibility]\label{def:adm}
-An environment $\rho$ is \emph{admissible} if its small values are
-arbitrary and its big values are admissible. An element $f$ of a $\Pi$-code $p$ has \emph{bounded support} if for
-every level $N\le\kappa(p)$ and every majorant $\chi$ there is an ordinal
-$\beta^{(N)}_f(\chi)<\lambda_N$ such that for all $\alpha\ge\beta^{(N)}_f(\chi)$
-and all arguments $G,G'$ with $\hat G,\hat G'\le\chi$: if
-$r^N_\alpha G=r^N_\alpha G'$ then $r^N_\alpha f(G)=r^N_\alpha f(G')$; and,
-recursively, the values $f(G)$ for $\hat G\le\chi$ have bounded support
-with support functions bounded by a common function
-$\beta^{(N)}_{f,\chi}(\cdot)<\lambda_N$, uniformly in $G$. Elements of
-other codes have bounded support if their components do: the
-components of a pair or a tree, the relation and base of a quotient
-code, the families of a code, and some member of a class.
-Three features are deliberate. Equality is demanded only \emph{after
-retraction}: a function into codes, such as $x\mapsto\code\Sigma(X,x)$,
-has no support in the literal sense, but is continuous in this one. The
-condition is imposed at every level up to the value level $\kappa(p)$:
-at $N=\kappa(p)$ it says that an element of $\Type_1\to\Type_0$ may
-depend on its argument only through the argument's shadow below some
-rank $<\lambda_0$; at $N<\kappa(p)$ it says that the level-$N$ shadow of
-$f$'s output depends only on the level-$N$ shadow of its argument,
-which prevents a non-term $F:\Type_N\to\Type_{N+1}$ from encoding
-high-rank information about its argument in a low-rank part of its
-output, where a level-$N$ function could read it. And the conditions at
-$N>\kappa(p)$ are omitted because they follow from the one at
-$N=\kappa(p)$ by compatibility of the retractions. Terms behave this
-way at every level, since a body of value level $N$ can use a
-higher-level argument only through propositions, through admissible
-functions applied to it, or through a recursor along its actual
-level-$\le N$ shape, as in Lemma~\ref{lem:stab}. The class $\mathcal A$ of \emph{admissible elements} is
-the least class such that $f\in\mathcal A$ iff $f$ has bounded support
-and $f\lhd M^{\mathcal A}_t(\rho,\tau)$, the $\mathcal A$-majorant of
-Definition~\ref{def:relmaj}, for some term $t$ whose type has syntactic
-value level at most $\kappa(p)$, as Definition~\ref{def:wtree} requires
-of witnesses, some admissible
-environment $\rho$ with values in decodings of codes in $\bigcup_iU_i$,
-and $\tau$ the majorants witnessing the admissibility of $\rho$'s big
-values. (Bounded support was added after the attempted proof of
-Lemma~\ref{lem:transfer}; see Example~\ref{ex:probe}.) The \emph{model} decodes $c$ by
-\[
-\El(c):=\{f{\restriction}\El(c'):\ f\in\El^{\mathrm f}(c)\cap\mathcal A\}\quad\text{for }c=\code\Pi(c',G),
-\]
-and by $\El^{\mathrm f}(c)$ otherwise, with the components of pairs, trees,
-and classes restricted likewise.
+\begin{definition}[truth in the model]\label{def:truth}
+The truth assignment $\sigma^*$ is defined by recursion on the size of
+the formed proposition, with $c:=\sem A^{\sigma^*}\rho$:
+\begin{itemize}
+\item $\sigma^*(\Pi x{:}A.P,\rho):=\top$ iff
+  $\sem P^{\sigma^*}\rho[x{:=}a]=\top$ for every $a\in\El(c)$;
+\item $\sigma^*(\|A\|,\rho):=\top$ iff $\El(c)\ne\emptyset$;
+\item $\sigma^*(a=_Aa',\rho):=\top$ iff
+  $\sem a^{\sigma^*}\rho\sim_c\sem{a'}^{\sigma^*}\rho$;
+\item $\sigma^*(\mathsf{Acc}_R\,x,\rho):=\top$ iff $\rho(x)\in\El(c)$, for
+  $c$ the code of the carrier, and $\rho(x)$ lies in the accessible part
+  of the relation $\sem{R\,y\,x}^{\sigma^*}\rho[y,x]=\top$ on $\El(c)$.
+\end{itemize}
+The recursion is well founded because evaluating $A$, $P$, $a$, $a'$,
+and $R\,y\,x$ consults $\sigma^*$ only at formed propositions that are
+subterms of them (Lemma~\ref{lem:sigmaloc}). It is not circular with
+Definition~\ref{def:adm}, where all truth assignments are quantified.
+The \emph{interpretation} of a term is $\sem t\rho:=\sem t^{\sigma^*}\rho$,
+and the environments of the model for $\Gamma$ are the
+$\sigma^*$-environments $\rho$ with $\rho\sim\rho$, that is
+$\rho(x)\in\El(\sem A\rho)$ for every $x{:}A$; two environments are
+related, $\rho\sim\rho'$, when their values are.
 \end{definition}
-
-\begin{remark}[free versus bound variables]\label{rem:freebound}
-The choice of environments is embedded in the interpretation at two
-places, which play different roles. A context variable $x{:}A$ ranges
-over $\El(\sem A\rho)$, the model's decoding, so extending a context
-adds an admissible value: the invariant of the soundness induction is
-that free variables are admissible. A bound variable inside an
-abstraction is never required to be admissible: the majorant clause
-sums $M_b$ over all $a\in\El^{\mathrm f}(\sem A\rho)$, but only over those
-with $\hat a\le\chi$, so the sum is controlled by the input majorant
-rather than by admissibility. The full abstraction $\sem{\lambda x.b}\rho$
-on all of $\El^{\mathrm f}(\sem A\rho)$ is used for one purpose only: its
-restriction to $\El(\sem A\rho)$ is the model's element, and its
-admissibility (Lemma~\ref{lem:termadm}) is what makes that restriction a
-model element. Likewise the family $G$ of a code $\code\Sigma(c,G)$ is
-the full family, and the rank of the code sums over all of $\El^{\mathrm f}(c)$;
-Lemma~\ref{lem:tyform} bounds this sum through $M_{\lambda x.B}$ at
-$\sigma'_c$, which majorizes every element of $\El^{\mathrm f}(c)$,
-admissible or not. The level structure is what keeps the two roles from
-colliding: if $A$ is small, $\El^{\mathrm f}(\sem A\rho)$ has only elements
-of rank below $\lambda_0$, all admissible, so nothing non-admissible is
-ever summed; if $A$ is big, the $\Sigma$ lives at the sort level of $A$
-or above, and a sum over non-admissible elements, such as over a climbing
-$F$ in $\lambda F.\,\Sigma n{:}\N.\,F^n(\N)$, reaches at most $\lambda_0$,
-which is harmless below $\lambda_1$. The one place where such a sum could
-hurt, a $\Sigma$ at $\Type_0$, is the place where the domain is small and
-there is nothing to sum.
-\end{remark}
-
-The operator defining $\mathcal A$ is monotone: a larger $\mathcal A$
-admits more environments and, by Definition~\ref{def:relmaj}, larger
-majorants $M^{\mathcal A}_t$, and $\lhd$ is upward closed; so the least
-fixed point exists. Among elements with bounded support it is downward closed under
-majorization: if $g\lhd m\le M^{\mathcal A}_t(\rho,\tau)$ and $g$ has bounded support
-then $g\in\mathcal A$; majorization alone does not suffice
-(Example~\ref{ex:probe}). Every function on a small domain has bounded
-support, since its arguments are fixed by $r_\alpha$ once $\alpha$
-exceeds their ranks, and is admissible with the constant term
-$\lambda x.\,p$ and a small parameter $p$ of sufficient rank as witness;
-so small $\Pi$-codes decode fully. A small-valued function on a big
-domain need not have bounded support.
-Restricting to admissible arguments makes extensional equality of the
-model coincide with set equality, since the model's quantifiers range
-over $\El$.
-
-\begin{lemma}[terms are admissible]\label{lem:termadm}
-If $\Gamma\vdash t:T$ and $\rho$ is an admissible environment for
-$\Gamma$ then $\sem t\rho\in\mathcal A$, with witness $(t,\rho,\tau)$.
-\end{lemma}
-\begin{proof}
-$\sem t\rho\lhd M^{\mathcal A}_t(\rho,\tau)$ is the majorization clause
-of $\mathcal A$; it holds by induction on $t$ because the model's
-abstractions are restricted to admissible arguments, over which the
-$\mathcal A$-majorant sums, and because the values of subterms lie in
-the decodings of their types, by the induction on derivations of which
-this lemma and Lemma~\ref{lem:tyform} are the two halves.
-Bounded support is proved simultaneously with the commutation of
-Lemma~\ref{lem:transfer}, by induction on $t$: the commutation
-$r^N_\alpha\sem b\rho[x{:=}G]=\sem b^{\alpha}(r^N_\alpha\rho[x{:=}r^N_\alpha G])$,
-valid for every level $N\le\kappa$ and every $\alpha$ above the leaves of $M_b(\rho[x{:=}G],\tau)$, the
-reached ranks, and the supports of $\rho$'s elements at the reached
-majorants, shows that $r^N_\alpha\sem{\lambda x.b}\rho(G)$ depends on $G$
-only through $r^N_\alpha G$; and for $\hat G\le\chi$ these three bounds are
-below $\lambda_N$, the first by closure, the second because reached
-codes are majorized, the third by the hypothesis on $\rho$. So
-$\beta(\chi)$ exists. The other constructs reduce to this one.
-\end{proof}
-
-So every rule that forms a \emph{term} is sound for free; soundness of
-the rules that form \emph{types} is the one substantive lemma.
 
 \begin{lemma}[type formation]\label{lem:tyform}
-Let $\Gamma\vdash A:\Type_i$ and $\Gamma,x{:}A\vdash B:\Type_i$, and let
-$\rho$ be admissible. Then $\sem{\Sigma x{:}A.B}\rho$, $\sem{\Pi x{:}A.B}\rho$,
-$\sem{Wx{:}A.B}\rho\in U_i$, and likewise for quotients and for type
-formers at $\Prop$.
+Let $\rho$ be an environment of the model for $\Gamma$, and suppose
+$c:=\sem A\rho\in U_N$ and $\Gamma,x{:}A\vdash B:\Type_N$. Then there is
+$\delta<\lambda_N$ with $\rk\sem B\rho[x{:=}a]<\delta$ for every
+$a\in\El^{\mathrm f}(c)$, and the codes $\sem{\Pi x{:}A.B}\rho$,
+$\sem{\Sigma x{:}A.B}\rho$, $\sem{Wx{:}A.B}\rho$ lie in $U_N$; likewise for
+quotients.
 \end{lemma}
 \begin{proof}
-By the induction on derivations, $c:=\sem A\rho\in U_i$, and, for every
-type-valued proper subterm $t'$ of $B$ standing under binders
-$\vec y{:}\vec C$ of $B$ (including $x$), the term
-$\Sigma x{:}A.\,\Sigma\vec y{:}\vec C.\,t'$ is a smaller derivable type
-at $\Type_i$; so its code lies in $U_i$ and the ranks of the values of
-$t'$ under all admissible extensions of $\rho$ are bounded by an
-ordinal $\delta_{t'}<\lambda_i$. Let $\delta<\lambda_i$ bound all of
-these, together with $\rk(c)\cdot\omega$, the ranks of the level-$i$
-values of $\rho$, and the level-$i$ supports $\beta^{(i)}_{\rho(F)}(\chi)$
-of $\rho$'s $i$-big elements at the majorants $\chi$ reached, which are
-below $\lambda_i$ by bounded support. Apply Lemma~\ref{lem:transfer} to
-$(\lambda x.B,\rho,\tau)$ with $\alpha:=\delta+1$: with $\theta$ the
-witness tree of $\rho$'s big variables and $\sigma$ the actual truth of
-the model, $(r^i_\alpha\rho,\tau)$ is a witnessed
-$(i,\alpha,\vec\lambda_{>i},\sigma)$-environment for $(\lambda x.B,\theta)$
-and
-\[
-\ell_\alpha\bigl(M^{\mathcal A}_{\lambda x.B}(\rho,\tau)\bigr)\le
-\ell\bigl(M_{\lambda x.B}(r^i_\alpha\rho,\tau)\bigr)\le
-\nu^{i,0}_{\lambda x.B,\theta}(\alpha)\le\nu^i_{\lambda x.B,\theta}(\alpha)<\lambda_i,
-\]
-the second inequality because the higher extents $\vec\lambda_{>i}$ are
-one choice of $\vec\alpha'$ in Definition~\ref{def:nu}, and the last by
-closure. Now for $a\in\El(c)$, the family value
-$G(a)=\sem B\rho[x{:=}a]$ is majorized by
-$M^{\mathcal A}_B(\rho[x{:=}a],\tau)\le M^{\mathcal A}_{\lambda x.B}(\rho,\tau)(\hat a)$
-by Lemma~\ref{lem:termadm}, so $\rk G(a)$ is below the ordinal part of
-that value; and $\hat a$ is hereditarily below $\rk(c)\cdot\omega<\alpha$,
-so that ordinal part is an $\alpha$-leaf. Hence
-$\sup_{a\in\El(c)}\rk G(a)<\lambda_i$, uniformly, and the code
-$\code Q(c,G{\restriction}\El(c))$, a pair of $c$ and a family whose
-values on non-admissible arguments are the same terms' values and are
-bounded in the same way, has rank below the limit $\lambda_i$.
-Propositional formers produce truth values, which are in $U_0$.
+The values of $\rho$ lie in $\El(\cdot)\subseteq\mathcal A\subseteq\mathcal A_N$,
+so each is $\sem{t_y}^{\sigma_y}\rho_y$ for a $\gamma_y$-generated
+environment with $\gamma_y<\lambda_N$. Let $\theta$ be the generation
+tree for $\Gamma,x{:}A$ that gives each $y$ of $\Gamma$ its triple and
+marks $x$ free, and let
+$\gamma:=\max(\{\gamma_y\}\cup\{\rk(c)+1\})<\lambda_N$. For every
+$a\in\El^{\mathrm f}(c)$ we have $\|a\|_c\le\rk(c)<\gamma$, so
+$\rho[x{:=}a]$ is a $\gamma$-generated $\sigma^*$-environment for
+$(\Gamma,x{:}A;\theta)$ in the true structure, which is the
+$(N,\lambda_N,\vec\lambda_{>N})$-structure. Since $\lambda_N$ is
+$N$-closed, there is $\delta<\lambda_N$, depending only on
+$(B,\theta,\gamma)$, with $\rk\sem B\rho[x{:=}a]<\delta$ for all such $a$.
+The code $\code Q(c,G)$ is a pair of $c$ and the family $G$, which is
+$a\mapsto\sem B\rho[x{:=}a]$ on $\El^{\mathrm f}(c)$ and $\bot$ elsewhere
+on $V_{\rk(c)\cdot\omega}$; so its rank is below
+$\max(\rk(c)\cdot\omega,\delta)+\omega<\lambda_N$.
 \end{proof}
 
-\begin{theorem}[conjectural]\label{thm:upper}
-The structure of Definition~\ref{def:adm} is a model of $\CIC_\omega+\EM$,
-so $\ZF\vdash\Con(\CIC_\omega+\EM)$; relativised to $\ZFh_{n+1}$ with
-$U_i$ the given universes it gives $\ZFh_{n+1}\vdash\Con(\CIC_{n+2}+\EM)$.
+The proof uses nothing about the model except that its environments
+are generated; all the content is in the word ``closed''. Note that the
+bound is over the whole full decoding of $c$, not only over $\El(c)$.
+
+\begin{lemma}[soundness]\label{lem:sound}
+Let $\rho\sim\rho'$ be related environments of the model for $\Gamma$.
+\begin{enumerate}
+\item If $\Gamma\vdash A:\Type_i$ then $\sem A\rho\approx\sem A\rho'$ and
+  $\sem A\rho\in U_i$; if $\Gamma\vdash P:\Prop$ then $\sem P\rho=\sem P\rho'$
+  is a truth value.
+\item If $\Gamma\vdash t:A$ then $\sem t\rho\sim\sem t\rho'$ at
+  $\sem A\rho\approx\sem A\rho'$; in particular $\sem t\rho\in\El(\sem A\rho)$.
+\item If $\Gamma\vdash t\equiv t':A$ then $\sem t\rho\sim\sem{t'}\rho'$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+By simultaneous induction on derivations; this is the standard argument
+for a model in partial equivalence relations over Werner's evaluation,
+and we indicate the cases that use the present definitions.
+\emph{Abstraction:} $\sem{\lambda x.b}\rho$ is generated by
+Lemma~\ref{lem:termadm}(2), the values of $\rho$ being in
+$\El(\cdot)\subseteq\mathcal A$; and it is related to
+$\sem{\lambda x.b}\rho'$ because $\rho[x{:=}a]\sim\rho'[x{:=}a']$ for
+$a\sim a'$. The rule $\xi$ and function extensionality hold because
+relatedness at $\Pi$ tests related arguments only. \emph{Application:}
+by the definition of $\sim$ at $\Pi$. \emph{Type formers:} the codes are
+equivalent by the induction hypothesis for the family under related
+arguments, and lie in $U_i$ by Lemma~\ref{lem:tyform} at level $i$, the
+premises $A:\Type_i$ and $B:\Type_i$ being available by cumulativity;
+formed propositions are truth values, which lie in $U_0$, so the
+impredicative $\Pi$ needs no bound. \emph{Propositions:} $\sigma^*$ is
+invariant under related environments by induction on the proposition,
+since it quantifies over $\El$ and tests $\sim$. \emph{Conversion and
+reflection:} a proof of $a=_Aa'$ has the value $\star$, an element of the
+truth value $\sem{a=_Aa'}\rho$, which is therefore $\top$; so
+$\sem a\rho\sim\sem{a'}\rho$, and $\sim\sem{a'}\rho'$ by transitivity.
+\emph{Eliminators:} the computation rules hold by the set-theoretic
+recursions, and relatedness of the results follows by induction on the
+datum. For $\mathsf{ind}^{\mathsf{Acc}}$ the domain $D$ of
+Definition~\ref{def:fulleval} is, under $\sigma^*$, the accessible part
+of $\El(c)$, on which the relation is well founded; in the computation
+rule the two sides apply $\sem f\rho(x)$ to the function
+$\mathrm{rec}_x$ and to the value of $\lambda y\,r.\,\mathsf{ind}^{\mathsf{Acc}}_Cf\,y\,(h\,y\,r)$,
+which agree on $\El(c)$ and are therefore related, though not equal.
+\emph{Quotients:} $\mathsf{ax}_/$ holds because classes with related
+members are related, and $\mathsf{ind}^/$ is well defined on related
+classes by its premise $h$. \emph{Excluded middle, propositional
+extensionality, proof irrelevance:} $\Prop$ has the two elements
+$\bot,\top$, related only to themselves, and every proof is $\star$.
+\emph{Cumulativity:} $U_i\subseteq U_{i+1}$ literally.
+\end{proof}
+
+\begin{theorem}\label{thm:upper}
+Assume Conjecture~\ref{conj:rank}. Then the structure of
+Definitions~\ref{def:per} and \ref{def:truth} is a model of
+$\CIC_\omega+\EM$ in which $\bot$ is empty. So if $\ZF$ proves
+Conjecture~\ref{conj:rank} then $\ZF\vdash\Con(\CIC_\omega+\EM)$; and
+relativised to $\ZFh_{n+1}$, with the $U_i$ the given universes, the same
+argument would give $\ZFh_{n+1}\vdash\Con(\CIC_{n+2}+\EM)$.
 \end{theorem}
-\begin{proof}[Proof sketch]
-Types are codes in the right universe by Lemma~\ref{lem:tyform}; terms
-are admissible by Lemma~\ref{lem:termadm} and lie in the decodings of
-their types because the full decoding is Werner's model of the term
-rules; the computation rules, $\eta$, $\beta$, reflection, and proof
-irrelevance hold because evaluation is set-theoretic and admissibility
-is a property of the resulting set; cumulativity is literal; $\EM$ holds
-since $\Prop$ has two elements; and $\bot$ decodes to $\emptyset$.
-\end{proof}
-
-\subsection{The transfer step}\label{sec:transfer}
-
-Lemma~\ref{lem:tyform} needs to pass from an environment of the model,
-whose universes have extent $\lambda_i$, to an environment of the
-$\alpha$-model for some $\alpha<\lambda_i$. Values are not independent of
-the extent, and a $\lambda$-model element of a big type, a function on
-functions $U_0^{\lambda}\to U_0^{\lambda}$, is not an element of any
-$\alpha$-decoding; so the passage must be the retraction of
-Definition~\ref{def:retr}, and Example~\ref{ex:probe} shows that
-majorization alone does not make it commute with evaluation.
-
-\begin{lemma}[transfer]\label{lem:transfer}
-Let $\rho$ be an admissible $\sigma$-environment of the model for
-$\Gamma$, $t$ a term of value level at most $i$ with witness tree
-$\theta$ for $\rho$'s big variables, and $\alpha<\lambda_i$ an ordinal
-above the ranks of the level-$i$ values of $\rho$, above the ranks of
-the values of all type-valued proper subterms of $t$ under all
-admissible extensions of $\rho$, and above the level-$i$ supports
-$\beta^{(i)}_{\rho(F)}(\chi)$ of the $i$-big elements of $\rho$ at all
-majorants $\chi$ reached. Then $(r^i_\alpha\rho,\tau)$ is a witnessed
-$(i,\alpha,\vec\lambda_{>i},\sigma)$-environment for $(t,\theta)$
-(Definition~\ref{def:wenv}); for every proper subterm $t'$ of $t$ and
-every admissible extension $\rho'$ of $\rho$ to the binders above $t'$,
-$r^i_\alpha\sem{t'}^{\sigma}\rho'=\sem{t'}^{\sigma,(i,\alpha)}(r^i_\alpha\rho')$;
-and
-\[
-\ell_\alpha\bigl(M^{\mathcal A}_t(\rho,\tau)\bigr)\le\ell\bigl(M_t(r^i_\alpha\rho,\tau)\bigr).
-\]
-The $i$-small elements of $\rho$ are fixed by $r^i_\alpha$ and need no
-hypothesis.
-\end{lemma}
-The hypotheses are met below $\lambda_i$ by the argument in the proof of
-Lemma~\ref{lem:tyform}. The conclusion is an inequality of
-$\alpha$-leaves, not an equality of leaf suprema, for the reason given
-after Definition~\ref{def:relmaj}; and the value commutation is claimed
-for proper subterms only, since the root's own value may have rank
-$\ge\alpha$, which is exactly what Lemma~\ref{lem:tyform} is about to
-bound.
-\begin{proof}[Proof sketch]
-The commutation is proved by induction on $t'$, simultaneously for all
-levels, for admissible $\rho'$; the ranks of all values met are below
-$\alpha$ by hypothesis, so no universe clause of $r^i_\alpha$ collapses a
-value to $\bot$.
-\emph{Variables:} by definition of $r^i_\alpha\rho'$.
-\emph{Application $f\,a$:} $r^i_\alpha\sem{f\,a}\rho'=r^i_\alpha(F(A))$ with
-$F=\sem f\rho'$, $A=\sem a\rho'$; and $\sem{f\,a}^{\alpha}(r^i_\alpha\rho')=r^i_\alpha(F)(r^i_\alpha A)=r^i_\alpha(F(e^i_\alpha r^i_\alpha A))$
-by induction. Now $r^i_\alpha A=r^i_\alpha(e^i_\alpha r^i_\alpha A)$ since $r^i_\alpha e^i_\alpha=\mathrm{id}$,
-and $\hat A$ is a reached majorant with $\alpha\ge\beta_F(\hat A)$, so
-$r^i_\alpha F(A)=r^i_\alpha F(e^i_\alpha r^i_\alpha A)$ by bounded support of $F$,
-which holds because $F$ is either an element of $\rho'$ or, by the
-simultaneous induction of Lemma~\ref{lem:termadm}, the value of a term in
-an admissible environment.
-\emph{Abstraction $\lambda x.b$:} the model's abstraction is the
-restriction to $\El(\sem A\rho')$ of $a\mapsto\sem b\rho'[x{:=}a]$, and
-$r^i_\alpha$ of it is $a'\mapsto r^i_\alpha\sem b\rho'[x{:=}e^i_\alpha a']$,
-which by induction is $a'\mapsto\sem b^{\alpha}(r^i_\alpha\rho'[x{:=}a'])$
-on the retracted admissible arguments, using $r^i_\alpha e^i_\alpha=\mathrm{id}$.
-\emph{Data of small type and their eliminators} ($\mathbf n$, $\N$,
-$\Sigma$ and $=$ at small types): data of rank below $\alpha$ is fixed
-by $r^i_\alpha$, so the branch selected and the recursion performed are
-the same on both sides, and the step functions commute by the
-application case.
-\emph{$W$-recursion:} let $V(t):=\sem{\mathsf{ind}^W_Cf}\rho'(t)=F(a)(d)(\mathrm{rec}_t)$
-for $t=\mathsf{tree}\,a\,d$, with $F:=\sem f\rho'$ and
-$\mathrm{rec}_t(b):=V(d(b))$, and let $V^\alpha$ be the same in the cut
-structure. By induction on the tree,
-$r^i_\alpha V(t)=(r^i_\alpha F)(r^i_\alpha a)(r^i_\alpha d)(r^i_\alpha\mathrm{rec}_t)$
-by three uses of the application case, which needs $\alpha$ above the
-supports of $F$, $F(a)$ and $F(a)(d)$ at the majorants $\hat a$,
-$\hat d$, $\widehat{\mathrm{rec}_t}$, all reached; and
-$(r^i_\alpha\mathrm{rec}_t)(b')=r^i_\alpha V(d(e^i_\alpha b'))=V^\alpha(r^i_\alpha d(e^i_\alpha b'))=V^\alpha((r^i_\alpha d)(b'))$
-by the induction hypothesis at the subtree $d(e^i_\alpha b')$, so
-$r^i_\alpha\mathrm{rec}_t=\mathrm{rec}^\alpha_{r^i_\alpha t}$ and
-$r^i_\alpha V(t)=V^\alpha(r^i_\alpha t)$. The retraction of $t$ is well
-defined because the branching family of the $W$-code is the value of
-$\lambda x.B$ in an admissible environment and has bounded support.
-\emph{$\mathsf{Acc}$-recursion:} let $V(x):=\sem{\mathsf{ind}^{\mathsf{Acc}}_Cf}\rho'(x)(\star)=F(x)(\mathrm{rec}_x)$
-for accessible $x$, with $\mathrm{rec}_x(y)(\star):=V(y)$ for
-$\sem R\rho'(y,x)=\top$. The relation of the cut structure is
-$\sem R^\alpha(r^i_\alpha\rho')(y',x')=\sem R\rho'(e^i_\alpha y',e^i_\alpha x')$
-by the commutation for the subterm $R$, and
-$\sem R\rho'(e^i_\alpha y',e^i_\alpha r^i_\alpha x)=\sem R\rho'(e^i_\alpha y',x)$
-by bounded support of $\sem R\rho'$ (a term value) at $\alpha$ above its
-support; so the predecessors of $r^i_\alpha x$ in the cut structure are
-the $y'$ with $e^i_\alpha y'$ a predecessor of $x$, and $r^i_\alpha x$ is
-accessible when $x$ is, by induction along the accessible part. Then,
-by the same induction,
-$r^i_\alpha V(x)=(r^i_\alpha F)(r^i_\alpha x)(r^i_\alpha\mathrm{rec}_x)$
-by the application case, and
-$(r^i_\alpha\mathrm{rec}_x)(y')(\star)=r^i_\alpha V(e^i_\alpha y')=V^\alpha(y')$
-by the induction hypothesis at the predecessor $e^i_\alpha y'$, so
-$r^i_\alpha\mathrm{rec}_x=\mathrm{rec}^\alpha_{r^i_\alpha x}$ and
-$r^i_\alpha V(x)=V^\alpha(r^i_\alpha x)$. The truth values of $R$ are read
-under the same $\sigma$ on both sides.
-\emph{Quotients:} $\sem{\mathsf{ind}^/_Cf\,h}\rho'([x])=F(x)$ for any
-member $x$; $r^i_\alpha F(x)=(r^i_\alpha F)(r^i_\alpha x)$ by the application
-case, and $r^i_\alpha x$ is a member of $r^i_\alpha[x]=[r^i_\alpha x]_{R'}$,
-so this is the cut structure's value at $r^i_\alpha[x]$. The class map is
-well defined by the remark after Definition~\ref{def:retr}, the
-relation being a term value with bounded support.
-\emph{Type formers:} $r^i_\alpha$ on codes is defined to commute with the
-formers, and the universe clause of $r^i_\alpha$ is the identity on the
-reached level-$i$ codes because their ranks are below $\alpha$; higher
-universes are the true ones in the target structure, so no collapsing
-occurs there.
-\emph{The inequality of $\alpha$-leaves}, by induction on $t$ over the
-clauses of Definition~\ref{def:hyb}: for the abstraction clause at an
-input $\chi$ hereditarily below $\alpha$, the $\mathcal A$-sum ranges
-over admissible $a$ with $\hat a\le\chi$; each such $a$ maps to
-$r^i_\alpha a$, an element of the cut decoding with $\widehat{r^i_\alpha a}\le\hat a\le\chi$,
-and $\ell_\alpha(M^{\mathcal A}_b(\rho'[x{:=}a],\tau))\le\ell(M_b(r^i_\alpha\rho'[x{:=}r^i_\alpha a],\tau))$
-by induction, since $\rho'[x{:=}a]$ is admissible; so the
-$\alpha$-leaves of the $\mathcal A$-sum are bounded by leaves of the
-full sum in the cut structure. Inputs not hereditarily below $\alpha$
-contribute no $\alpha$-leaves. In the other clauses the majorant is
-assembled from majorants of subterms at canonical majorants of reached
-values, and reached values commute with $r^i_\alpha$ and have equal
-canonical majorants on both sides (their ranks being below $\alpha$),
-so the clauses are compared termwise.
-Finally $(r^i_\alpha\rho,\tau)$ is a witnessed environment because
-$r^i_\alpha\rho$ is a $\sigma$-environment (types commute with $r^i_\alpha$
-by the type-former case) and each $r^i_\alpha\rho(F)$ is majorized by
-$\tau(F)=M^{\mathcal A}_{t_F}(\rho_F,\tau_F)$, whose $\alpha$-leaves are
-bounded by those of $M_{t_F}(r^i_\alpha\rho_F,\tau_F)$ by the same
-argument applied to the witness trees, with
-$(r^i_\alpha\rho_F,\tau_F)$ witnessed by the induction on $\theta$; here
-majorization of $r^i_\alpha\rho(F)$ by the cut majorant needs only its
-values at inputs hereditarily below $\alpha$, since $r^i_\alpha\rho(F)$
-takes arguments of rank below $\alpha$.
-\end{proof}
-
-The proof is a logical relation between the two structures, with
-bounded support as the single semantic hypothesis on the environment;
-the $W$, $\mathsf{Acc}$, and quotient cases are now written, and each
-reduces to the application case together with the well-definedness of
-the retraction on the data, which is bounded support of the families
-and relations involved. The
-last step, that $\tau(F)$ may be replaced in the witnessed environment
-by a majorant agreeing with it below $\alpha$, needs Definition~\ref{def:wenv}
-to be read with $\tau(F)$ replaced by $M_{t_F}(r^i_\alpha\rho_F,\tau_F)$,
-which is what the definition says when the recursion is unwound in the
-cut structure.
-
-\begin{remark}[a gap in the abstraction case]\label{rem:gap}
-The abstraction case of the inequality pairs each admissible argument
-$a$, $\hat a\le\chi$, with its retraction $r^i_\alpha a$ and appeals to
-the induction hypothesis for the environment $\rho'[x{:=}a]$. But the
-hypotheses of the lemma include that $\alpha$ lies above the supports
-of the environment's elements, and the supports of the admissible $a$
-with $\hat a\le\chi$ are not bounded below $\lambda_i$, because the
-canonical majorant does not see the support. Let
-$a_\gamma:(\Type_i\to\Type_i)\to\N$ be $0$ at $G$ if $G$ is the identity
-on codes of rank below $\gamma$ and $1$ otherwise. Each $a_\gamma$ is
-admissible, with support $\gamma$ and majorant $2$; and for
-$\alpha<\gamma$, $(r^i_\alpha a_\gamma)(r^i_\alpha\mathrm{id})=a_\gamma(e^i_\alpha r^i_\alpha\mathrm{id})=1\ne0=a_\gamma(\mathrm{id})$.
-So a body that branches on $x\,(\lambda X.X)$ takes different branches
-at $\rho'[x{:=}a_\gamma]$ and at its retraction, the commutation fails
-for this summand, and the summand's majorant is compared with the wrong
-branch. In this example the inequality survives, because the cut sum
-also contains the constant functions, which select either branch; in
-general one needs, for each summand of the model's sum, some element of
-the cut structure that reproduces the summand's values at all the
-arguments the body applies it to, and when two such arguments have the
-same retraction and different values (the identity, and a bound
-variable equal to the identity below $\alpha$) the retraction of the
-second must be replaced too, which changes the other leaves that depend
-on it. We have not found a counterexample to the inequality, and the
-majorizability heuristic says it should hold, since no leaf of a term
-majorant depends on the support of an input; but the proof above does
-not establish it.
-
-The repair we expect to work is to make the support a component of the
-majorant: a function part carries, besides its values, an ordinal
-modulus, $f\lhd m$ requires $\beta^{(N)}_f(\chi)\le m_{\mathrm s}(\chi)$,
-the hybrid majorant of an abstraction computes the modulus from the
-moduli of the environment and the leaves reached, exactly as in the
-proof of Lemma~\ref{lem:termadm}, and the leaf supremum, hence the
-closure functions, include the moduli. Then the sum over
-$\hat a\le\chi$ ranges only over arguments of support at most
-$\chi_{\mathrm s}$, which is below $\alpha$ for the inputs that matter,
-every summand commutes with the retraction, and the elements of a small
-code, on which $r^i_\alpha$ is the identity, have modulus below
-$\alpha$ as Lemma~\ref{lem:tyform} needs. This is how majorants of
-continuous functionals carry moduli of continuity. It moves the
-retraction between cut structures into the first phase, which is
-harmless since it never used the true extents, and it replaces the
-separate bounded-support clause of Definition~\ref{def:adm}. It has not
-been carried out.
-\end{remark}
-
-\begin{lemma}[bounded support is preserved]\label{lem:bspres}
-In an admissible environment $\rho'$, the values of the eliminators
-$\mathsf{ind}^W_Cf$, $\mathsf{ind}^{\mathsf{Acc}}_Cf$, and $\mathsf{ind}^/_Cf\,h$
-have bounded support at every level $N\le\kappa$ of the motive.
-\end{lemma}
 \begin{proof}
-Let $V$ be the value, a function on trees, accessible elements, or
-classes. Fix $N$ and an input majorant $\chi$. The commutation cases of
-Lemma~\ref{lem:transfer} show $r^N_\alpha V(t)=V^\alpha(r^N_\alpha t)$ for
-every $\alpha$ above the supports of $F=\sem f\rho'$ and of its
-iterated values at the majorants reached along $t$, and above the
-support of the branching family or relation. For $t$ with
-$\hat t\le\chi$ the reached majorants are bounded in terms of $\chi$:
-the labels' majorants are components of $\hat t\le\chi$, the subtree
-functions' likewise, and the recursive functions' majorants are bounded
-by $M_{\mathsf{ind}^W_Cf}(\rho',\tau)(\chi)$, a fixed majorant; for
-$\mathsf{Acc}$ the predecessors' majorants are below $\chi$ (they are
-elements of the same code) and the recursive functions' by
-$M_{\mathsf{ind}^{\mathsf{Acc}}_Cf}(\rho',\tau)(\chi)$; for quotients the
-members' majorants are below $\chi$ by the definition of $\hat q$. Since
-the support functions of $F$ and of its values are monotone (the
-condition at $\chi$ subsumes the condition at every $\chi'\le\chi$)
-and uniform in the curried arguments by Definition~\ref{def:adm},
-their values at these finitely many bounds give one ordinal
-$\beta(\chi)<\lambda_N$, and for $\alpha\ge\beta(\chi)$ the equation
-$r^N_\alpha V(t)=V^\alpha(r^N_\alpha t)$ shows that $r^N_\alpha V(t)$
-depends on $t$ only through $r^N_\alpha t$. The values $V(t)$ have
-bounded support with bounds uniform in $t$ for $\hat t\le\chi$ by the
-same argument one argument deeper, using that they are values of $F$
-at inputs bounded in terms of $\chi$.
+Lemmas~\ref{lem:closedex} and \ref{lem:sound}; $\El(\bot)=\emptyset$.
 \end{proof}
 
-\paragraph{Remaining checks.}
-The degree bookkeeping for recursors on actual trees is uniform: all
-values lie in decodings of subcodes of the motive, so they have degree
-$\le\rk c+1$ for the code $c$ of the result type. Restriction to
-admissible arguments is compatible with abstraction, since the model's
-element $\sem{\lambda x.b}\rho{\restriction}\El(\sem A\rho)$ is by
-Lemma~\ref{lem:termadm} the restriction of an admissible full function,
-and with $\eta$ and $\beta$, by restricting both sides. Reflection holds
-because $\sem a\rho=\sem{a'}\rho$ as sets gives equal canonical
-majorants. For the relativisation to $\ZFh_{n+1}$, the closure functions
-$\nu_{t,\theta}$, the hybrid majorants, the truth assignments, and the
-retraction are all defined by recursion on syntax over $\omega$ and by
-set recursion, hence are $\Lang$-terms, so the given universes $U_i$ are
-closed under them; the same open lemma is all that is needed there.
+Lemma~\ref{lem:sound} is written at the level of its cases and has not
+been checked rule by rule against \cite[\S2]{paper1}; we expect no
+surprise there, since the only non-standard ingredient, membership of
+abstractions in $\mathcal A$, is immediate. The relativisation to
+$\ZFh_{n+1}$ is a remark and not a proof: it needs the rank lemma in a
+form provable there.
 
-\subsection{The two examples that shaped the design}\label{sec:examples}
+\subsection{The rank lemma}\label{sec:ranklemma}
 
-\begin{example}[heterogeneous fibres]\label{ex:hetero}
-Let $B(0):=\N$, $B(1):=\Type_2$ and $f:=\mathsf{ind}^{\mathbf 2}\,5\,c$
-with $c\in U_2$ of rank $\ge\lambda_0$. A purely syntactic majorant of
-$f$ at an argument majorant $2$, which covers both $0$ and $1$, is the
-join of both branches, so $\lambda Y{:}\Type_0.\,T(f\,(\mathsf{swap}\,b'))$
-with $\rho(b')=1$, whose values are all small, would receive a majorant
-above $\lambda_0$; and a pointwise structured condition
-``$m(\chi)$ admissible for every fibre $G(a)$ with $a\lhd\chi$'' is
-unsatisfiable at $\chi=2$. Branching on the actual value of a data-typed
-argument removes the join; and a big branch can reach a small position
-only in a context that is empty in the model, such as $e{:}b=0$ at $b=1$,
-where the abstraction supremum over the actual elements of $\El(\bot)$
-is empty.
+Everything now rests on Conjecture~\ref{conj:rank}. We say why we
+believe it, what a proof has to contain, and what could go wrong.
+
+\paragraph{What it says in the first-order case.}
+For a term all of whose variables are free and of small type, the
+conjecture is Lemma~\ref{lem:rank} in type-theoretic dress: the rank of
+the value is bounded by an ordinal function of the ranks of the
+parameters, computed by recursion on the term. A type former adds a
+bounded amount, by the convention on family domains about a factor
+$\omega$. $\mathsf{ind}^\N$ with a type-valued motive iterates the bound
+of its step, and the supremum over $n<\omega$ of the iterates is an
+ordinal. A $W$-recursion iterates the bound of its step along the
+height of the tree, which is below the Hartogs number of its branching
+types, whose ranks are bounded by induction; the labels contribute
+nothing to the height. An $\mathsf{Acc}$-recursion is the case that
+needs an idea: the accessible part of a relation on a large carrier has
+unbounded height, but the value at $x$ depends on the recursive function
+only at the predecessors at which the step term applies it, and those
+are the values of finitely many subterms in environments that vary only
+in bound variables of small type; so the tree of inspected predecessors
+has small branching and its height is below a Hartogs number, as for
+$\wfrec$ in Lemma~\ref{lem:rank}. None of these bounds mentions the cut.
+
+\paragraph{What is new at higher type.}
+A term may bind a variable of a type that is not small, such as
+$G:\Type_N\to\Type_N$, and apply a defined functional to the identity,
+whose content is the cut. So the induction cannot be on ordinal bounds
+alone: the bound for a term of function type must be a function of the
+bounds of its arguments, hereditarily, that is a majorant in Howard's
+sense with ordinals for numbers. The earlier version of this section
+built such majorants into the definition of the model; here they are
+needed only inside the proof, as the \emph{profile} of a value, and the
+statement to prove is a fundamental lemma: every value of a term in an
+environment whose values have profiles has the profile computed from
+them by recursion on the term. Two lessons from the earlier version
+constrain the definition of profiles. They must be assigned fibrewise,
+following Definition~\ref{def:content}, and not joined across the
+branches of an eliminator, or a branch of higher level pollutes a small
+one (Example~\ref{ex:hetero}). And they must bound \emph{values}, not be
+computed by a recursion that mirrors the term inside a cut structure,
+or they saturate at the cut (Example~\ref{ex:sat}).
+
+\paragraph{Why the cut should not matter.}
+The cut enters the evaluation in three ways. It is the range of a bound
+variable of universe type; but a type former at sort $\Type_N$ binds
+only variables of types in $U_N$, whose elements have content bounded
+by the rank of the type, and an abstraction over a larger type is only
+ever applied, by the term or by a parameter, to arguments that have
+themselves been bounded. It decides when an application is junk,
+because the argument fell outside the universe; but junk is $\emptyset$,
+of rank $0$. And it changes the truth of propositions; but the
+conjecture quantifies over all truth assignments. A parameter of
+bounded content is an arbitrary set function and may inspect the cut,
+as the function $H$ of Example~\ref{ex:probe} does, but its values are
+bounded by its content, so it can only choose among branches that are
+bounded anyway.
+
+\paragraph{What could go wrong.}
+We know of no counterexample. The places where the argument above is
+thin are these. A parameter of bounded content applied to a defined
+function returns a small value, but the defined function may be applied
+by the parameter's own argument to something large; this does not
+affect the returned value's rank, and the fundamental lemma must be set
+up so that it is not asked to bound what is never returned. The
+inspected-predecessor argument for $\mathsf{Acc}$ needs the extensional
+fact that evaluation depends on a bound function only through its
+values at the arguments it is applied to, proved for the evaluation of
+Definition~\ref{def:fulleval} with junk included. And the conjecture is
+stated with a supremum over a proper class of structures, so a proof in
+$\ZF$ must produce $G_{t,\theta}$ as a definable class function by
+recursion on $(t,\theta)$, as Definition~\ref{def:maj} does, and not by
+a supremum whose existence is the point at issue.
+
+\subsection{Examples, and why the earlier version was abandoned}\label{sec:examples}
+
+\begin{example}[trees, and Hartogs numbers]\label{ex:set}
+Let $\mathsf{set}:=Wx{:}\Type_0.\,x$ and define $T:\mathsf{set}\to\Type_0$ by
+$W$-recursion, $T(\mathsf{tree}\,X\,d):=(\Sigma x{:}X.\,T(d\,x))\to\Prop$.
+Then $\rk T(t)\ge\omega+\mathrm{height}(t)$. Applying
+Definition~\ref{def:closed} to $w{:}\mathsf{set}\vdash T(w):\Type_0$ with
+$w$ free, a tree whose labels have rank below $\gamma$ has height below
+some $\delta<\lambda_0$. A tree over $X$ has height below
+$\hartogs(\PP(X))$, and trees over $\N$ realise every countable height,
+so $\lambda_0$ is closed under $\alpha\mapsto\hartogs(V_{\alpha+1})$; in
+$\ZFC$ this makes it a strong limit cardinal. This is the ordinal
+Miquel's footnote and Section~\ref{sec:rank} both point at.
 \end{example}
 
 \begin{example}[a climbing function]\label{ex:climb}
-$\lambda_0$ has cofinality $\omega$; fix a cofinal sequence $(\beta_n)$
-and let $\mathrm{next}(\beta)$ be the least $\beta_n>\beta$, and
-$F(X):=$ a code of rank $\mathrm{next}(\rk X)$. Any \emph{pointwise}
-admissibility condition, such as ``$\hat F(\chi)<\lambda_0$ for
-$\chi<\lambda_0$ and $\hat F(\lambda_0)<\lambda_1$,'' accepts $F$, yet
-$\Sigma n{:}\N.\,F^n(\N):\Type_0$ denotes a code of rank $\lambda_0$. No
-condition on the values of $F$ can stop an $\omega$-iteration from
-climbing an ordinal of cofinality $\omega$; what stops it in
-Section~\ref{sec:rank} is that functions there are terms and $\lambda_0$
-is closed under the iterate of every term majorant. Definition~\ref{def:adm}
-imports exactly this: $F$ is not admissible because no term majorant
-dominates $\mathrm{next}$, since otherwise the $\omega$-iterate of that
-majorant, which is the majorant of an $\mathsf{ind}^\N$ term, would
-reach $\lambda_0$, contradicting closure.
+Suppose $\lambda_0$ has cofinality $\omega$; fix a cofinal sequence
+$(\beta_n)$, let $\mathrm{next}(\beta)$ be the least $\beta_n>\beta$, and
+let $F(X)$ be a code of rank $\mathrm{next}(\rk X)$. Every pointwise
+condition on $F$, such as ``the rank of $F(X)$ is below $\lambda_0$,'' or
+a Howard majorant that maps ordinals below $\lambda_0$ to ordinals below
+$\lambda_0$, accepts $F$; yet $\Sigma n{:}\N.\,F^n(\N):\Type_0$ denotes a
+code of rank $\lambda_0$. No condition on the values of $F$ can stop an
+$\omega$-iteration from climbing an ordinal of cofinality $\omega$, and
+a universe extent below an inaccessible is singular, so some small index
+type always admits a cofinal family. In the model $F$ is excluded
+because it is not generated: if $F=\sem s^\sigma\rho$ with $\rho$ of
+content below $\gamma<\lambda_0$, then $\Sigma n{:}\N.\,s^n(\N)$ is a
+type-valued term whose value in the same environment has rank
+$\lambda_0$, contradicting the closedness of $\lambda_0$.
+\end{example}
+
+\begin{example}[heterogeneous fibres]\label{ex:hetero}
+Let $B(0):=\N$ and $B(1):=\Type_2$, and let $c\in U_2$ have rank at least
+$\lambda_0$. A bound for $\mathsf{ind}^{\mathbf 2}\,5\,c$ obtained by
+joining the bounds of its branches is at least $\lambda_0$ and bounds
+nothing useful at the argument $0$. Worse, a family
+$f:\N\to\Pi b{:}\mathbf 2.\,B'(b)$ with $B'(0)=\Type_5$ and $B'(1)=\Type_0$
+can have ranks at $1$ cofinal in $\lambda_0$ while being dominated, in
+any order that joins fibres of the same shape, by a constant family that
+is large at $0$. Content is computed fibrewise for this reason: the
+content of $f$ at level $0$ is the supremum of the ranks of the
+$f(n)(1)$, the values at $0$ counting for nothing.
+\end{example}
+
+\begin{example}[an element that inspects the universe]\label{ex:probe}
+Let $H:(\Type_0\to\Type_0)\to\N$ be $H(G):=0$ if $G$ is the identity on
+all of $U_0$ and $1$ otherwise. $H$ has content $0$, so it is a
+legitimate parameter in Definitions~\ref{def:closed} and \ref{def:adm},
+and the rank lemma must hold in its presence. It is harmless there
+because its values are bounded. In the earlier version, where
+environments had to be transported between structures by a retraction,
+$H$ was fatal, since $H(\mathrm{id})$ does not commute with any
+retraction, and a support condition was imposed to exclude it. As
+defined, $H$ tests set equality of codes and so need not respect
+$\sim$; if it does not, it is not an element of the model, though it
+remains a parameter.
+\end{example}
+
+\begin{example}[why closure functions must not be computed in a cut]\label{ex:sat}
+The earlier version defined $\lambda_N$ as the least ordinal closed
+under functions $\nu_{t,\theta}(\alpha)$, the supremum of the leaves of a
+term majorant computed in the structure cut at $\alpha$, and compared
+the model with those structures afterwards. In a structure cut at
+$\alpha$ a bound variable of universe type ranges over codes of rank
+below $\alpha$, and so does the recursive function of a recursion, as a
+bound variable of its step; so the majorant of a rank-raising recursion
+saturates at about $\alpha+3$, every $\nu_{t,\theta}(\alpha)$ is about
+$\alpha$, and the least closed ordinal is just the least ordinal
+$\eta>\lambda_{N-1}$ closed under $\alpha\mapsto\hartogs(V_{\alpha+1})$.
+That ordinal is too small. For $X:\Type_N$ let $\mathrm{WO}(X)$ be the
+type of well-founded linear orders $R$ on $X$, and for
+$o=(R,\dots):\mathrm{WO}(X)$ define $T_o:X\to\Type_N$ by
+$\mathsf{Acc}$-recursion with motive $\Type_N$,
+\[
+T_o(x):=\bigl(\Sigma y{:}X.\,\Sigma h{:}R\,y\,x.\,T_o(y)\bigr)\to\Prop ,
+\]
+and put $t(X):=\Sigma o{:}\mathrm{WO}(X).\,\Sigma x{:}X.\,T_o(x):\Type_N$.
+Then $\rk T_o(x)$ is at least the order type of $x$ in $R$, so
+$\rk t(X)\ge\hartogs(\El(X))$; and $\El(T_o(x))$ is a cumulative
+hierarchy of height the order type of $x$, so the ranks $r_n$ of
+$t^n(\N)$ satisfy $r_{n+1}\ge\hartogs(V_{r_n})$. Each $t^n(\N)$ has rank
+below $\eta$, and $n\mapsto t^n(\N)$ is a term, by $\mathsf{ind}^\N$ with
+motive $\Type_N$; but $\Sigma n{:}\N.\,t^n(\N):\Type_N$ has rank
+$\sup_nr_n=\eta$. In Definition~\ref{def:closed} this term, which has no
+parameters, must have rank below $\lambda_N$ in the structure cut at
+$\lambda_N$, where its value is the honest one; so $\lambda_N>\eta$. And
+no term can diagonalize against $\lambda_N$ in the same way, because the
+sequence constructed in Lemma~\ref{lem:closedex} uses the bounds of all
+terms at once.
 \end{example}
 
 \paragraph{Status.}
-Verified at the level of detail above: the codes and full decoding are
-independent of the $\lambda_i$ except through the universe constants,
-whose rank must be $\lambda_i+1$ for the family domains to cover
-$U_i$ (an eighth correction, found when ordering the definitions);
-hybrid majorants are sound and
-model-independent; the closure ordinals, now with proofs
-(Lemmas~\ref{lem:sigmaloc}, \ref{lem:envset}, \ref{lem:nuset},
-\ref{lem:closedex}), after a ninth correction: the closure functions
-were not monotone in $\alpha$ and not continuous, since big values on
-$U_N^\beta$ are not elements at $\alpha>\beta$, so monotonicity is now
-built into the definition and continuity, which was never used, is
-dropped;
-the monotonicity of the admissibility operator; Lemmas~\ref{lem:termadm}
-and \ref{lem:tyform}; Examples~\ref{ex:set}, \ref{ex:hetero}, \ref{ex:climb}.
-The level recursion is bottom-up only because the auxiliary models take
-arbitrary higher extents and Lemma~\ref{lem:stab} bounds the resulting
-supremum; without that, stage $N$ would depend on $\lambda_{N+1}$ through
-the domains of $N$-big variables of higher level, and a witness-majorized
-$Y{:}\Type_{N+1}$ of large rank would be collapsed by the retraction and
-break the commutation on $Y\to Y$. Lemma~\ref{lem:stab} is now proved,
-after being restricted to roots of value level $\le N$ (without which
-it is false for the term $\Type_{N+1}$) and after Lemma~\ref{lem:auxrank},
-a rank lemma for the auxiliary structure, was separated from it: the
-values of $W$- and $\mathsf{Acc}$-recursions are not majorized in the
-auxiliary structure and are bounded instead by the height of the part
-of the datum that a term can inspect. With that, and with the
-eliminator clauses of Definition~\ref{def:hyb} now written out, the
-first phase has no conjecture and no informal definition left.
-Lemma~\ref{lem:transfer} now has a proof sketch, but only after a
-seventh correction: majorization alone does not make the retraction a
-homomorphism (Example~\ref{ex:probe}), so admissibility now also requires
-bounded support, formulated as continuity with respect to the
-retraction and bounded at the value level, and Lemma~\ref{lem:termadm}
-is proved by a simultaneous induction with the commutation. Pushing the
-condition through \S\ref{sec:adm} changed two statements: downward
-closure under majorization holds only among elements with bounded
-support, and small-valued functions on big domains are no longer
-automatically admissible, while functions on small domains are.
-A tenth correction changed the transfer's conclusion: ``the same leaf
-supremum'' is false already for $\lambda X{:}\Type_i.X$ (the remark
-after Definition~\ref{def:relmaj}), and the model's majorants must sum
-over admissible arguments only, so the lemma now compares the
-$\alpha$-leaves of the model's $\mathcal A$-majorant with the leaves of
-the full majorant in the cut structure, and Lemma~\ref{lem:tyform}
-obtains its cut $\alpha$ uniformly in the family argument from the
-induction hypothesis applied to the smaller types
-$\Sigma x{:}A.\Sigma\vec y.\,t'$ formed from the proper subterms of $B$,
-which removes a circularity in the earlier proof (the cut had to lie
-above the ranks it was meant to bound). The $W$, $\mathsf{Acc}$, and
-quotient cases of the commutation are now written, and
-Lemma~\ref{lem:bspres} preserves bounded support through those
-eliminators. Writing them exposed that the retraction of
-Definition~\ref{def:retr} is well defined on pairs, trees, and classes
-only when the families and relations involved have bounded support
-(the fibre at $r a$ must not depend on the choice of $a$, and
-$e$ on classes needs $x\sim_R e\,r\,x$), so the definition is now
-stated for admissible codes, the quotient relation is pushed forward
-rather than pulled back, and bounded support is required uniformly in
-curried arguments; the apparent circularity between the retraction and
-bounded support is not one, the retraction being a set map defined
-without conditions. We do not claim the theorem. The value commutation
-of Lemma~\ref{lem:transfer} is proved case by case, but its inequality
-of $\alpha$-leaves has a gap in the abstraction case
-(Remark~\ref{rem:gap}): the model's majorant sums over admissible
-arguments whose supports are unbounded below $\lambda_i$, since the
-canonical majorant does not see the support, and such an argument does
-not commute with a retraction at a fixed cut. The expected repair,
-making the support modulus a component of the majorant, is described
-there and not carried out. Checking that repair against the examples
-produced an eleventh correction, which supersedes it: the closure
-functions, being computed in a cut structure, saturate at the cut, so
-closure under them is nearly vacuous, $\lambda_N$ is the least ordinal
-closed under Hartogs numbers, and Lemma~\ref{lem:tyform} is false for
-the $\omega$-iterate of a Hartogs-raising type operator
-(Example~\ref{ex:sat}). This is a defect of the definition of
-$\lambda_N$ and not of any proof. The repair of Remark~\ref{rem:nosat},
-a supremum over all cuts of the leaves at small inputs, would restore
-the argument of Example~\ref{ex:climb}, which as it stands is unfounded,
-and would make the model's own structure one of those supped over, so
-that type formation follows from soundness of the majorants and closure
-with no transfer, retraction, or support condition. What it needs is a
-cut-stability lemma, which is open. The present state is therefore:
-Sections~\ref{sec:codes} and \ref{sec:hybrid} stand; the lemmas of
-\S\ref{sec:closure} are proved but about the wrong ordinals;
-\S\ref{sec:adm}--\ref{sec:transfer} describe a structure that is not a
-model and machinery that the repair would remove.
+Proved, given the definitions: the existence of closed ordinals from the
+rank lemma (Lemma~\ref{lem:closedex}); type formation in the model
+(Lemma~\ref{lem:tyform}), which is immediate from the definition of
+closed; the closure properties of the generated elements
+(Lemma~\ref{lem:termadm}); and the locality of evaluation in the truth
+assignment (Lemma~\ref{lem:sigmaloc}). Sketched: soundness
+(Lemma~\ref{lem:sound}), a standard argument not yet checked rule by
+rule. Open: Conjecture~\ref{conj:rank}, on which the theorem depends,
+and with it the relativisation to $\ZFh_{n+1}$. The earlier version of
+this section, with hybrid majorants, witnessed environments, closure
+functions computed in cut structures, a retraction and a transfer
+lemma, went through eleven corrections recorded in the repository
+history; its last two findings were that the transfer lemma has a gap
+at abstractions over arguments of unbounded support, and that its
+closure ordinals were too small (Example~\ref{ex:sat}). The present
+version keeps its codes, its evaluation, and its examples, replaces
+majorants by content and term majorization by generation from
+parameters of bounded content, and moves all the difficulty into one
+statement about ranks.
 
 {\small
 \bibliographystyle{plain}
