@@ -19,6 +19,17 @@ variable (T : PSet.{u} → Path.{u} → PSet.{u} → Prop) (s : PSet.{u})
 def Glue (q : Path.{u}) (t : PSet.{u}) : Prop :=
   ∃ r x η, q = r ++ [.c x] ∧ x ∈ s ∧ φ x η ∧ T η r t
 
+theorem append_inj' (h : s₁ ++ [a] = s₂ ++ [a']) : s₁ = s₂ ∧ a = a' := by
+  induction s₁ generalizing s₂ with
+  | nil =>
+    match s₂ with
+    | [] => cases h; exact ⟨rfl, rfl⟩
+    | [_] | _::_::_ => cases h
+  | cons c s₁ ih =>
+    cases s₂ with | nil => cases s₁ <;> cases h | cons d s₂
+    injection h with h1 h2; cases h1
+    obtain ⟨rfl, rfl⟩ := ih h2; exact ⟨rfl, rfl⟩
+
 variable {T s φ} {C : PSet.{u} → Prop}
   (hT : ∀ η, C η → Coherent D s (T η) ∧ T η [] η)
   (hTresp : ∀ {η η' p t}, η ≈ η' → T η p t → T η' p t)
@@ -30,7 +41,7 @@ include hTresp φ_func
 theorem glue_iff {r x η t} (hx : x ∈ s) (hη : φ x η) : Glue T s φ (r ++ [.c x]) t ↔ T η r t := by
   constructor
   · rintro ⟨r', x', η', e, hx', hη', h⟩
-    have ⟨e1, e2⟩ := List.append_inj' e rfl
+    have ⟨e1, e2⟩ := append_inj' e
     cases e1; cases e2
     exact hTresp (φ_func hx hη' hη) h
   · exact fun h => ⟨r, x, η, rfl, hx, hη, h⟩
@@ -62,7 +73,7 @@ theorem glue_coherent : Coherent D s (Glue T s φ) where
     rintro _ t G ⟨r, x, η, rfl, hx, hη, h⟩ hG y
     have hG' : IsG (T η) r G := fun z => (hG z).trans <| exists_congr fun ζ =>
       and_congr (glue_iff (T := T) (φ := φ) (r := .a :: r) hTresp φ_func hx hη) Iff.rfl
-    rw [(hT η (φ_C hx hη)).1.sup h hG' y]
+    refine (hT η (φ_C hx hη)).1.sup h hG' y |>.trans ?_
     exact exists_congr fun l => exists_congr fun t' => and_congr Iff.rfl <|
       and_congr (glue_iff (T := T) (φ := φ) (r := l :: r) hTresp φ_func hx hη).symm Iff.rfl
 
@@ -75,9 +86,8 @@ theorem exists_sup : ∃ θ : PSet.{u}, ∀ y, y ∈ θ ↔ ∃ x η, x ∈ s �
     fun c _ tc htc => materialize coh tc c htc
   have acc : Acc (Rel (Glue T s φ)) [] :=
     ⟨_, fun c h => have ⟨_, _, tc, htc⟩ := h; (children c h tc htc).1⟩
-  refine ⟨F D s (Rel (Glue T s φ)) [] acc, fun y => ?_⟩
-  rw [F_eq, mem_step_iff coh fun c h tc htc => (children c h tc htc).2 _]
-  constructor
+  refine ⟨F D s (Rel (Glue T s φ)) [] acc, fun y => F_eq .. ▸ ?_⟩
+  refine mem_step_iff coh (fun c h tc htc => (children c h tc htc).2 _) _ |>.trans ⟨?_, ?_⟩
   · rintro ⟨l, t', -, ⟨r, x, η, eq, hx, hη, h⟩, hy⟩
     cases r with
     | nil =>
@@ -93,15 +103,11 @@ theorem exists_sup : ∃ θ : PSet.{u}, ∀ y, y ∈ θ ↔ ∃ x η, x ∈ s �
 theorem replacement : ∃ img : PSet.{u}, ∀ y, y ∈ img ↔ ∃ x, x ∈ s ∧ φ x y := by
   have ⟨θ, hθ⟩ := exists_sup hT hTresp φ_resp φ_func φ_C
   refine ⟨sep (fun y => ∃ x, x ∈ s ∧ φ x y) θ, fun y => ?_⟩
-  rw [mem_sep fun y y' e ⟨x, hx, h⟩ => ⟨x, hx, φ_resp (Equiv.refl _) e h⟩]
+  refine (mem_sep fun y y' e ⟨x, hx, h⟩ => ⟨x, hx, φ_resp (Equiv.refl _) e h⟩).trans ?_
   refine ⟨fun h => h.2, fun ⟨x, hx, h⟩ => ⟨(hθ y).2 ⟨x, y, hx, h, ?_⟩, x, hx, h⟩⟩
   exact mem_succ.2 (.inr (Equiv.refl _))
 
 end glue
 
-end PSet
-
-open PSet in
 #print axioms materialize
-open PSet in
 #print axioms replacement

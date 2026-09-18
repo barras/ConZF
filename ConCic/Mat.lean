@@ -94,16 +94,15 @@ theorem mem_step_iff {τ : Path.{u} → PSet.{u} → Prop} (hτ : Coherent D U �
       ∃ l t', Avail D U (stepG (Rel τ) p rec) l ∧ τ (l :: p) t' ∧ x ∈ succ t' := by
   have hcall : ∀ l, x ∈ call (Rel τ) p rec l ↔ ∃ t', τ (l :: p) t' ∧ x ∈ succ t' := by
     intro l
-    rw [call, mem_guard]
-    constructor
+    refine mem_guard.trans ⟨?_, ?_⟩
     · rintro ⟨h, hx⟩
       have ⟨_, _, t', ht'⟩ := h
       exact ⟨t', ht', (mem_succ_congr (hrec _ h _ ht')).1 hx⟩
     · rintro ⟨t', ht', hx⟩
       have h : Rel τ (l :: p) p := ⟨l, rfl, t', ht'⟩
       exact ⟨h, (mem_succ_congr (hrec _ h _ ht')).2 hx⟩
-  rw [step, mem_union, mem_union, mem_iUnion, mem_iUnion]
-  constructor
+  refine mem_union.trans <|
+    (or_congr_right <| mem_union.trans <| or_congr mem_iUnion mem_iUnion).trans ⟨?_, ?_⟩
   · rintro (h | ⟨i, h⟩ | ⟨j, h⟩)
     · have ⟨t', h1, h2⟩ := (hcall _).1 h
       exact ⟨_, t', .inl rfl, h1, h2⟩
@@ -122,9 +121,7 @@ theorem mem_step_iff {τ : Path.{u} → PSet.{u} → Prop} (hτ : Coherent D U �
 theorem isG_stepG {τ : Path.{u} → PSet.{u} → Prop} {p : Path.{u}}
     {rec : (c : Path.{u}) → Rel τ c p → PSet.{u}}
     (hrec : ∀ c h t, τ c t → rec c h ≈ t) : IsG τ p (stepG (Rel τ) p rec) := by
-  intro x
-  rw [stepG, mem_guard]
-  constructor
+  refine fun x => mem_guard.trans ⟨?_, ?_⟩
   · rintro ⟨h, hx⟩
     have ⟨_, _, ζ, hζ⟩ := h
     exact ⟨ζ, hζ, (mem_congr_right (hrec _ h _ hζ)).1 hx⟩
@@ -149,6 +146,4 @@ theorem materialize {τ : Path.{u} → PSet.{u} → Prop} (hτ : Coherent D U τ
   rw [F_eq]
   have hrec : ∀ c (h : Rel τ c p) tc, τ c tc → F D U (Rel τ) c (acc'.inv h) ≈ tc :=
     fun c h tc htc => (children c h tc htc).2 _
-  rw [mem_step_iff hτ hrec, hτ.sup hp (isG_stepG hrec)]
-
-end PSet
+  exact mem_step_iff hτ hrec _ |>.trans (hτ.sup hp (isG_stepG hrec) _).symm

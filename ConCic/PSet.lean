@@ -96,8 +96,7 @@ theorem mem_sUnion {a x : PSet.{u}} : x ∈ sUnion a ↔ ∃ y, y ∈ a ∧ x �
 def iUnion {ι : Type u} (A : ι → PSet.{u}) : PSet.{u} := sUnion (range A)
 
 theorem mem_iUnion {ι : Type u} {A : ι → PSet.{u}} {x} : x ∈ iUnion A ↔ ∃ i, x ∈ A i := by
-  rw [iUnion, mem_sUnion]
-  constructor
+  refine mem_sUnion.trans ⟨?_, ?_⟩
   · rintro ⟨y, ⟨i, e⟩, hx⟩
     exact ⟨i, (mem_congr_right e).1 hx⟩
   · rintro ⟨i, hx⟩
@@ -108,16 +107,14 @@ This is what replaces a decision procedure for `P`. -/
 def guard (P : Prop) (t : P → PSet.{u}) : PSet.{u} :=
   iUnion (ι := ULift.{u} (PLift P)) fun h => t h.down.down
 
-theorem mem_guard {P : Prop} {t : P → PSet.{u}} {x} : x ∈ guard P t ↔ ∃ h : P, x ∈ t h := by
-  rw [guard, mem_iUnion]
-  exact ⟨fun ⟨h, hx⟩ => ⟨h.down.down, hx⟩, fun ⟨h, hx⟩ => ⟨⟨⟨h⟩⟩, hx⟩⟩
+theorem mem_guard {P : Prop} {t : P → PSet.{u}} {x} : x ∈ guard P t ↔ ∃ h : P, x ∈ t h :=
+  mem_iUnion.trans ⟨fun ⟨h, hx⟩ => ⟨h.down.down, hx⟩, fun ⟨h, hx⟩ => ⟨⟨⟨h⟩⟩, hx⟩⟩
 
 def union (a b : PSet.{u}) : PSet.{u} :=
   iUnion (ι := ULift.{u} Bool) fun i => if i.down then a else b
 
 theorem mem_union {a b x : PSet.{u}} : x ∈ union a b ↔ x ∈ a ∨ x ∈ b := by
-  rw [union, mem_iUnion]
-  constructor
+  refine mem_iUnion.trans ⟨?_, ?_⟩
   · rintro ⟨⟨_ | _⟩, h⟩
     · exact .inr h
     · exact .inl h
@@ -132,12 +129,12 @@ theorem mem_singleton {a x : PSet.{u}} : x ∈ singleton a ↔ x ≈ a :=
 
 def succ (a : PSet.{u}) : PSet.{u} := union a (singleton a)
 
-theorem mem_succ {a x : PSet.{u}} : x ∈ succ a ↔ x ∈ a ∨ x ≈ a := by
-  rw [succ, mem_union, mem_singleton]
+theorem mem_succ {a x : PSet.{u}} : x ∈ succ a ↔ x ∈ a ∨ x ≈ a :=
+  mem_union.trans <| or_congr_right mem_singleton
 
 theorem mem_succ_congr {a a' x : PSet.{u}} (h : a ≈ a') : x ∈ succ a ↔ x ∈ succ a' := by
-  rw [mem_succ, mem_succ, mem_congr_right h]
-  exact or_congr Iff.rfl ⟨fun e => e.trans h, fun e => e.trans h.symm⟩
+  refine mem_succ.trans <| .trans ?_ mem_succ.symm
+  exact or_congr (mem_congr_right h) ⟨fun e => e.trans h, fun e => e.trans h.symm⟩
 
 /-- Separation. -/
 def sep (p : PSet.{u} → Prop) (a : PSet.{u}) : PSet.{u} :=
@@ -147,5 +144,3 @@ theorem mem_sep {p : PSet.{u} → Prop} (hp : ∀ x y, x ≈ y → p x → p y) 
     x ∈ sep p a ↔ x ∈ a ∧ p x :=
   ⟨fun ⟨⟨i, h⟩, e⟩ => ⟨⟨i, e⟩, hp _ _ e.symm h⟩,
    fun ⟨⟨i, e⟩, h⟩ => ⟨⟨i, hp _ _ e h⟩, e⟩⟩
-
-end PSet
