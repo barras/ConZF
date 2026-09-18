@@ -34,7 +34,7 @@ no `end` at EOF, avoid `rw` on iffs (it adds `propext`), prefer `.trans` chains.
   The glued tree gives the root **no target** (its target would be the sup being constructed;
   the first paper sketch was circular here, the formalization caught it).
 
-## Done (all compiled, axioms = [propext] only; no choice, no Quot.sound; EM only as a hypothesis)
+## Done (all compiled; no choice, no Quot.sound; EM only as a hypothesis)
 
 - `ConCic/PSet.lean`: PSet, ≈, ∈, ext, ∈-induction, ∅, range, ⋃, guard, ∪, {·}, succ, sep.
 - `ConCic/Mat.lean`: Label, Path, step, `F`, `F_eq`, `Coherent`, `mem_step_iff`,
@@ -53,6 +53,15 @@ no `end` at EOF, avoid `rw` on iffs (it adds `propext`), prefer `.trans` chains.
   `rule_func/resp/mem/sup`, `worldly_rule`, and **`dichotomy`**: with EM, either every
   functional relation (any Prop) on a set has an image, or there is an ordinal that is not 0,
   not a successor, not ω, and not reachable.
+- `ConCic/Fml.lean`: formulas (de Bruijn), `Sat M φ e` over `(M, ∈)`, `Sat.resp`, injective codes
+  `enc` (`enc_inj`).
+- `ConCic/FirstOrder.lean`: `ISat` (satisfaction over `V_η` as the definability relation),
+  `unreachable_replacement`, and **`dichotomy_fo`**: with EM, either every functional relation on
+  a set has an image, or some ordinal ρ contains ω, is a limit, and `V_ρ` is closed under images
+  of first-order definable functions with parameters.
+
+Axioms as of commit 317ccae: `materialize`, `replacement`, `Rule.replacement`, `dichotomy` none;
+`dichotomy_fo` and `replacement_nat` propext.
 
 ## Route (2026-09-18): the definability rule; no L, no Hartogs
 
@@ -68,19 +77,20 @@ no `end` at EOF, avoid `rw` on iffs (it adds `propext`), prefer `.trans` chains.
 
 ## Not done (the whole remaining gap)
 
-(a) The first-order instance: formula codes, satisfaction over V_η as I, and "unreachable ⇒
-V_ρ ⊨ ZF". Textbook; the paper gives the argument. Formalizing it needs a formula type and
-satisfaction in PSet (Prop by recursion on the formula) and the ZF axioms as codes.
-(b) The intensional form of paper2's interpretation (only needed to know V ⊨ Zermelo, most of
-which the Lean files prove along the way: sep, power set, union, pairing, ω).
+(a) Packaging: state "V ⊨ ZF" (first horn) and "V_ρ ⊨ ZF" (second horn) with all axioms. Each
+axiom is a construction already present (pairing `upair`, union `sUnion`, power set `powerset`,
+separation `sep`, infinity `omega`, extensionality = ≈, foundation = `mem_induction`), and
+their closure in `V_ρ` for a limit ρ > ω is rank arithmetic already in `VLevel.lean`.
+(b) Translation between the paper's type theory (paper3 §2: W, Σ, 𝐧, ℕ, identity, quotients,
+Acc) and the Lean terms used here (List, Label, Subtype, ULift, PLift, structural recursion).
+The carrier `List Label` can be replaced by `PSet` (nested pairs) as in the paper.
 (c) Relativization of a fixed formula to V_ρ agrees with internal satisfaction (metatheoretic).
 
 ### Suggested order for whoever continues
 
-A. (Lean, medium) (a) above. Statement to aim for: `dichotomy` with `I` := first-order
-   satisfaction, second horn strengthened to "V_ρ satisfies each ZF axiom code".
-B. (paper) Clean up §3–6 and the introduction around the refuted conjecture (see "State of
+A. (paper) Clean up §3–6 and the introduction around the refuted conjecture (see "State of
    paper3"); retitle.
+B. (Lean, small) (a) above, if a single "ZF is interpretable" statement is wanted.
 C. Expected, unchecked: with n+2 universes, rank(V_level k) is a regular (so inaccessible)
    cardinal of V_level k+1, by the same recursion with a parameter from the higher level in R.
    That would match the ZFC + n inaccessibles lower bound of Lean-with-choice, without choice.
