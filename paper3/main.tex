@@ -69,11 +69,19 @@ class of admitted elements and instantiating the oracle with the model
 itself at the end. We prove that the model is sound provided the
 extents exist, and we reduce their existence to a single statement, a
 rank lemma saying that the types a term can denote below the extent of
-a universe are bounded independently of that extent. We prove the rank
-lemma, by majorization in Howard's style, for the theory with two
-universes and recursion on the natural numbers only, where the extent
-of the universe can be taken to be $\omega_1$; in general it is open,
-and we say what the general case adds. This is a working paper: it
+a universe are bounded independently of that extent. We prove what is
+needed of it, by majorization in Howard's style, for the theory with two
+universes in which $W$-types have small branching and accessibility is
+taken on small carriers, which is the fragment that interprets Zermelo
+set theory with recursion; the extent of the universe is an ordinal
+$\alpha$ with $V_\alpha$ a $\Sigma_m$-elementary substructure of the universe,
+elementarity doing the work that the regularity of an inaccessible does
+in the usual model, without any assumption on cofinality. So, subject
+to a soundness check that is written by cases, $\ZF$ proves the
+consistency of that theory, whose strength therefore lies strictly
+between Zermelo set theory with recursion and $\ZF$. With more
+universes, or with recursion over big types, the rank lemma is open, and
+we say what each adds. This is a working paper: it
 fixes the type theory and the
 definitions, records what is proved and what is not, and explains the
 design decisions by the counterexamples that forced them.
@@ -154,7 +162,13 @@ proof is not an adaptation of Howard's majorizability argument
 \cite{howard73}, for reasons given in Section~\ref{sec:ranklemma}, and
 it is open in general. It is proved in Section~\ref{sec:proved} for
 $\CIC_2$ without $W$-types and $\Acc$, where the types that are not small
-have a simple kind fixed by their syntax and all bounds are countable.
+have a simple kind fixed by their syntax and all bounds are countable,
+and in Section~\ref{sec:cic2} for $\CIC_2$ with $W$-types of small
+branching and $\Acc$ on small carriers, where recursions have Hartogs
+length and the extent of $\Type_0$ is taken to be a $\Sigma_m$-correct
+ordinal (Theorem~\ref{thm:cic2}). The second case contains the
+interpretation of $\ZFh$ of \cite{paper2}, so it is the first instance
+in which an upper bound below $\ZF$ meets the lower bound.
 So the status of Conjecture~\ref{conj:main} is: reduced to
 Conjecture~\ref{conj:rank}, modulo a soundness proof that is written by
 cases and not yet checked rule by rule.
@@ -936,16 +950,17 @@ of constants at $\kappa\times\kappa'$; it is proper.
 \end{definition}
 
 \begin{definition}[pure codes, the bounding relation]\label{def:lhd}
-Fix a cut $\alpha$. A code is \emph{pure} if the universe constant does
-not occur in it: the constants other than $\code{\U_0}$ are pure,
+A code is \emph{pure} if no universe constant, of any structure, occurs
+in it: the constants other than the $\langle\mathsf U,\xi\rangle$ are pure,
 $\code Q(c,G)$ is pure if $c$ and all values of $G$ are, and $\code/(c,r)$
 is pure if $c$ is. For a set $e$ and $p\in D_\kappa$ define $e\lhd_\kappa p$ by
 recursion on $\kappa$ and, at kind $o$, on membership:
 \begin{itemize}
 \item at every kind, a class is bounded by $p$ iff some member of it is;
 \item $e\lhd_o\beta$, for $e$ not a class, iff $e$ is a number or $\star$;
-  or $e$ is a pure code whose rank is finite, or at least $\alpha$, or
-  below $\beta$; or $e$ is a pair both of whose components are
+  or $e$ is a pure code whose rank is finite or below $\beta$, the
+  condition on the rank being dropped when $\beta=\Theta$, the top
+  element; or $e$ is a pair both of whose components are
   $\lhd_o\beta$; or $e$ is a function all of whose values are
   $\lhd_o\beta$;
 \item $e\lhd_{\kappa\to\kappa'}p$, for $e$ not a class, iff $e$ is not a code
@@ -960,9 +975,11 @@ A set is \emph{flat} if it is $\lhd_o\Theta$. We extend the decoding by
 $\El^\X(e):=\emptyset$ when $e$ is not a code.
 \end{definition}
 
-The relation depends on the cut, through the clause at $o$, and on
-nothing else: not on the oracle, and not on a code. Profiles do not
-mention the cut at all.
+The relation does not depend on the structure, the oracle, or a code.
+In particular a pure code is bounded only by ordinals above its rank,
+whether or not that rank is below the cut: the bounds below are bounds
+on the values themselves, and the cut enters only through the
+sanitized families, which can only lower a rank.
 
 \begin{lemma}\label{lem:lhdbasic}
 (1) If $e\lhd_\kappa p\le p'$ then $e\lhd_\kappa p'$. (2) $\emptyset$ is
@@ -1060,10 +1077,9 @@ being $\emptyset$.
 \emph{Small type formers.} The value is $\code Q(c,G)$ with
 $c\lhd_o\beta$, so $c$ is pure; every $a\in\El^\X(c)$ is $\lhd_o1$, so each
 fibre, which is $\sem B^\X\rho[x{:=}a]$ or $\bot$, is
-$\lhd_o\beta'$ by induction, in particular pure. So the code is pure. If
-its rank is infinite and below $\alpha$ then so are the ranks of $c$ and
-of the fibres that have infinite rank, which are therefore below $\beta$
-and $\beta'$; the elements of $\El^\X(c)$ have rank below
+$\lhd_o\beta'$ by induction, in particular pure. So the code is pure. The
+ranks of $c$ and of the fibres are finite or below $\beta$ and $\beta'$;
+the elements of $\El^\X(c)$ have rank below
 $\rk(c)\cdot\omega$; so the rank of the code is below
 $\max(\beta\cdot\omega,\beta')+\omega$, which is the clause at $o$ for a
 pure code. If $c$ is not a code the family is empty and the bound holds
@@ -1114,8 +1130,8 @@ $(\ZFC)$ Let $(\Gamma,t,\theta)$ be a triple of $\CIC_2^-$ and $\gamma$ an
 ordinal, and put $\Theta:=\max(|\gamma|,\omega)^+$. There is an ordinal
 $G_{t,\theta}(\gamma)<\Theta$ such that for every cut $\alpha$, every oracle,
 and every $\gamma$-generated environment $\rho$ for $(\Gamma,\theta)$: if
-$\sem t^\X\rho$ is a code of rank below $\alpha$ and at least $\omega$, then
-its rank is below $G_{t,\theta}(\gamma)$.
+$\sem t^\X\rho$ is a code of infinite rank, then its rank is below
+$G_{t,\theta}(\gamma)$.
 \end{theorem}
 \begin{proof}
 $\Theta$ is a successor cardinal, hence regular, and $\gamma<\Theta$. By
@@ -1129,7 +1145,7 @@ every $\gamma$-generated $\rho$ has $\rho(x)\lhd\pi_\theta(x)$; this uses
 that the relation does not depend on the oracle. So
 $\sem t^\X\rho\lhd P_t(\pi_\theta)$, which is proper. If $t$ has kind $o$,
 put $G_{t,\theta}(\gamma):=P_t(\pi_\theta)<\Theta$; a value that is a code
-of rank in $[\omega,\alpha)$ has rank below it by the clause at $o$. If
+of infinite rank has rank below it by the clause at $o$. If
 $t$ has another kind then its value is not a code of infinite rank, by
 the clauses at $\kappa\to\kappa'$ and $\kappa\times\kappa'$, and any ordinal
 serves.
@@ -1173,6 +1189,306 @@ profile of a polymorphic term is a family indexed by kinds. The
 universes being predicative, we expect kinds themselves to be
 stratified by level, a kind of level $j$ being a set-sized object built
 from the kinds of lower levels; this has not been worked out.
+
+\section{Two universes with $W$-types and accessibility}\label{sec:cic2}
+
+We extend Section~\ref{sec:proved} to $\CIC_2^{\mathrm s}$: the theory with
+the sorts $\Prop:\Type_0:\Type_1$ in which $Wx{:}A.B$ is formed only when
+the branching type $B$ is small, the label type $A$ being arbitrary, and
+$\Acc_R$ only when the carrier $X$ is small; the eliminators $\ind^W$ and
+$\ind^{\Acc}$ go into every sort. This is the fragment that the
+interpretation of $\ZFh$ uses \cite[\S6]{paper2}: there
+$\mathsf{set}=Wx{:}\Type_0.\,x$ has big labels and small branching, and
+well-founded recursion is $\Acc$-recursion on the index type of a set,
+which is small, with motive $\mathsf{set}$. The restriction is what makes
+the \emph{full} height of a recursion bounded by the bounds of its data,
+so that no inspection argument is needed; without it we have no proof
+(see the end of the section). The new difficulty is that the recursions
+have Hartogs length, which a regular cardinal below an inaccessible does
+not absorb. We replace regularity by elementarity, and no longer need the
+axiom of choice.
+
+\subsection{Trees}
+
+Lemma~\ref{lem:rigid} extends: a big type is $\Type_0$, or a $\Pi$, a
+$\Sigma$, a quotient with a big component, or $Wx{:}A.B$ with $A$ big.
+Kinds get a constructor $T(\kappa)$, with $k(Wx{:}A.B):=T(k(A))$ for a big
+$W$-type; $D_{T(\kappa)}:=D_\kappa$, a profile of a tree being a bound for all
+its labels. The bounding relation gets two clauses: at kind $o$, a tree
+is $\lhd_o\beta$ iff all its labels are; and $e\lhd_{T(\kappa)}p$ iff $e$ is
+not a code of infinite rank and, if $e$ is a tree, every label of $e$,
+at every node, is $\lhd_\kappa p$. Lemma~\ref{lem:lhdbasic} holds as before,
+the elements of a pure $W$-code being trees with labels and indices from
+pure codes.
+
+Put $\hbar(\beta):=\hartogs(V_{\beta\cdot\omega+\omega+1})$, the least ordinal that
+does not inject into that set. It bounds the two heights we need, in
+$\ZF$: if $S\subseteq(V_{\beta\cdot\omega})^{<\omega}$ carries a well-founded
+relation, its rank function maps $S$ onto an ordinal $\xi$, and
+$\zeta\mapsto\{s:\mathrm{rk}(s)=\zeta\}$ injects $\xi$ into
+$\PP(S)\subseteq V_{\beta\cdot\omega+\omega+1}$, so $\xi<\hbar(\beta)$.
+
+\begin{definition}[iteration]\label{def:It}
+For a monotone $\Psi:D_\kappa\to D_\kappa$ and $\ell\in D_o$ define
+$N_\xi$ for every ordinal $\xi$ by $N_0:=\bot$, the least element of
+$D_\kappa$, $N_{\xi+1}:=N_\xi\sqcup\Psi(N_\xi)$, and
+$N_\xi:=\bigsqcup_{\zeta<\xi}N_\zeta$ at limits; and
+$\mathrm{It}(\Psi,\ell):=N_\ell$ if $\ell<\Theta$, and the top element
+$\top$ of $D_\kappa$ if $\ell=\Theta$. It is monotone in both arguments, and
+$N_\xi\le\top$ for all $\xi$.
+\end{definition}
+
+\begin{definition}[profiles, continued]\label{def:P2}
+Definition~\ref{def:P} is extended as follows; $\hat c(p)$ is the constant
+function with value $p$, at the kind required.
+\begin{itemize}
+\item A small $W$-type has the profile of a small $\Sigma$-type;
+  $\Acc_R\,x$ and $\mathsf{acc}\,x\,h$ have profile $1$.
+\item $P_{\mathsf{sup}\,a\,d}(\pi):=P_a(\pi)\sqcup P_d(\pi)\cdot1$.
+\item $P_{\ind^W_Cf}(\pi)$, for the $W$-type $Wx{:}A.B$: if
+  $\Pi w{:}W.\,C$ is small it is $P_f(\pi)$; otherwise it is the function
+  $p\mapsto\mathrm{It}(\Psi_p,\ell_p)$ on $D_{k(W)}$ with
+  \[
+  \ell_p:=\hbar\bigl(P_B(\pi[x{:=}p])\bigr),\qquad
+  \Psi_p(n):=\bigl((P_f(\pi)\cdot p)\cdot\hat c(p)\bigr)\cdot\hat c(n),
+  \]
+  $\hbar$ being capped at $\Theta$.
+\item $P_{\ind^{\Acc}_Cf}(\pi)$, for the carrier $X$: if
+  $\Pi x{:}X.\,\Acc_R\,x\to C$ is small it is $P_f(\pi)$; otherwise it is
+  the function constantly $\mathrm{It}(\Psi,\ell)$ in both arguments,
+  with $\ell:=\hbar(P_X(\pi))$ and
+  $\Psi(n):=(P_f(\pi)\cdot1)\cdot\hat c(\hat c(n))$.
+\end{itemize}
+\end{definition}
+
+\begin{lemma}[fundamental lemma, continued]\label{lem:fund2}
+Lemma~\ref{lem:fund} holds for $\CIC_2^{\mathrm s}$, for every $\Theta$.
+\end{lemma}
+\begin{proof}
+The new cases. \emph{Small $W$-types} as small $\Sigma$-types.
+\emph{$\mathsf{sup}\,a\,d$:} the root label is $\lhd P_a$; a subtree is a
+value $\sem d(b)$ at an index $b$ in the decoding of a fibre, which is a
+small type, so $b\lhd_o1$ and the labels of $\sem d(b)$ are bounded by
+$P_d\cdot1$.
+\emph{$\ind^W_Cf$ at a small product:} the value at $w$ is
+$F(a)(d)(\mathrm{rec}_w)$, a value of a value of a value of $F\lhd_oP_f$.
+\emph{$\ind^W_Cf$ at a big product.} Let $w$ be a tree in the domain with
+$w\lhd p$, and let $V(w)$ be the value at $w$. The fibre at a label $a$
+of $w$ is $\sem B\rho[x{:=}a]\lhd_o\beta_B:=P_B(\pi[x{:=}p])$ by induction,
+since $a\lhd p$. If $\beta_B<\Theta$, each fibre is therefore a pure code
+of rank below $\max(\beta_B,\omega)$ or is not a code, so the indices at
+every node lie in $V_{\beta_B\cdot\omega}$, the nodes of $w$ are finite
+sequences of such indices, and the height of $w$ is below
+$\hbar(\beta_B)=\ell_p$, which is a limit ordinal. We show
+$V(w')\lhd N_{\mathrm{ht}(w')+1}$ for every subtree $w'$ of $w$, by
+induction on $w'=\mathsf{sup}\,a\,d$, where $N$ is the iteration of
+$\Psi_p$. We have $a\lhd p$; the subtree function $d$ is
+$\lhd\hat c(p)$, its values being subtrees of $w$; and $\mathrm{rec}_{w'}$,
+which sends $b$ to $V(d(b))$, is $\lhd\hat c(N_{\mathrm{ht}(w')})$ by the
+induction hypothesis and monotonicity of $N$ in its index. Since
+$F\lhd P_f$, the value $F(a)(d)(\mathrm{rec}_{w'})$ is
+$\lhd\Psi_p(N_{\mathrm{ht}(w')})\le N_{\mathrm{ht}(w')+1}$. So
+$V(w)\lhd N_{\mathrm{ht}(w)+1}$, which is $\le N_{\ell_p}$ if
+$\ell_p<\Theta$ and $\le\top$ in any case.
+\emph{$\ind^{\Acc}_Cf$:} at a small product as for $W$. At a big product,
+the carrier is the decoding of $c:=\sem X\rho\lhd_oP_X$, so it is a subset
+of $V_{\beta_X\cdot\omega}$ with $\beta_X:=P_X(\pi)$, and the rank of an
+accessible element in the relation $\prec$ is below $\hbar(\beta_X)=\ell$.
+By induction along $\prec$, $V(x)\lhd N_{\mathrm{rk}(x)+1}\le\mathrm{It}(\Psi,\ell)$: the elements
+of the carrier are $\lhd_o1$, $\mathrm{rec}_x$ sends $y\prec x$ to
+$\star\mapsto V(y)$ and the other $y$ to the empty function, so it is
+$\lhd\hat c(\hat c(N_{\mathrm{rk}(x)}))$, and $F\lhd P_f$. Outside the
+accessible part the value is the empty function.
+\end{proof}
+
+\subsection{Correct ordinals in place of regular cardinals}
+
+In Section~\ref{sec:proved} the bound stayed below a regular $\Theta$
+because the only supremum was countable. Now $\ell_p$ is a Hartogs number
+of a bound that is itself below $\Theta$, and an iteration of that length
+stays below $\Theta$ for every monotone $\Psi$ only if $\Theta$ is
+inaccessible. But the functions being iterated are not arbitrary: they
+are denoted by terms. An ordinal that is elementary for definable
+functions is closed under their iterations, whatever its cofinality.
+
+Fix a natural number $m$, large enough for the finitely many formulas
+used below, and call $\alpha$ \emph{correct} if $V_\alpha\prec_{\Sigma_m}V$. By the
+reflection theorem $\ZF$ proves that the correct ordinals are unbounded.
+A correct $\alpha$ is a limit, $\beta\cdot\omega<\alpha$ and
+$\hbar(\beta)<\alpha$ for $\beta<\alpha$, and the domains $D^\Theta_\kappa$ for
+$\Theta<\alpha$ belong to $V_\alpha$ and are computed correctly there. We now
+write the dependence on $\Theta$ explicitly: $D^\Theta_\kappa$,
+$\top^\Theta$, and $P^\Theta_t$.
+
+\paragraph{The profile calculus.}
+The clauses of Definitions~\ref{def:P} and \ref{def:P2} are the
+denotations of the terms of a simply kinded $\lambda$-calculus $\mathcal P$:
+its kinds are those of Definition~\ref{def:kinds} with $T(\kappa)$, and its
+constants are an ordinal constant $\bar\beta$ for each ordinal, the join
+$\sqcup$ at each kind, the two operations
+$(\beta,\beta')\mapsto\max(\beta\cdot\omega,\beta')+\omega$ and
+$\beta\mapsto\beta\cdot\omega+\omega$, the constant-function operators
+$\hat c$, the supremum of iterates over $\N$ used for $\ind^\N$,
+$\mathrm{It}$ at each kind, and $\hbar$. So to each term $t$ of
+$\CIC_2^{\mathrm s}$ corresponds a term $t^\flat$ of $\mathcal P$, with a
+variable for each variable of $t$, such that
+$P^\Theta_t(\pi)=\sem{t^\flat}^\Theta(\pi)$ for every $\Theta$; the
+denotation $\sem E^\Theta$ is defined by recursion on $E$, uniformly in
+$\Theta$, an ordinal constant or an arithmetical result that is not below
+$\Theta$ denoting the top element. A \emph{closure} is a closed term of
+$\mathcal P$; it is \emph{below $\alpha$} if its ordinal constants are.
+
+\begin{lemma}[coherence]\label{lem:coh}
+For $\Theta\le\Theta'$ define $p\sim_\kappa p'$ between $D^\Theta_\kappa$ and
+$D^{\Theta'}_\kappa$: at $o$ and $T(\kappa)$ by recursion, $\beta\sim_o\beta'$ iff
+$\beta=\Theta$ or $\beta=\beta'$; at $\kappa\to\kappa'$, $p\sim p'$ iff
+$p(q)\sim p'(q')$ whenever $q\sim q'$; componentwise at products. Then
+$\sem E^\Theta\sim\sem E^{\Theta'}$ for every closure $E$. In particular,
+if $E$ has kind $o$ and $\sem E^\Theta<\Theta$ then
+$\sem E^{\Theta'}=\sem E^\Theta$ for all $\Theta'\ge\Theta$.
+\end{lemma}
+\begin{proof}
+The fundamental lemma of logical relations, for which it suffices that
+the constants are related to themselves. The top element is related to
+everything, by induction on the kind. For the arithmetical operations
+and $\hbar$: if the arguments on the left are below $\Theta$ they equal
+those on the right, and the result on the left is the true result or the
+top. For a supremum of a family: if some member on the left is the top
+so is the supremum; otherwise the members agree with those on the right,
+and the supremum on the left is theirs if it is below $\Theta$ and the top
+if not; at higher kinds pointwise. For $\mathrm{It}$: if
+$\ell=\Theta$ on the left the value is the top; otherwise
+$\ell=\ell'$, and $N_\xi\sim N'_\xi$ by induction on $\xi\le\ell$, from the
+cases of join and supremum and $\Psi\sim\Psi'$.
+\end{proof}
+
+\begin{definition}[definably proper]\label{def:Q}
+Let $\alpha$ be correct. $\mathcal Q_\kappa\subseteq D^\alpha_\kappa$ is defined by
+recursion on $\kappa$: $p\in\mathcal Q_\kappa$ iff $p=\sem E^\alpha$ for some
+closure $E$ below $\alpha$, and: at $o$, $p<\alpha$; at $\kappa'\to\kappa''$,
+$p(q)\in\mathcal Q_{\kappa''}$ for every $q\in\mathcal Q_{\kappa'}$; at
+products, componentwise; and $\mathcal Q_{T(\kappa')}:=\mathcal Q_{\kappa'}$.
+Both $D^\alpha_\kappa$ and the closures below $\alpha$ form sets,
+so $\mathcal Q$ is defined in $\ZF$ by a single recursion on kinds.
+\end{definition}
+
+\begin{lemma}[definable suprema]\label{lem:defsup}
+Let $\alpha$ be correct, $\ell<\alpha$, and let $E(\cdot)$ be a term of
+$\mathcal P$ of kind $o$ with one ordinal constant left open, otherwise
+closed and below $\alpha$. If $\sem{E(\bar\xi)}^\alpha<\alpha$ for every
+$\xi<\ell$, then $\sup_{\xi<\ell}\sem{E(\bar\xi)}^\alpha<\alpha$.
+\end{lemma}
+\begin{proof}
+Consider the statement: there are $\Theta$ and a function $s$ on $\ell$
+with $s(\xi)=\sem{E(\bar\xi)}^\Theta<\Theta$ for all $\xi<\ell$. It is
+$\Sigma_m$ in the parameters $E$ and $\ell$, which lie in $V_\alpha$, and
+it holds in $V$ with $\Theta:=\alpha$. So it holds in $V_\alpha$, with some
+$\Theta''<\alpha$ and $s''\in V_\alpha$, the denotation being computed
+correctly in $V_\alpha$. By Lemma~\ref{lem:coh},
+$s''(\xi)=\sem{E(\bar\xi)}^{\Theta''}=\sem{E(\bar\xi)}^\alpha$. So the
+supremum is at most $\Theta''<\alpha$.
+\end{proof}
+
+This is the whole point: the sequence of iterates is a definable set, an
+elementary $V_\alpha$ contains it, and the cofinality of $\alpha$ never
+enters. The least correct ordinal has cofinality $\omega$.
+
+\begin{lemma}\label{lem:Q}
+Let $\alpha$ be correct. Every closure below $\alpha$ denotes, in
+$D^\alpha$, an element of $\mathcal Q$; more generally a term of
+$\mathcal P$ below $\alpha$ denotes an element of $\mathcal Q$ under every
+assignment of elements of $\mathcal Q$ to its variables.
+\end{lemma}
+\begin{proof}
+By induction on the term, as in Tait's method; an assignment in
+$\mathcal Q$ can be replaced by a substitution of closures, so every
+denotation that arises is that of a closure below $\alpha$. It remains to
+see that the constants are in $\mathcal Q$. An ordinal constant below
+$\alpha$ is. The arithmetical operations and $\hbar$ map ordinals below
+$\alpha$ to ordinals below $\alpha$, since $\alpha$ is correct. Joins and
+constant functions are immediate. For the supremum of iterates and for
+$\mathrm{It}(\Psi,\ell)$ with $\Psi\in\mathcal Q$ and $\ell<\alpha$: by
+induction on $\xi\le\ell$ we show $N_\xi\in\mathcal Q$. It is the
+denotation of the closure $\mathrm{It}(\bar\Psi,\bar\xi)$. At a successor,
+$N_{\xi+1}=N_\xi\sqcup\Psi(N_\xi)$ with $\Psi,N_\xi\in\mathcal Q$. At a
+limit, apply $N_\xi$ to arguments in $\mathcal Q$ until the kind is $o$;
+the result is $\sup_{\zeta<\xi}\sem{E(\bar\zeta)}^\alpha$ for the term
+$E(\bar\zeta)$ that applies $\mathrm{It}(\bar\Psi,\bar\zeta)$ to closures
+denoting those arguments, each value is below $\alpha$ by the induction
+hypothesis, and Lemma~\ref{lem:defsup} applies. The supremum over $\N$ is
+the case $\ell=\omega$.
+\end{proof}
+
+\begin{theorem}\label{thm:cic2}
+$(\ZF)$ Let $\alpha$ be correct. For every triple $(\Gamma,t,\theta)$ of
+$\CIC_2^{\mathrm s}$ with $t$ of kind $o$ and every $\gamma<\alpha$ there is
+$\delta<\alpha$, computed from $(t,\theta,\gamma)$ by a recursion on syntax,
+such that in every structure, under every oracle, and at every
+$\gamma$-generated environment $\rho$ for $(\Gamma,\theta)$, if
+$\sem t^\X\rho$ is a code of infinite rank then its rank is below $\delta$.
+In particular $\alpha$ is $0$-closed, so $\lambda_0$ exists.
+\end{theorem}
+\begin{proof}
+As for Theorem~\ref{thm:rankcic2}, with $\Theta:=\alpha$. The profiles
+$\pi_\theta(x)$, which are $\hat\gamma$ at the free variables and
+$P^\alpha_{t_x}(\pi_{\theta_x})$ at the others, are denotations of closures
+below $\alpha$ and lie in $\mathcal Q$ by Lemma~\ref{lem:Q}, and so does
+$\delta:=P^\alpha_t(\pi_\theta)$; so $\delta<\alpha$. By
+Lemma~\ref{lem:fund2}, which holds for every $\Theta$ and every structure,
+$\sem t^\X\rho\lhd_o\delta$. The function $(t,\theta,\gamma)\mapsto\delta$ is
+defined, and the argument carried out, uniformly in the triple: the
+induction in Lemma~\ref{lem:Q} is an induction on terms inside $\ZF$,
+about the sets $\mathcal Q_\kappa$.
+\end{proof}
+
+The uniformity deserves emphasis, because it is the difference between
+proving the consistency of $\CIC_2^{\mathrm s}+\EM$ and proving the
+consistency of each of its finite fragments. A proof that bounded each
+term by a separate appeal to Replacement would give only the latter.
+Here the appeal to Replacement is made once, in the reflection theorem
+that produces a correct $\alpha$ for a fixed $m$; after that every term is
+handled by one induction about sets in $V_{\alpha+\omega}$.
+
+\begin{corollary}\label{cor:cic2}
+With Theorem~\ref{thm:main}, specialised to one cut and to oracles
+indexed by kind, $\ZF\vdash\Con(\CIC_2^{\mathrm s}+\EM)$, subject to the
+rule-by-rule check of Lemma~\ref{lem:sound}. The interpretation of
+$\ZFh$ in \cite{paper2} is written for the extensional theory; it uses
+only $W$-types with small branching and $\Acc$ on small carriers, and
+equality only through rewriting, so we expect it to go through in
+$\CIC_2^{\mathrm s}+\EM$, which has function and propositional
+extensionality. Granting both, the consistency strength of
+$\CIC_2^{\mathrm s}+\EM$ lies strictly between that of $\ZFh$ and that of
+$\ZF$.
+\end{corollary}
+
+\paragraph{What is excluded, and why.}
+$W$-types with big branching and $\Acc$ on a big carrier. For these the
+full height of a recursion is not bounded by the bounds of its data: an
+oracle, or a parameter of content $0$, can supply a well-order of the
+universe of any length, and a tree with branching over the universe of
+any height. The value of a recursion is small all the same, because a
+step can call the recursive function only at the values of finitely
+many index terms, in environments varying over small types; but a pure
+profile cannot see this. We tried three ways to make it see it, and
+record why each fails. \emph{Restricting the height to the predecessors
+bounded by a profile $q$:} the step may compute an index from the value
+of a recursive call, so $q$ must dominate the bounds being defined, and
+$q\ge N_{\hbar(q)}$ has no solution when the step raises ranks.
+\emph{A pre-fixed point of the step's profile:} it bounds the recursion
+whatever the height, but $n\mapsto n+\omega$ has no proper pre-fixed point
+while the true bound is a countable ordinal. \emph{Splitting the
+occurrences of the recursive function into those shielded by a
+parameter, whose value is bounded whatever it is given, and the direct
+ones, and replacing the function by junk outside the directly called
+indices:} whether an occurrence is shielded can depend on data, as in
+$(\lambda\varphi.\,\varphi\,(\lambda G.\,\mathrm{rec}\,(h\,G)))\,(\ind^{\mathbf 2}\,K\,(\lambda\psi.\,\psi\,g_0)\,b)$,
+and the directly called indices of a function that is passed around
+unapplied form a family indexed by its future arguments. What is wanted
+is a relation that bounds a value either by a constant or by the values
+of the recursive function on a small set, hereditarily; we have not
+found its definition. General inductive families with big indices or big
+recursive arguments meet the same problem.
 
 \section{Examples}\label{sec:examples}
 
@@ -1269,14 +1585,27 @@ proof and with adversarial oracles against closedness; this produced
 the clause that the types of a universe are hereditarily admitted
 (without it a tree over a type with an ungenerated family need not be
 generated) and nothing else.
-\emph{Proved in a special case:} the rank lemma for $\CIC_2$ without $W$
+\emph{Proved in special cases:} the rank lemma for $\CIC_2$ without $W$
 and $\Acc$ (Theorem~\ref{thm:rankcic2}), with $\omega_1$ as the extent of
-$\Type_0$ (Corollary~\ref{cor:omega1}); its proof assumes the standard
-metatheory of the intensional theory, in Lemma~\ref{lem:rigid}.
-\emph{Open:} Conjecture~\ref{conj:rank} in general, on which the theorem
-depends; the two things the general case adds are listed at the end of
-Section~\ref{sec:proved}, and the next case to try is $\CIC_2$ with $W$ and
-$\Acc$, which has the first and not the second.
+$\Type_0$ (Corollary~\ref{cor:omega1}); and the existence of a closed
+ordinal for $\CIC_2^{\mathrm s}$, the theory with two universes,
+$W$-types of small branching and $\Acc$ on small carriers
+(Theorem~\ref{thm:cic2}), the extent of $\Type_0$ being a
+$\Sigma_m$-correct ordinal. Both proofs assume the standard metatheory of
+the intensional theory, in Lemma~\ref{lem:rigid}. The second has been
+written once and not yet attacked; the steps to check first are
+Lemma~\ref{lem:defsup}, where the complexity $m$ should be made
+explicit, and the height bound in Lemma~\ref{lem:fund2}.
+\emph{Conditional consequence:} $\ZF\vdash\Con(\CIC_2^{\mathrm s}+\EM)$
+(Corollary~\ref{cor:cic2}), given the rule-by-rule check of soundness; and
+the placement of that theory strictly between $\ZFh$ and $\ZF$, given
+also that the interpretation of \cite{paper2} goes through
+intensionally.
+\emph{Open:} recursion over big types, that is $W$ with big branching and
+$\Acc$ on big carriers, for the reasons at the end of
+Section~\ref{sec:cic2}; and more than two universes, where kinds are no
+longer syntactic (end of Section~\ref{sec:proved}). So
+Conjecture~\ref{conj:rank} is open in general.
 \emph{Not attempted:} general inductive families; the refinement to
 finitely many universes, $\ZFh_{n+1}\vdash\Con(\CIC_{n+2}+\EM)$, which
 would close the hierarchy of \cite{paper2}.
