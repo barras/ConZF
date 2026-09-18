@@ -1062,7 +1062,8 @@ for $\theta$} is defined by recursion on $\theta$ as an environment $\rho$
 on $\vec x$ such that
 \begin{itemize}
 \item if $x$ is free then $\rho(x)\in\El^{\mathrm f}(c_x)$ for some code
-  $c_x$ of the structure with $\|\rho(x)\|_{c_x}<\gamma$;
+  $c_x$ in one of the universes of the structure, with
+  $\|\rho(x)\|_{c_x}<\gamma$;
 \item if $x$ has the pair $(t_x,\theta_x)$ then
   $\rho(x)=\sem{t_x}^{\sigma_x}\rho_x$ for some truth assignment $\sigma_x$
   and some $\gamma$-generated environment $\rho_x$ for $\theta_x$.
@@ -1071,7 +1072,8 @@ No typing is imposed, neither on the terms nor between the variables:
 a free variable is any element of bounded content of any code, and each
 node of the tree may use its own truth assignment. For a fixed structure,
 $\theta$, and $\gamma$, the $\gamma$-generated environments form a set, by
-recursion on $\theta$: the codes of the structure form a set, and the
+recursion on $\theta$: the codes in the universes of the structure form a
+set, and the
 possible values at a node form a set by Lemma~\ref{lem:sigmaloc}.
 \end{definition}
 
@@ -1461,6 +1463,85 @@ stated with a supremum over a proper class of structures, so a proof in
 $\ZF$ must produce $G_{t,\theta}$ as a definable class function by
 recursion on $(t,\theta)$, as Definition~\ref{def:maj} does, and not by
 a supremum whose existence is the point at issue.
+
+\paragraph{Obstacles to a proof by majorization.}
+The natural proof assigns to every value a profile and shows, by
+induction on the term, that the value of a term has the profile
+computed from the profiles of its variables. We have not been able to
+make this work for the conjecture as stated, for three reasons that
+compound.
+
+\emph{Bounds are monotone but not continuous.} The rank of
+$\Sigma n{:}\N.\,B(n)$ is a genuine supremum of the ranks of the fibres,
+so the bound of a type former jumps at limits. This has two
+consequences. A recursion cannot be bounded by a least fixed point: the
+step $\mathrm{rec}\mapsto(\Sigma n{:}\N.\,\mathrm{rec}\,(p\,x\,n))\to\Prop$
+has the bound $o\mapsto o+k$, whose only fixed point is ``no bound'',
+while the truth is a countable ordinal, the height of the tree of
+inspected predecessors; so the inspection argument is essential and not
+an optimisation. And there is no universal domain of profiles: the
+untyped domain equation for profiles with function parts has a solution
+for continuous functions only, even over the ideal completion of the
+ordinals, where every monotone function of ordinals is continuous but
+the supremum of a family is not.
+
+\emph{The statement is about raw terms.} Equality reflection forces
+this (Example~\ref{ex:confusion}), and it leaves no type structure by
+which to stratify profiles. One can stratify instead by the rank of the
+actual value, since an argument has smaller rank than the function it
+is applied to: profiles $\mathbb P_\xi$ for values of rank $\xi$, with
+function parts defined on $\mathbb P_{<\xi}$ and arbitrary monotone
+functions allowed. This is sound and needs no domain equation. But the
+resulting bounds are not uniform in the cut for terms that the
+conjecture handles for a trivial reason. Let $S:=\lambda X.\,X\to\N$,
+$W:=\lambda x{:}A.\,S(x\,x)$, in the context
+$e:A=(A\to\Type_N)$; then $W\,W:\Type_N$ is derivable by reflection. Its
+value is $\emptyset$, because no function lies in its own domain; but
+its rank-indexed bound satisfies $v(\xi)=S(\sup_{\zeta<\xi}v(\zeta))$,
+about $\omega\cdot\xi$, which grows with the rank index and hence with
+the cut. The closed term
+$\lambda A\,e.\,W\,W:\Pi A{:}\Type_{N+1}.\,(A=(A\to\Type_N))\to\Type_N$
+is derivable in the empty context, so such terms cannot be excluded by
+asking the context to be consistent. A proof must therefore see that
+the application is junk, which only a profile that depends on the
+actual argument can do; and then uniformity in the cut has to be proved
+for profiles that are themselves defined inside a structure, which is
+the difficulty the earlier version of this section failed on.
+
+\emph{The inspection argument needs actual arguments too}, as noted
+above, for a different reason.
+
+None of this suggests that the conjecture is false. It says that the
+proof is not an adaptation of Howard's, and that the extensionality of
+the theory is responsible for much of the difficulty: without
+reflection a term has a type that does not depend on the truth of its
+context, closedness could be stated for typed terms, the junk terms
+above would not be typable, and profiles could be stratified by a
+predicative-polymorphic skeleton of the type. Two things survive into
+the intensional setting and would still need the ideas above: the
+elimination of equality along a false equation, which has the same
+effect as reflection unless the evaluation of $\mathsf{ind}^=$ checks the
+equation, and quotients with a definitional computation rule, which
+prove function extensionality and so still force a partial equivalence
+relation.
+
+\paragraph{Attacks that failed.}
+For the record, the conjecture in its present form survived the
+following attempts to produce values just below the cut from parameters
+of bounded content: ill-typed raw terms binding a universe (the code
+then has rank above the cut); parameters of content $0$ over a large
+carrier without codes, such as a well-order of length above the cut on
+$\Type_N\to\Prop$ with a countable predecessor function, driving an
+$\mathsf{Acc}$-recursion of a Hartogs-raising step (the inspected tree is
+countable, and after an overflow the junk value restarts the iteration
+from the bottom, so the values below the cut are the same countably
+indexed iterates for every cut); trees of large height and content $0$
+with large branching (the step can inspect only a small family of
+children, or else its value has rank above the cut); classes of a
+quotient of the universe containing both a small code and a code near
+the cut (no eliminator extracts a member); and selection of a code by a
+proposition (there is no description operator, which is the point of
+the whole investigation).
 
 \subsection{Examples, and why the earlier version was abandoned}\label{sec:examples}
 
