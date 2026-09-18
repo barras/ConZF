@@ -1,0 +1,801 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[margin=0.85in]{geometry}
+\usepackage{amsmath,amsthm,amssymb,stmaryrd}
+\usepackage{hyperref,thmtools,enumitem,xcolor}
+
+\hypersetup{
+    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black},
+    urlcolor={blue!80!black}
+}
+
+\declaretheorem[name=Theorem,numberwithin=section]{theorem}
+\declaretheorem[name=Lemma,sibling=theorem]{lemma}
+\declaretheorem[name=Proposition,sibling=theorem]{proposition}
+\declaretheorem[name=Corollary,sibling=theorem]{corollary}
+\declaretheorem[name=Definition,sibling=theorem,style=definition]{definition}
+\declaretheorem[name=Remark,sibling=theorem,style=remark]{remark}
+\setlist[itemize]{parsep=0pt,topsep=2pt,before=\leavevmode}
+\setlist[enumerate]{parsep=0pt,topsep=2pt,before=\leavevmode}
+\setlength{\parindent}{1em}
+\setlength{\parskip}{.15em}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Asm}{\mathbf{Asm}}
+\newcommand{\Prop}{\mathsf{Prop}}
+\newcommand{\Type}{\mathsf{Type}}
+\newcommand{\Set}{\mathsf{Set}}
+\newcommand{\CIC}{\mathrm{CIC}}
+\newcommand{\ZF}{\mathrm{ZF}}
+\newcommand{\ZFC}{\mathrm{ZFC}}
+\newcommand{\IZF}{\mathrm{IZF}}
+\newcommand{\HAH}{\mathrm{HAH}}
+\newcommand{\EM}{\mathrm{EM}}
+\newcommand{\Con}{\mathrm{Con}}
+\newcommand{\code}[1]{\ulcorner #1\urcorner}
+\newcommand{\El}{\mathrm{El}}
+\newcommand{\dom}{\operatorname{dom}}
+\newcommand{\rk}{\operatorname{rank}}
+\newcommand{\rz}{\Vdash}
+\newcommand{\ap}{\cdot}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\PP}{\mathcal{P}}
+\newcommand{\Nat}{\mathsf{nat}}
+\newcommand{\Acc}{\mathsf{Acc}}
+\newcommand{\uchoice}{\mathsf{uchoice}}
+\newcommand{\CT}{\mathrm{CT}}
+\newcommand{\sem}[1]{\llbracket #1\rrbracket}
+
+\begin{document}
+
+\title{Universes Without Inaccessibles:\\
+  \large a ZF model of the Calculus of Inductive Constructions with $\omega$ universes}
+\author{Mario Carneiro}
+% Drafted with Claude; adjust authorship/acknowledgement as you see fit.
+\date{Draft, \today}
+\maketitle
+
+\noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep}{\textbf{Status (2026-09-18).}
+Lemma~\ref{lem:lfp}(2) is false and Theorem~\ref{thm:main} is withdrawn:
+Proposition~\ref{prop:noset} shows that \emph{no} set-sized universe of
+the kind constructed in Section~\ref{sec:model} exists unless an
+inaccessible cardinal does. Sections~\ref{sec:theories}--\ref{sec:lower},
+Remark~\ref{rem:diff}(iii), Proposition~\ref{prop:validates} for the
+one-universe model, and Remark~\ref{rem:prop} stand. The abstract and
+introduction describe the intended result and are left as written for now.}}
+
+\begin{abstract}
+The standard set-theoretic models of the Calculus of Inductive Constructions
+interpret each universe $\Type_i$ as a stage $V_{\kappa_i}$ of the cumulative
+hierarchy and so assume one inaccessible cardinal per universe. We show these
+cardinals are an artifact of the model. Building on the assembly model of van
+den Berg and Otten, we interpret each universe as the \emph{least} set of
+codes closed under the type formers, where a family of types is a computably
+tracked map into the universe. A tracker determines the computational
+skeleton of a family, so the closure is reached after countably many steps
+and the whole hierarchy is a set of rank $\omega_1$, although the universes
+themselves are large. We obtain
+$\ZF\vdash\Con(\CIC_\omega+\EM)$ with $\EM$ excluded middle in $\Prop$, using
+no choice and no large cardinals. The model refutes unique choice, exactly
+the principle Werner and Barras needed to interpret Replacement, so unique
+choice rather than the universes is what separates $\CIC$ from $\ZF$.
+Conversely, $\CIC$ with two universes proves the consistency of higher-order
+Heyting arithmetic and of its transfinite extensions.
+\end{abstract}
+
+\section{Introduction}
+
+How strong is the Calculus of Inductive Constructions with a cumulative
+hierarchy $\Prop\subseteq\Type_0\subseteq\Type_1\subseteq\cdots$? The usual
+answer comes from the sets-in-types-and-types-in-sets models of Werner
+\cite{werner97}, Barras \cite{barras10}, and Timany and Sozeau
+\cite{timanysozeau17}: $\Type_i$ is interpreted as $V_{\kappa_i}$ with
+$\kappa_i$ inaccessible, so $\ZFC$ plus $n$ inaccessibles proves
+$\Con(\CIC_n)$. The inaccessibles are forced by the model, not by the theory.
+$V_\kappa$ is closed under products of \emph{all} set-theoretic families
+exactly when $\kappa$ is inaccessible, and in that model a family is any set
+function; but the type theory can only build families it can name, and it
+cannot even prove Replacement for its own sets-as-trees: Werner needed a
+``type-theoretic description axiom'' and Barras a unique choice axiom
+$\uchoice$, and even then Barras ``could not prove the collection axiom''
+nor closure of Grothendieck universes under functional replacement
+\cite{barras10}. Timany and Sozeau state the matching lower bound only as a
+conjecture.
+
+This note gives a model with no inaccessible: the universes are taken as
+small as the type theory can force them to be. We work in the category
+$\Asm$ of assemblies over Kleene's first algebra, as van den Berg and Otten
+\cite{vdbergotten23} do for one universe, and interpret $\Type_i$ as a
+\emph{Tarski universe}: a set of codes with a decoding into $\Asm$,
+obtained as the least fixed point of a monotone closure operator. A family
+of types over $A$ is a morphism from $A$ into the universe, tracked by a
+natural number that determines the family up to its propositional parts.
+The stage at which a code enters the universe depends only on this
+computational skeleton, so the closure stabilises after countably many
+stages even though the universes contain continuum many types. Nothing has
+to be regular; only the existence of each product is used.
+
+\paragraph{Main results.}
+Let $\CIC_n$ be the calculus with sorts $\Prop$ and $\Type_0,\dots,\Type_{n-1}$
+and $\CIC_\omega$ the union (Section~\ref{sec:theories}); let $\EM$ be
+excluded middle in $\Prop$.
+\begin{itemize}
+\item $\ZF\vdash\Con(\CIC_\omega+\EM)$ (Theorem~\ref{thm:main}). The model is
+  a set of rank $\omega_1$, and Replacement is used only for a transfinite
+  recursion of countable length and for the sets $\beth_\alpha$,
+  $\alpha<\omega_1$.
+\item The model validates propositional extensionality, function
+  extensionality, uniqueness of identity proofs, quotient types, and the
+  $\Prop$-level Church's thesis, and refutes unique choice
+  (Proposition~\ref{prop:validates}). Hence $\CIC_\omega+\EM\nvdash\uchoice$,
+  and since $\CIC_2+\uchoice$ interprets $\IZF$ \cite{barras10} and
+  $\IZF$ interprets $\ZF$ \cite{friedman73},
+  $\CIC_\omega+\EM\nvdash\Con(\ZF)$ while $\CIC_2+\uchoice\vdash\Con(\ZF)$
+  (Corollary~\ref{cor:boundary}).
+\item $\CIC_2\vdash\Con(\HAH)$, and $\CIC_2\vdash\Con(\HAH_\beta)$ for every
+  Brouwer ordinal term $\beta$ (Theorem~\ref{thm:lower}); by
+  \cite{vdbergotten23}, $\CIC_1$ is conservative over $\HAH$.
+\end{itemize}
+The construction applies to Lean, which drops cumulativity, has general
+inductive types, and adds definitional proof irrelevance and quotients, all
+validated by the model (inductive types are handled as $W$-types are). So
+$\ZF$ proves the consistency of Lean without \texttt{Classical.choice},
+whereas Lean with choice proves $\Con(\ZFC+n\text{ inaccessibles})$ for every
+$n$ \cite{carneiro19}: choice is exactly what the inaccessibles pay for.
+
+\section{The type theories}\label{sec:theories}
+
+$\CIC_n$ ($1\le n\le\omega$) is van den Berg and Otten's extensional theory
+$\lambda C^+$ \cite[App.~A]{vdbergotten23} with its impredicative $\Set$
+removed and a cumulative tower of predicative universes put in its place.
+We give the rules in full, following their notation, since the exact type
+formers matter for the model; the differences from $\lambda C^+$ are
+collected in Remark~\ref{rem:diff}.
+
+\paragraph{Syntax.} Sorts and terms are
+\begin{align*}
+s &::= \Prop \mid \Type_i \quad(i<n)\\
+A,B,e &::= x \mid s \mid \Pi x{:}A.B \mid \lambda x{:}A.e \mid e\,e
+  \mid \Sigma x{:}A.B \mid \langle e,e\rangle \mid \mathsf{ind}^\Sigma_C e
+  \mid W x{:}A.B \mid \mathsf{tree}\,e\,e \mid \mathsf{ind}^W_C e\\
+ &\quad\mid \mathbf n \mid \mathbf k_{\mathbf n} \mid \mathsf{ind}^{\mathbf n}_C e\cdots e
+  \mid \N \mid 0 \mid \mathsf S\,e \mid \mathsf{ind}^\N_C e\,e
+  \mid e =_A e \mid \mathsf{refl}\,e \mid \mathsf{ind}^=_C e\\
+ &\quad\mid \|A\| \mid |e| \mid \mathsf{ind}^{\|\|}_C e
+  \mid A/e \mid [e]_R \mid \mathsf{ind}^{/}_C e\,e \mid \mathsf{ax}_/
+  \mid \mathsf{propext} \mid \mathsf{em}
+\end{align*}
+with $\mathbf n$ ranging over numerals and $\mathbf k_{\mathbf n}$ over
+$k<n$. Contexts are $\Gamma::=\cdot\mid\Gamma,x{:}A$. Sorts are ordered
+$\Prop<\Type_0<\Type_1<\cdots$ and $s_1\sqcup s_2$ is the maximum. The
+judgements are $\Gamma\vdash a:A$ and $\Gamma\vdash a\equiv a':A$. We
+abbreviate $A\to B$, $A\times B$ for non-dependent $\Pi$, $\Sigma$, and
+\begin{gather*}
+\bot:=\|\mathbf 0\|,\qquad
+\neg P:=P\to\bot,\qquad
+P\wedge Q:=\Sigma\_{:}P.Q,\qquad
+P\leftrightarrow Q:=(P\to Q)\times(Q\to P),\\
+P\vee Q:=\|\Sigma b{:}\mathbf 2.\ \mathsf{ind}^{\mathbf 2}_{\lambda\_.\Prop}\,P\,Q\,b\|,\qquad
+\exists x{:}A.P:=\|\Sigma x{:}A.P\|.
+\end{gather*}
+
+\paragraph{Structural rules, sorts, cumulativity, products.}
+In the rules $s,s_1,s_2$ range over sorts, and
+$s_1\Rightarrow s_2:=\Prop$ if $s_2=\Prop$ and $s_1\sqcup s_2$ otherwise.
+\[
+\frac{\Gamma\vdash A:s}{\Gamma,x{:}A\vdash x:A}\ \text{\small$x\notin\Gamma$}\qquad
+\frac{\Gamma\vdash A:s\quad\Gamma\vdash b:B}{\Gamma,x{:}A\vdash b:B}\ \text{\small$x\notin\Gamma$}\qquad
+\frac{}{\vdash\Prop:\Type_0}\qquad
+\frac{i+1<n}{\vdash\Type_i:\Type_{i+1}}
+\]
+\[
+\frac{\Gamma\vdash A:s\quad s\le s'}{\Gamma\vdash A:s'}\qquad
+\frac{\Gamma\vdash a:A\quad\Gamma\vdash A\equiv A':s}{\Gamma\vdash a:A'}\qquad
+\frac{\Gamma\vdash p:a=_A a'}{\Gamma\vdash a\equiv a':A}\qquad
+\frac{\Gamma\vdash P:\Prop\quad\Gamma\vdash p:P\quad\Gamma\vdash q:P}{\Gamma\vdash p\equiv q:P}
+\]
+\[
+\frac{\Gamma\vdash A:s_1\quad\Gamma,x{:}A\vdash B:s_2}{\Gamma\vdash\Pi x{:}A.B:s_1\Rightarrow s_2}\qquad
+\frac{\Gamma,x{:}A\vdash b:B}{\Gamma\vdash\lambda x{:}A.b:\Pi x{:}A.B}\qquad
+\frac{\Gamma\vdash f:\Pi x{:}A.B\quad\Gamma\vdash a:A}{\Gamma\vdash f\,a:B[a/x]}\qquad
+(\lambda x{:}A.b)\,a\equiv b[a/x]
+\]
+The rules stating that $\equiv$ is a congruence are omitted, as in
+$\lambda C^+$; computation rules are written as unconditional equations
+between well-typed terms. The first case of $\Rightarrow$ is impredicativity
+of $\Prop$; for $n<\omega$ the top sort $\Type_{n-1}$ is not a type.
+
+\paragraph{Formation.}
+\[
+\frac{\Gamma\vdash A:s_1\quad\Gamma,x{:}A\vdash B:s_2}{\Gamma\vdash\Sigma x{:}A.B:s_1\sqcup s_2}\qquad
+\frac{\Gamma\vdash A:s_1\quad\Gamma,x{:}A\vdash B:s_2}{\Gamma\vdash W x{:}A.B:s_1\sqcup s_2}\qquad
+\frac{}{\vdash\mathbf n:\Type_0}\qquad
+\frac{}{\vdash\N:\Type_0}
+\]
+\[
+\frac{\Gamma\vdash A:s\quad\Gamma\vdash a:A\quad\Gamma\vdash a':A}{\Gamma\vdash a=_A a':\Prop}\qquad
+\frac{\Gamma\vdash A:s}{\Gamma\vdash\|A\|:\Prop}\qquad
+\frac{\Gamma\vdash A:s\quad\Gamma,x{:}A,x'{:}A\vdash R:s'}{\Gamma\vdash A/R:s}
+\]
+So $\Prop$ is closed under $\Sigma$ and $W$ as well as $\Pi$; Coq's
+singleton elimination and $\Acc$-recursion live here.
+
+\paragraph{Introduction and elimination.}
+Each rule is stated for a fixed well-formed type of the displayed shape;
+$C$ is the motive, of any sort $s$ except where noted.
+\[
+\frac{\Gamma\vdash a:A\quad\Gamma\vdash b:B[a/x]}{\Gamma\vdash\langle a,b\rangle:\Sigma x{:}A.B}\qquad
+\frac{\Gamma,p{:}\Sigma x{:}A.B\vdash C:s\quad\Gamma\vdash f:\Pi x{:}A.\Pi y{:}B.\,C[\langle x,y\rangle/p]}
+     {\Gamma\vdash\mathsf{ind}^\Sigma_C f:\Pi p{:}\Sigma x{:}A.B.\,C}
+\]
+\[
+\frac{\begin{array}{c}\Gamma,t{:}Wx{:}A.B\vdash C:s\\
+      \Gamma\vdash f:\Pi a{:}A.\,\Pi d{:}(B[a/x]\to Wx{:}A.B).\,(\Pi b{:}B[a/x].\,C[d\,b/t])\to C[\mathsf{tree}\,a\,d/t]\end{array}}
+     {\Gamma\vdash\mathsf{ind}^W_C f:\Pi t{:}Wx{:}A.B.\,C}
+\]
+\[
+\frac{\Gamma\vdash a:A\quad\Gamma\vdash d:B[a/x]\to Wx{:}A.B}{\Gamma\vdash\mathsf{tree}\,a\,d:Wx{:}A.B}\qquad
+\frac{k<n}{\vdash\mathbf k_{\mathbf n}:\mathbf n}\qquad
+\frac{\Gamma,k{:}\mathbf n\vdash C:s\quad\Gamma\vdash c_j:C[\mathbf j_{\mathbf n}/k]\ (j<n)}
+     {\Gamma\vdash\mathsf{ind}^{\mathbf n}_C c_0\cdots c_{n-1}:\Pi k{:}\mathbf n.\,C}
+\]
+\[
+\frac{}{\vdash 0:\N}\qquad\frac{\Gamma\vdash m:\N}{\Gamma\vdash\mathsf S\,m:\N}\qquad
+\frac{\Gamma,m{:}\N\vdash C:s\quad\Gamma\vdash c:C[0/m]\quad\Gamma\vdash f:\Pi m{:}\N.\,C\to C[\mathsf S\,m/m]}
+     {\Gamma\vdash\mathsf{ind}^\N_C c\,f:\Pi m{:}\N.\,C}
+\]
+\[
+\frac{\Gamma\vdash a:A}{\Gamma\vdash\mathsf{refl}\,a:a=_A a}\qquad
+\frac{\Gamma,a{:}A,a'{:}A,e{:}a=_A a'\vdash C:s\quad\Gamma\vdash f:\Pi x{:}A.\,C[x,x,\mathsf{refl}\,x]}
+     {\Gamma\vdash\mathsf{ind}^=_C f:\Pi a\,a'{:}A.\,\Pi e{:}a=_A a'.\,C}
+\]
+\[
+\frac{\Gamma\vdash a:A}{\Gamma\vdash|a|:\|A\|}\qquad
+\frac{\Gamma,t{:}\|A\|\vdash C:\Prop\quad\Gamma\vdash f:\Pi x{:}A.\,C[|x|/t]}
+     {\Gamma\vdash\mathsf{ind}^{\|\|}_C f:\Pi t{:}\|A\|.\,C}\qquad
+\frac{\Gamma\vdash a:A}{\Gamma\vdash[a]_R:A/R}
+\]
+\[
+\frac{\begin{array}{c}\Gamma,q{:}A/R\vdash C:s\qquad\Gamma\vdash f:\Pi x{:}A.\,C[[x]_R/q]\\
+      \Gamma\vdash h:\Pi x\,x'{:}A.\,R[x,x']\to f\,x=_{C[[x]_R/q]}f\,x'\end{array}}
+     {\Gamma\vdash\mathsf{ind}^/_C f\,h:\Pi q{:}A/R.\,C}
+\]
+\[
+\vdash\mathsf{ax}_/:\Pi a\,a'{:}A.\,R[a,a']\to[a]_R=_{A/R}[a']_R\qquad
+\vdash\mathsf{propext}:\Pi P\,P'{:}\Prop.\,(P\leftrightarrow P')\to P=_\Prop P'
+\]
+\paragraph{Computation.}
+\begin{gather*}
+\mathsf{ind}^\Sigma_C f\langle a,b\rangle\equiv f\,a\,b\qquad
+\mathsf{ind}^W_C f\,(\mathsf{tree}\,a\,d)\equiv f\,a\,d\,(\lambda b.\,\mathsf{ind}^W_C f\,(d\,b))\qquad
+\mathsf{ind}^{\mathbf n}_C\vec c\ \mathbf j_{\mathbf n}\equiv c_j\\
+\mathsf{ind}^\N_C c f\,0\equiv c\qquad
+\mathsf{ind}^\N_C c f\,(\mathsf S\,m)\equiv f\,m\,(\mathsf{ind}^\N_C c f\,m)\qquad
+\mathsf{ind}^=_C f\,a\,a\,(\mathsf{refl}\,a)\equiv f\,a\\
+\mathsf{ind}^{\|\|}_C f\,|a|\equiv f\,a\qquad
+\mathsf{ind}^/_C f\,h\,[a]_R\equiv f\,a
+\end{gather*}
+In the premise $h$ of $\mathsf{ind}^/$, the term $f\,x'$ has type
+$C[[x']_R/q]$, which is convertible with $C[[x]_R/q]$ under the hypothesis
+$R[x,x']$ by $\mathsf{ax}_/$ and reflection, so no transport is needed.
+$\CIC_n+\EM$ adds $\vdash\mathsf{em}:\Pi P{:}\Prop.\,P\vee\neg P$.
+
+\begin{remark}[differences from $\lambda C^+$]\label{rem:diff}
+(i) $\lambda C^+$ has $\Prop,\Set:\Type$ with $\Set$ impredicative and
+$\Type$ a top sort; we have $\Prop:\Type_0:\Type_1:\cdots$ with each
+$\Type_i$ predicative, and $\CIC_1$ is $\lambda C^+$ minus $\Set$ (its
+$\Type$ becomes our $\Type_0$).
+(ii) Consequently $\Pi$, $\Sigma$, and $W$ land in the maximum of the sorts
+involved rather than, as in $\lambda C^+$, in the sort of the codomain
+(for $\Pi$) or of the domain (for $W$); those rules are sound for
+impredicative sorts by \cite[Prop.~7]{vdbergotten23} but not for a
+predicative universe.
+(iii) $\lambda C^+$ allows $\mathsf{ind}^{\|\|}$ to eliminate into any
+family $C$ of subsingletons, given $h:\Pi t.\,\Pi c\,c'{:}C.\,c=c'$. That
+rule derives unique choice: in the context $R{:}\N\to\Prop,\
+t{:}\|\Sigma m{:}\N.R\,m\|$, eliminate into the subsingleton
+$C:=(\Sigma m{:}\N.R\,m)/\top$ with $f:=[{-}]$ to obtain, uniformly in $R$,
+an element of $C$ whose realizer must encode some $m$ with $R\,m$. No such
+tracker exists in the assembly model, where $\N\to\Prop$ is indiscrete,
+and the clause of \cite[App.~B]{vdbergotten23} interpreting
+$\mathsf{ind}^{\|\|}$ (``$f$ applied to any element of $A$'') does not
+supply one. We therefore restrict the target of $\mathsf{ind}^{\|\|}$ to
+$\Prop$, which is what the interpretation of $\HAH$ uses; see
+Proposition~\ref{prop:validates} for the failure of unique choice.
+(iv) Reflection makes the theory extensional, so funext and UIP are
+derivable. Intensional variants (Coq's $J$ with or without UIP and funext,
+Lean's definitional proof irrelevance and $\mathsf{Quot}$) are subsystems
+up to notation, and the model validates the extensional rules, so nothing
+below depends on the choice. General inductive types are deliberately
+absent, as in $\lambda C^+$; $\N$, $\mathbf 2$, $\Sigma$, and $W$ suffice
+for this note.
+\end{remark}
+
+\section{Lower bounds}\label{sec:lower}
+
+The reason one universe is exactly $\HAH$ and two are more is that a universe
+$\Type_0:\Type_1$ lets us define types by recursion on $\N$.
+
+\begin{theorem}\label{thm:lower}
+$\CIC_2\vdash\Con(\HAH)$. More generally, for each closed term $\beta$ of the
+type $O$ of Brouwer ordinals ($O:=\mathsf{zer}\mid\mathsf{suc}\,O\mid
+\mathsf{lim}\,(\N\to O)$), $\CIC_2$ proves the consistency of
+$\HAH_\beta$, higher-order Heyting arithmetic with a sort for every ordinal
+level below $\beta$, where a limit level $\mathsf{lim}\,f$ is the sum
+$\Sigma(n:\N)\,\mathsf{lvl}(f\,n)$.
+\end{theorem}
+\begin{proof}
+Let $O:=W x{:}\N.\,B\,x:\Type_0$ with $B\,0=\mathbf 0$, $B\,1=\mathbf 1$,
+$B\,(m{+}2)=\N$ defined by $\mathsf{ind}^\N$ into $\Type_0$, which is a
+type only because $\Type_0:\Type_1$. Define $T:O\to\Type_0$ by
+$\mathsf{ind}^W$, again into $\Type_0$:
+$T(\mathsf{zer})=\N$, $T(\mathsf{suc}\,o)=T(o)\to\Prop$,
+$T(\mathsf{lim}\,f)=\Sigma m{:}\N.\,T(f\,m)$. Each $T(o):\Type_0$ since
+$\Prop$ is impredicative and $\Prop:\Type_0$. Code formulas of $\HAH_\beta$
+as a second $W$-type over $\N$ (labels for atoms, connectives, and
+quantifiers with their level and variable), environments as
+$\Pi o{:}O.\,\N\to T(o)$, and satisfaction
+$\mathsf{Sat}:\mathsf{form}\to\mathsf{Env}\to\Prop$ by $\mathsf{ind}^W$ with
+motive $\mathsf{Env}\to\Prop:\Type_0$, so that
+$\mathsf{Sat}(\forall^o x.A)\,\rho=\Pi v{:}T(o).\,\mathsf{Sat}(A)(\rho[x\mapsto v])$.
+Every axiom of $\HAH_\beta$ is satisfied (comprehension at level $o+1$ is
+$\lambda$-abstraction into $\Prop$), so by induction on derivations no
+proof of $\bot$ exists, which is a $\Pi^0_1$ statement about codes of
+derivations.
+\end{proof}
+
+In $\CIC_1$ the motives $\N\to\Type_0$ and $O\to\Type_0$ are not types, and indeed
+$\lambda C^+$ is conservative over $\HAH$ \cite{vdbergotten23}. The rest of
+this note shows that the climb from $\CIC_1$ to $\CIC_\omega$ nevertheless
+stays far below $\ZF$.
+
+\section{The model}\label{sec:model}
+
+\subsection{Assemblies and a classical \texorpdfstring{$\Prop$}{Prop}}
+
+We use Kleene application $e\ap k$ on $\N$, with $e\ap k{\downarrow}$ for
+definedness. An \emph{assembly} $A$ is a set $|A|$ with a relation
+${\rz_A}\subseteq\N\times|A|$ such that every $x\in|A|$ has some $k\rz_A x$;
+a morphism $A\to B$ is a function $F$ tracked by some $e$, meaning
+$e\ap k{\downarrow}\rz_B F(x)$ whenever $k\rz_A x$. $A$ is \emph{modest} if
+distinct elements have disjoint realizer sets, so that a realizer determines
+the element and a morphism out of a modest set is determined by its tracker.
+$\Sigma$, $\Pi$, $W$ of
+assembly-valued families are as in \cite[\S5.3]{vdbergotten23}: the carrier
+is the set of set-theoretic elements that have a realizer, with $\Pi$
+realized by trackers, $\Sigma$ by pairs, and $W$ (elements represented as
+sets of finite paths) by programs producing subtree realizers. A quotient
+$A/R$ by a relation $R\subseteq|A|^2$ has carrier $|A|/{\sim_R}$ (the
+equivalence relation generated) and $k\rz[x]$ iff $k\rz_A y$ for some
+$y\sim_R x$. $\mathbf n$ and $\N$ are the evident modest assemblies. Unlike \cite{vdbergotten23} we do not confine assemblies to
+$\PP^n(\N)$: $\Asm$ is the class of all assemblies in $\ZF$.
+
+We take $\Prop$ classical: $|\Prop|=\{\bot,\top\}$ with
+$\rz_\Prop=\N\times|\Prop|$. As a type, $\bot$ decodes to $\mathbf 0$ and
+$\top$ to $\mathbf 1$. The connectives are Boolean: $\Pi(x{:}A)\,p(x)$ is
+$\top$ iff every $p(x)$ is, for \emph{any} assembly $A$ (impredicativity);
+$\Sigma(x{:}p)\,q$ is $p\wedge q$; $W(x{:}p)\,q$ is $p\wedge\neg q$ (a
+well-founded tree exists iff the root label exists and it has no children);
+$[x=_A y]$ is equality in $|A|$; $\|A\|$ is $[\,|A|\ne\emptyset\,]$; and a
+quotient of a proposition is itself. This is Werner's proof-irrelevant
+$\Prop$ \cite{werner97,miquelwerner02} sitting on assemblies instead of
+sets.
+
+\subsection{The universe operator}
+
+A universe will be a set of \emph{codes}. Codes are not natural numbers:
+a type such as $\Sigma x{:}\N.\,P\,x$ depends on an arbitrary subset
+$P\subseteq\N$, so a universe containing $\N$ and $\Prop$ has at least
+continuum many elements. Codes are instead well-founded trees whose nodes
+carry the families themselves, in the style of Aczel's and Werner's set
+universes. What keeps the construction small is not the number of codes but
+the number of \emph{stages}: a code is realized by a natural number that
+determines its computational skeleton, and the stage at which a code enters
+the universe depends only on that skeleton.
+
+\begin{definition}[codes, pre-universes, families]\label{def:codes}
+The class of codes is defined inductively: $\bot,\top,\code\Prop,
+\code{\mathbf n}\ (n\in\N),\code\N,\code{\U_i}$ are codes; and if $c$ is a code,
+$X$ a set, $F:X\to\text{codes}$, and $R\subseteq X^2$, then
+$\code\Pi(c,F)$, $\code\Sigma(c,F)$, $\code W(c,F)$, and $\code{/}(c,R)$
+are codes, \emph{except} that the propositional cases are identified with
+truth values: $\code\Pi(c,F):=[\forall x.\,F(x)=\top]$ if every $F(x)$ is
+a truth value; $\code\Sigma(c,F):=[c=\top\wedge F(\star)=\top]$ and
+$\code W(c,F):=[c=\top\wedge F(\star)=\bot]$ if $c$ and every $F(x)$ are
+truth values; and $\code/(c,R):=c$ if $c$ is a truth value. (Here $X$ will
+always be the carrier of the decoding of $c$.)
+A \emph{pre-universe} is a set $u$ of pairs (code, assembly) that is a
+partial function, written $u(c)$. Realizers of codes are defined by
+recursion on codes: every $k$ realizes a truth value or a constant code;
+$\langle k,e\rangle$ realizes $\code Q(c,F)$ iff $k$ realizes $c$ and $e$
+tracks $F$ as a map $u(c)\to\langle u\rangle$; $k$ realizes $\code/(c,R)$
+iff $k$ realizes $c$. The \emph{universe assembly} $\langle u\rangle$ has
+carrier $\dom u$ and this realizability relation. A \emph{$u$-family over
+$c\in\dom u$} is a morphism $F:u(c)\to\langle u\rangle$ in $\Asm$, and
+$u\circ F$ is the assembly-valued family $x\mapsto u(F(x))$.
+\end{definition}
+
+The identification of propositional codes with truth values is the
+code-level form of Miquel and Werner's trick \cite{miquelwerner02}: it makes
+$\Prop\subseteq\Type_0$ hold on the nose and makes the interpretation of a
+type independent of the sort at which it is formed.
+
+\begin{definition}[the closure operator]
+For pre-universes $v$ (the \emph{seed}) and $u$ let
+\begin{align*}
+\Phi_v(u) \;=\;& u\;\cup\;v\;\cup\;
+  \{(\bot,\mathbf 0),\ (\top,\mathbf 1),\ (\code\Prop,\Prop),\ (\code\N,\N)\}
+  \cup\{(\code{\mathbf n},\mathbf n):n\in\N\}\\
+&\cup\;\{(\code{Q}(c,F),\ Q(u(c),u\circ F)) : Q\in\{\Pi,\Sigma,W\},\
+      c\in\dom u,\ F\text{ a $u$-family over }c\}\\
+&\cup\;\{(\code/(c,R),\ u(c)/R) : c\in\dom u,\ R\subseteq|u(c)|^2\}.
+\end{align*}
+Let $\El_0:=\mathrm{lfp}\,\Phi_\emptyset$ and
+$\El_{n+1}:=\mathrm{lfp}\,\Phi_{v_n}$ with seed
+$v_n:=\El_n\cup\{(\code{\U_n},\langle\El_n\rangle)\}$, where
+$\mathrm{lfp}\,\Phi_v:=\bigcup_\alpha u^\alpha$ for the stages
+$u^\alpha:=\Phi_v(\bigcup_{\beta<\alpha}u^\beta)$.
+\end{definition}
+
+For the propositional cases the clauses agree with the truth-value
+definitions of \S4.1, so the operator is well defined on codes that have
+been identified: e.g.\ $\Pi(u(c),u\circ F)$ with all $F(x)$ truth values is
+$\mathbf 1$ or $\mathbf 0$ according as $[\forall x.\,F(x)=\top]$, and a
+$W$ over $\mathbf 1$ with children indexed by $\mathbf 1$ is empty.
+
+\begin{lemma}\label{lem:lfp}
+For every $n<\omega$:
+\begin{enumerate}
+\item $\Phi_{v_n}$ is monotone with respect to $\subseteq$, and each stage
+  $u^\alpha$ is a pre-universe extending the previous stages.
+\item The stages stabilise at a countable ordinal $\sigma_n$, so $\El_n$ is
+  a set, and it is the least $u\supseteq v$ with $\Phi_v(u)=u$ for its seed
+  $v$ ($v=\emptyset$ or $v=v_{n-1}$).
+\item $\dom\El_n\subseteq\dom\El_{n+1}$ and $\El_{n+1}$ restricted to
+  $\dom\El_n$ is $\El_n$; moreover $\El_{n+1}(\code{\U_n})=\langle\El_n\rangle$
+  and $\Prop$ is a sub-assembly of $\langle\El_0\rangle$.
+\item Every value $\El_n(c)$ is an assembly of rank below $\omega_1$, so
+  $\langle\El_n:n<\omega\rangle\in V_{\omega_1+1}$; the carriers, however,
+  have sizes cofinal in $\beth_{\sigma_n}$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(1) Every clause of $\Phi_v$ is positive in $u$: enlarging $u$ enlarges
+$\dom u$, hence the set of $u$-families, and leaves the values $u(c)$ and
+the realizers of existing codes unchanged. A code is its own syntax tree,
+so a code can only be assigned one value, and a code already present was
+added from a smaller stage whose restriction agrees with the current one.
+(2) Define the \emph{stage} of a code $c\in\dom\El_n$ as the least $\alpha$
+with $c\in u^\alpha$. We claim a realizer of $c$ determines its stage. For
+constants and truth values the stage is $0$ or the seed's. For
+$\code Q(c,F)$ with realizer $\langle k,e\rangle$: by induction $k$
+determines the stage of $c$; and for each $x$ and $k'\rz x$, $e\ap k'$
+realizes $F(x)$ and so determines its stage, hence the countable set
+$\{e\ap k':k'\in\N\}$ determines the set of stages of the $F(x)$; the stage
+of the code is one above the supremum of all these. Quotients are one above
+the stage of $c$. Now if $u^{\alpha+1}\ne u^\alpha$, the least realizer of a
+code entering at $\alpha+1$ is a natural number not assigned to any other
+stage; this injects the strict stages into $\N$, so $\sigma_n<\omega_1$,
+with no use of choice. Each stage is a set by Replacement.
+(3) $v_n\subseteq\El_{n+1}$ by the seed clause, and the closure clauses
+applied to codes of $\El_n$ give the same values as inside $\El_n$. The
+code $\code{\U_n}$ is produced by no earlier clause. The truth values are
+in $\dom\El_0$ with the indiscrete realizers, which is exactly $\Prop$.
+(4) By induction on the stage: the constants and $\langle\El_n\rangle$ have
+rank $<\omega+\omega$, and each type former raises the supremum of the
+ranks of its arguments by a finite amount, so $\rk\El_n(c)<\omega+\omega
+\cdot(\sigma_n+1)<\omega_1$. Sizes grow because $\Sigma x{:}A.\,P\,x$ for
+$P\subseteq|A|$ gives $2^{|A|}$ distinct types.
+\end{proof}
+
+The heart of the matter is (2). In the naive model a family over
+$A\in V_\kappa$ is any function $|A|\to V_\kappa$, and the stage at which
+$\Pi(A,F)$ appears is one above the supremum of the stages of the $F(x)$,
+which is cofinal in $\kappa$ unless $\kappa$ is regular; closure under
+powerset then makes it a strong limit. Here the stages of the $F(x)$ are
+those of the countably many values $e\ap k'$ of the tracker, so the
+supremum of a countable set of countable ordinals suffices, and the
+closure stops at a countable stage. The universes are still enormous, but
+size is harmless: each $\Pi$, $\Sigma$, $W$, and quotient only has to
+\emph{exist}, which $\ZF$ grants, and nothing has to be closed under all
+functions.
+
+The preceding paragraph and Lemma~\ref{lem:lfp}(2) are wrong, and not
+repairably so. The claim that a realizer determines the stage of a code
+fails: $\code\Pi(\code\Sigma(\code\N,P),\ m\mapsto d_m)$ with $d_m$ a code
+of stage $m$ is realized, for every $P\subseteq\N$, by the same pair
+$\langle\langle k_\N,0\rangle,e_d\rangle$, but has stage $3$ for
+$P=\{0\}$ and stage $\omega+1$ for $P=\N$. Worse, the closure never
+stabilises.
+
+\begin{proposition}\label{prop:noset}
+Assume $\ZFC$. Let $U$ be a set of codes containing $\code\N$ and
+$\code\Prop$ and closed under $\Pi$ and $\Sigma$ over tracked families as
+in Definition~\ref{def:codes}. Then $\kappa:=\sup\{|\El(c)|:c\in U\}$ is a
+strongly inaccessible cardinal. Hence, in the absence of inaccessibles,
+$\mathrm{lfp}\,\Phi_\emptyset$ is a proper class and there is no assembly
+model of $\CIC_2$ in which $\Type_0$ is an assembly.
+\end{proposition}
+\begin{proof}
+For $c\in U$ the code $\code\Pi(c,x\mapsto\code\Prop)$ decodes to the full
+function space $|\El c|\to\{\bot,\top\}$, because $\Prop$ is indiscrete,
+so $2^{|\El c|}$ is a size occurring in $U$; hence every size is $<\kappa$
+and $\kappa$ is a strong limit, uncountable since $\PP(\N)$ occurs. Every
+code has a realizer, so with $\mu_n:=\sup\{|\El c|:n\rz c\}$ we have
+$\kappa=\sup_n\mu_n$. If $\mu_n<\kappa$ for all $n$, choose
+$c_n$ with $n\rz c_n$ and $\sup_n|\El c_n|=\kappa$; the family
+$n\mapsto c_n$ is a morphism $\N\to\langle U\rangle$ tracked by the
+identity, so $\code\Sigma(\code\N,n\mapsto c_n)\in U$ has size $\kappa$,
+contradicting the first sentence. So $\mu_{n_0}=\kappa$ for some $n_0$.
+Now let $A\in U$ and let $F:|\El A|\to\{c:n_0\rz c\}$ be \emph{any}
+function; it is tracked by the constant $n_0$, so
+$\code\Sigma(A,F)\in U$ and $\sum_x|\El F(x)|<\kappa$. Choosing $F$ with
+image cofinal in $\kappa$ whenever $|\El A|\ge\operatorname{cf}\kappa$
+would contradict this, so $|\El A|<\operatorname{cf}\kappa$ for every
+$A\in U$, i.e.\ $\operatorname{cf}\kappa=\kappa$.
+\end{proof}
+
+The two ingredients are exactly the ones the type theory forces: $\Prop$
+must be indiscrete for the impredicative $\forall$ to be tracked, which
+makes $A\to\Prop$ the set-theoretic powerset; and the context
+$X{:}\Type_0,\ f{:}X\to\Type_0\vdash\Sigma x{:}X.\,f\,x:\Type_0$ forces
+closure under $\Sigma$ over \emph{every} morphism into the universe. In
+$\lambda C^+$ neither bites, because its only set-sized universes are
+$\mathrm{Subsing}$ and $\mathrm{PER}$, which are closed under products
+over arbitrary assemblies for the reason recorded in
+Remark~\ref{rem:diff}(ii), and $\Type$ is a class. The trouble starts
+precisely with $\Prop:\Type_0:\Type_1$, the same configuration that gives
+the lower bound of Theorem~\ref{thm:lower}. So the inaccessibles of
+\cite{werner97,barras10,timanysozeau17} are not an artifact of $V_\kappa$:
+they are forced in every tracked model with a universe object. Whether
+they are forced proof-theoretically, i.e.\ whether $\ZF\vdash\Con(\CIC_2)$,
+is open; note the symmetry that unique choice is what the model side
+lacks to keep universes small (Proposition~\ref{prop:validates}) and what
+the syntactic side lacks to prove Replacement \cite{barras10}.
+
+\subsection{The interpretation}
+
+For each sort $s$ let $\U_s$ be its universe object and $\El_s$ its
+decoding: $\U_\Prop:=\Prop$ with $\El_\Prop(\bot)=\mathbf 0$,
+$\El_\Prop(\top)=\mathbf 1$; $\U_{\Type_i}:=\langle\El_i\rangle$ with
+$\El_{\Type_i}:=\El_i$; and for the top sort of $\CIC_n$ ($n<\omega$),
+$\U_{\Type_{n-1}}:=\Asm$ with $\El$ the identity. By
+Lemma~\ref{lem:lfp}(3), $\U_s\subseteq\U_{s'}$ and the decodings agree
+whenever $s\le s'$. Following \cite[App.~B]{vdbergotten23}, by simultaneous
+induction on derivations we define
+\begin{itemize}
+\item for each context $\Gamma$ an assembly $\sem\Gamma$;
+\item for each $\Gamma\vdash A:s$ a morphism $\sem{\Gamma\vdash A:s}:\sem\Gamma\to\U_s$
+  (for the top sort: a family of assemblies indexed by $|\sem\Gamma|$);
+  we write $\sem{\Gamma\vdash A}(G)$ for $\El_s(\sem{\Gamma\vdash A:s}(G))$;
+\item for each $\Gamma\vdash a:A$ a section $\sem{\Gamma\vdash a:A}$, i.e.\ a
+  tracked function $G\mapsto\sem{\Gamma\vdash a:A}(G)\in|\sem{\Gamma\vdash A}(G)|$.
+\end{itemize}
+The identifications of Definition~\ref{def:codes} make the clauses depend
+only on the conclusion of the rule, so the interpretation is independent of
+the derivation; in particular cumulativity, conversion, and the sort at
+which a type is formed do not change its code.
+\begin{gather*}
+\sem{\cdot}:=\mathbf 1,\qquad
+\sem{\Gamma,x{:}A}:=\Sigma(G\in\sem\Gamma)\,\sem{\Gamma\vdash A}(G),\\
+\sem{\Gamma,x{:}A\vdash x:A}(\langle G,X\rangle):=X,\qquad
+\sem{\Gamma,x{:}A\vdash b:B}(\langle G,X\rangle):=\sem{\Gamma\vdash b:B}(G),\\
+\sem{\Gamma\vdash a:A'}:=\sem{\Gamma\vdash a:A}\ \text{(conversion)},\qquad
+\sem{\Gamma\vdash A:s'}:=\sem{\Gamma\vdash A:s}\ \text{(cumulativity)},\\
+\sem{\vdash\Prop:\Type_0}:=\code\Prop,\qquad
+\sem{\vdash\Type_i:\Type_{i+1}}:=\code{\U_i},\qquad
+\sem{\vdash\mathbf n:\Type_0}:=\code{\mathbf n},\qquad
+\sem{\vdash\N:\Type_0}:=\code\N,\\
+\sem{\vdash\mathbf k_{\mathbf n}:\mathbf n}:=k,\qquad
+\sem{\Gamma\vdash\mathsf{ind}^{\mathbf n}_C\vec c:\Pi k{:}\mathbf n.C}(G)(k):=\sem{\Gamma\vdash c_k:C[\mathbf k_{\mathbf n}/k]}(G),\\
+\sem{\vdash 0:\N}:=0,\qquad
+\sem{\Gamma\vdash\mathsf S\,m:\N}(G):=\sem{\Gamma\vdash m:\N}(G)+1,\\
+\sem{\Gamma\vdash\mathsf{ind}^\N_C c f:\Pi m{:}\N.C}(G)(0):=\sem{\Gamma\vdash c:C[0/m]}(G),\\
+\sem{\Gamma\vdash\mathsf{ind}^\N_C c f:\Pi m{:}\N.C}(G)(m{+}1):=\sem{\Gamma\vdash f}(G)(m)\bigl(\sem{\Gamma\vdash\mathsf{ind}^\N_C cf}(G)(m)\bigr).
+\end{gather*}
+For the type formers with $Q\in\{\Pi,\Sigma,W\}$, and for quotients,
+\begin{align*}
+\sem{\Gamma\vdash Qx{:}A.B:s}(G)&:=\code Q\bigl(\sem{\Gamma\vdash A:s_1}(G),\ X\mapsto\sem{\Gamma,x{:}A\vdash B:s_2}(\langle G,X\rangle)\bigr),\\
+\sem{\Gamma\vdash A/R:s}(G)&:=\code/\bigl(\sem{\Gamma\vdash A:s}(G),\ \{(X,X'):\sem{\Gamma,x,x'\vdash R}(\langle G,X,X'\rangle)\ne\emptyset\}\bigr),
+\end{align*}
+which are in $\dom\El_s$ by the closure clauses, since the second
+component is a morphism into $\U_s$ tracked by the tracker of the family
+$\sem{\Gamma,x{:}A\vdash B:s_2}$ composed with pairing; when $s=\Prop$ the
+code is a truth value and this is the Boolean clause of \S4.1. The term
+clauses are those of \cite[App.~B]{vdbergotten23}: $\lambda$ and
+application are currying and evaluation, $\langle a,b\rangle$ is the pair,
+$\mathsf{ind}^\Sigma_C f\,\langle X,Y\rangle:=\sem f(G)(X)(Y)$,
+$\mathsf{tree}\,a\,d$ is the tree with root $\sem a(G)$ and subtrees
+$\sem d(G)(Y)$, $\mathsf{ind}^W_C f\,T:=\sem f(G)(\mathrm{root}\,T)
+(\text{subtrees})(Y\mapsto\mathsf{ind}^W_C f\,(\text{subtree}_Y))$,
+$[a]_R$ is the class of $\sem a(G)$, and $\mathsf{ind}^/_C f\,h\,[X]:=
+\sem f(G)(X)$. For the propositional constructs,
+\begin{align*}
+\sem{\Gamma\vdash a=_A a':\Prop}(G)&:=[\sem a(G)=\sem{a'}(G)], &
+\sem{\Gamma\vdash\|A\|:\Prop}(G)&:=[\,|\sem{\Gamma\vdash A}(G)|\ne\emptyset\,],\\
+\sem{\mathsf{refl}\,a}(G)&:=\star, &
+\sem{\mathsf{ind}^=_C f}(G)(X)(X)(\star)&:=\sem f(G)(X),\\
+\sem{|a|}(G)&:=\star, &
+\sem{\mathsf{ind}^{\|\|}_C f}(G)(\star)&:=\star,
+\end{align*}
+and $\sem{\mathsf{ax}_/}=\sem{\mathsf{propext}}=\sem{\mathsf{em}}:=\star$,
+which is well typed because the corresponding propositions are $\top$ by
+the definitions of quotients, of $\Prop$, and of $\vee$.
+
+\begin{theorem}\label{thm:main}
+$\ZF$ proves that the above is a model of $\CIC_\omega+\EM$; hence
+$\ZF\vdash\Con(\CIC_\omega+\EM)$.
+\end{theorem}
+\begin{proof}[Proof sketch]
+One checks that each clause is well defined, tracked, and validates the
+computation rules and reflection. Well-definedness of the type clauses is
+Lemma~\ref{lem:lfp}; tracking of the type clauses is the pairing of
+trackers noted above; the term clauses are tracked exactly as in
+\cite[App.~B]{vdbergotten23}, with $\mathsf{ind}^\N$ and $\mathsf{ind}^W$
+tracked by primitive recursion and a fixed-point combinator that terminates
+on realizers of a well-founded tree by induction on the tree. When the
+motive is a family of codes, e.g.\ $T$ in Theorem~\ref{thm:lower}, the
+same program tracks a family into $\langle\El_i\rangle$, since realizers of
+codes are computed structurally. $\mathsf{ind}^/$ is tracked by the tracker
+of $f$ because realizers of a class are realizers of its representatives,
+and $h$ together with set-theoretic equality makes $\sem f(G)(X)$
+independent of $X$; $\mathsf{ind}^{\|\|}$ into $\Prop$ needs no tracker.
+Reflection holds because $[\sem a(G)=\sem{a'}(G)]=\top$ forces
+$\sem a=\sem{a'}$, proof irrelevance because every proposition decodes to
+$\mathbf 0$ or $\mathbf 1$, and $\EM$ because $|\Prop|$ has two elements.
+Elimination out of a propositional $\Sigma$ or $W$ into $\Type_i$ is sound
+because their decodings are $\mathbf 0$ or $\mathbf 1$ and the minor
+premise is realized whenever the type is inhabited. Finally
+$\bot=\|\mathbf 0\|$ decodes to $\mathbf 0$, so no closed term of type
+$\bot$ is interpretable. The construction of $\langle\El_n\rangle_{n<\omega}$
+is a single set by Lemma~\ref{lem:lfp}, so the induction is uniform in $n$
+and $\Con(\CIC_\omega+\EM)$ is one $\Pi^0_1$ statement.
+\end{proof}
+
+\begin{remark}[where the set theory is used]
+Zermelo set theory is not enough: the stages and ranks in
+Lemma~\ref{lem:lfp} climb along $\sigma_n$, which is countable but
+recursively large (already $\El_0$ contains $\code{T(\beta)}$ for every
+recursive Brouwer ordinal $\beta$, as $\beta\mapsto\code{T(\beta)}$ is
+computable), and the carriers climb through $\beth_{\sigma_n}$. Beyond that
+only $V_{\omega_1}$ is needed, and no choice: the injection in
+Lemma~\ref{lem:lfp}(2) is canonical and Kleene application is definable.
+\end{remark}
+
+\begin{remark}[other choices of $\Prop$]\label{rem:prop}
+Nothing in Lemma~\ref{lem:lfp} depends on what $\Prop$ is: propositions
+are leaves of codes, of stage $0$, and only the truth-value clauses of
+Definition~\ref{def:codes} change. Four choices realise every combination
+of $\EM$ and $\mathsf{propext}$.
+\begin{itemize}
+\item $|\Prop|=\{\bot,\top\}$, as above: $\EM$ and $\mathsf{propext}$.
+\item $|\Prop|=\PP(\N)$, indiscrete, with $P$ true iff $P\ne\emptyset$,
+  connectives any Boolean-correct ones, and $=_\Prop$ set equality: $\EM$
+  holds but $\mathsf{propext}$ fails ($\N$ and $\{0\}$ are both true).
+\item $|\Prop|=\PP(\N)$ with realizability connectives
+  ($P\to Q=\{e:\forall k\in P.\,e\ap k\in Q\}$, $\forall$ an intersection,
+  $\vee$ by tagging) and $=_\Prop$ set equality: neither $\EM$ (no uniform
+  decider) nor $\mathsf{propext}$.
+\item Realizability connectives with $=_\Prop$ interpreted as realizable
+  interderivability $P\leftrightarrow Q$: $\mathsf{propext}$ holds and $\EM$
+  fails. This is the intuitionistic variant of Section~\ref{sec:discussion},
+  and it requires $\Prop$ to carry an equality other than set equality (a
+  setoid or PER-style object) so that reflection can be validated; one
+  cannot instead quotient $\PP(\N)$ by interderivability, since any two
+  nonempty realizer sets are interderivable via a constant program and the
+  quotient is the first option. Van den Berg and Otten sidestep this by
+  working in $\HAH$, where $\PP(\{\star\})$ is not provably two-valued;
+  read classically, their $\mathrm{Subsing}$ is our first option.
+\end{itemize}
+In every case unique choice fails, by the argument of
+Proposition~\ref{prop:validates}.
+\end{remark}
+
+\section{What the model decides}\label{sec:decides}
+
+\begin{proposition}\label{prop:validates}
+The model of Theorem~\ref{thm:main} validates propositional extensionality,
+function extensionality, uniqueness of identity proofs, proof irrelevance,
+quotient types with $\mathsf{Quot.sound}$ and $\mathsf{Quot.lift}$, and the
+$\Prop$-level Church's thesis
+$\CT^\Prop:=\forall f{:}\N\to\N,\;\exists e,\;\forall n,\;f\,n=e\ap n$.
+It refutes the unique choice axiom
+\[
+\uchoice:\quad \forall (A\,B{:}\Type)\,(R{:}A\to B\to\Prop),\
+(\forall x,\exists! y,R\,x\,y)\to\exists f{:}A\to B,\ \forall x,\ R\,x\,(f\,x).
+\]
+\end{proposition}
+\begin{proof}
+Propositions are truth values (propext, proof irrelevance), morphisms are
+functions (funext), equality is equality (UIP), and a quotient is the
+assembly of equivalence classes with the union of realizers, with
+$\mathsf{Quot.lift}$ tracked by the tracker of the lifted function. Every
+element of the assembly $\N\to\N$ is computable, and $\exists$ in $\Prop$
+demands no realizer, so $\CT^\Prop$ is $\code\top$. For $\uchoice$ take
+$A=B=\N$ and $R\,x\,y:=(y=1\leftrightarrow x\in K)$ with $K$ the halting set
+(a $\Sigma^0_1$ formula): $\forall x,\exists!y,R\,x\,y$ is $\code\top$, but
+the only candidate $f$ is the characteristic function of $K$, which has no
+tracker, so $\exists f$ is $\code\bot$.
+\end{proof}
+
+\begin{corollary}\label{cor:boundary}
+$\CIC_\omega+\EM\nvdash\uchoice$ and $\CIC_\omega+\EM\nvdash\Con(\ZF)$,
+whereas $\CIC_2+\uchoice\vdash\Con(\ZF)$. Consequently $\ZF$ proves
+$\Con(\CIC_\omega+\EM)$ but not $\Con(\CIC_2+\uchoice)$.
+\end{corollary}
+\begin{proof}
+The first claim is Proposition~\ref{prop:validates}. For the second, if
+$\CIC_\omega+\EM\vdash\Con(\ZF)$ then, arguing in $\ZF$, $\neg\Con(\ZF)$
+would give a $\ZF$-proof of $\bot$, and by $\Sigma^0_1$-completeness
+$\CIC_\omega+\EM$ would prove $\neg\Con(\ZF)$ as well and be inconsistent,
+contradicting Theorem~\ref{thm:main}; so $\ZF\vdash\Con(\ZF)$, which is
+impossible. For the third, Barras's sets-as-trees interpretation
+\cite{barras10} of $\IZF$ in Coq with $\uchoice$ uses $\Type_0:\Type_1$
+only, and Friedman's interpretation of $\ZF$ in $\IZF$ \cite{friedman73}
+is arithmetically formalisable, so $\CIC_2+\uchoice\vdash\Con(\IZF)\to
+\Con(\ZF)$. The last claim follows from the second and third.
+\end{proof}
+
+So the answer to ``does $\CIC$ prove $\Con(\ZF)$?'' is no, even with excluded
+middle, and the reason is precisely the principle that Werner and Barras had
+to add: functional or unique choice, which the assembly model refutes. In Lean
+this principle is a consequence of \texttt{Classical.choice}, so the same
+corollary reads: Lean minus choice is consistent relative to $\ZF$, and choice
+is what the $\omega$ inaccessibles of \cite{carneiro19} are paying for.
+
+\section{Discussion}\label{sec:discussion}
+
+\paragraph{The intuitionistic variant.}
+Taking instead $|\Prop|=\PP(\N)$ with $\forall(x{:}A)\,p(x)=\bigcap_x p(x)$
+(uniform realizers) gives the model of \cite{vdbergotten23} extended by our
+universes. Propext then holds with equality of propositions being realizable
+interderivability and $\EM$ fails; the truth values in
+Definition~\ref{def:codes} become realizer sets and the skeleton argument
+of Lemma~\ref{lem:lfp}(2) is unchanged. One must
+\emph{not} quotient $\PP(\N)$ by interderivability: any two nonempty
+realizer sets are interderivable via a constant program, so the quotient is
+the two-valued $\Prop$ above. The intuitionistic variant is what an
+extension of the conservativity theorem of \cite{vdbergotten23} to $n$
+universes would need; the natural conjecture is conservativity over
+$\HAH_\sigma$ for $\sigma$ tied to the closure ordinals $\sigma_n$, which we
+have not computed.
+
+\paragraph{Impredicative $\Set$.}
+$\lambda C^+$ has a second impredicative sort $\Set$ carrying data. The
+classical collapse is unavailable there, since impredicative $\Set$ with an
+informative excluded middle is inconsistent \cite{chicli02}, and a countable
+Tarski universe is not impredicative. Van den Berg and Otten interpret
+$\Set$ as $\nabla\mathrm{PER}$, the modest sets, which is closed under
+products over arbitrary assemblies because morphisms into a modest set are
+determined by their trackers; predicative universes above it should go
+through as here, with $\nabla\mathrm{PER}$ as one more constant clause.
+
+\paragraph{Induction-recursion and Agda.}
+The construction is itself an inductive-recursive definition (codes with a
+decoding) carried out as a least fixed point in $\ZF$, and we expect the
+same countability argument to model a universe closed under
+inductive-recursive definitions as in Agda. Dybjer and Setzer's naive model
+needs a Mahlo cardinal \cite{dybjersetzer99} for the same reason the naive
+$\CIC$ model needs inaccessibles: it closes under \emph{all} set-theoretic
+operators, whereas the type theory can name only countably many.
+
+\paragraph{What remains to be checked.}
+The new ingredient is Lemma~\ref{lem:lfp}; the rest of
+Theorem~\ref{thm:main} is \cite{werner97,miquelwerner02,leewerner11,
+vdbergotten23} with $V_\kappa$ replaced by $\langle\El_i\rangle$. Not
+written out here are (a) the verification that the identifications in
+Definition~\ref{def:codes} commute with every clause of $\Phi$ (we checked
+$\Pi$, $\Sigma$, $W$, and quotients) and (b) the tracking of the recursors
+when the motive is a family of codes. A complete presentation would be a categories-with-families
+model in which each $\langle\El_i\rangle$ is a universe object, a natural
+target for formalisation.
+
+{\small
+\bibliographystyle{plain}
+\bibliography{references}}
+
+\end{document}
