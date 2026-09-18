@@ -1850,18 +1850,21 @@ relation $I(\eta,q,x,y)$ in place of ``$y$ is the value at $x$ of the
 function that the formula and parameter coded by $q$ define over
 $V_\eta$'', with excluded middle as a hypothesis: either every
 functional relation on a set has an image, or some ordinal is not $0$,
-not a successor, not $\omega$, and not reachable. The first-order instance
-is formalized as well (\texttt{PSet.dichotomy\_fo}): with formulas coded
-as sets and $I$ the satisfaction relation of $V_\eta$, such an ordinal
-contains $\omega$, is a limit, and $V_\rho$ is closed under images of
-functions definable over $V_\rho$ with parameters. What remains informal
-is only the list of the other axioms of $\ZF$, each of which is a
-construction already present in the formalization (pairing, union,
-power set, separation, $\omega$, extensionality as bisimulation,
-foundation as $\in$-induction), together with their closure in $V_\rho$
-for a limit $\rho>\omega$. The development uses no choice, no quotients,
-and excluded middle only as a hypothesis; the core lemmas depend on no
-axiom at all, and the first-order instance on \texttt{propext}. The second
+not a successor, not $\omega$, and not reachable. The whole theorem is
+formalized: $\ZF$ is defined as a first-order theory (formulas with de
+Bruijn variables, a Hilbert system, the axioms with the schemas of
+separation and replacement over arbitrary parameters), and
+\begin{center}
+\texttt{theorem PSet.con\_ZF (em :} $\forall\,p:\Prop,\ p\vee\neg p$\texttt{) : Con ZF}
+\end{center}
+is proved with the model $V$ or $V_\rho$ as above, the parameters of a
+definable function being coded, with its formula, into the label. It
+depends on no axiom at all (no choice, no quotients, no propositional
+extensionality), and uses only the universes of $\mathsf{PSet}.\{0\}:\Type_1$.
+Readback lemmas check that the coded axioms say what they should. What
+is left informal is the translation of the Lean terms used (inductive
+types such as lists, structural recursion) into the type theory of
+Section~\ref{sec:tt}. The second
 universe is used only to form $V$. With $n+2$ universes we expect, and have
 not checked, that the rank of the sets of one level is a regular, hence
 inaccessible, cardinal of the next, by the same recursion with a
@@ -2011,12 +2014,13 @@ formalization before relying on it.
 the placement of that theory strictly between $\ZFh$ and $\ZF$, given
 also that the interpretation of \cite{paper2} goes through
 intensionally.
-\emph{Claimed, against the main conjecture:} $\Acc$ on a big carrier
-interprets $\ZF$ already with two universes
-(Theorem~\ref{thm:bigacc}); everything up to the first-order instance
-of the definability relation is formalized in Lean without choice.
-If it stands, Conjectures~\ref{conj:main} and~\ref{conj:rank} are false
-for the theory of Section~\ref{sec:tt} and should be restated for
+\emph{Proved, against the main conjecture:} $\Acc$ on a big carrier
+proves $\Con(\ZF)$ already with two universes and excluded middle
+(Theorem~\ref{thm:bigacc}), formalized in Lean with no axioms, excluded
+middle being a hypothesis. So Conjectures~\ref{conj:main}
+and~\ref{conj:rank} are false for the theory of Section~\ref{sec:tt},
+modulo the translation of the Lean terms into it, and should be
+restated for
 $\Acc$ on carriers in $\Type_0$.
 \emph{Open:} $W$ with big branching, where no analogue of
 Section~\ref{sec:bigacc} is known to us (a tree can have branching

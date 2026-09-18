@@ -53,15 +53,19 @@ no `end` at EOF, avoid `rw` on iffs (it adds `propext`), prefer `.trans` chains.
   `rule_func/resp/mem/sup`, `worldly_rule`, and **`dichotomy`**: with EM, either every
   functional relation (any Prop) on a set has an image, or there is an ordinal that is not 0,
   not a successor, not ω, and not reachable.
-- `ConCic/Fml.lean`: formulas (de Bruijn), `Sat M φ e` over `(M, ∈)`, `Sat.resp`, injective codes
-  `enc` (`enc_inj`).
-- `ConCic/FirstOrder.lean`: `ISat` (satisfaction over `V_η` as the definability relation),
-  `unreachable_replacement`, and **`dichotomy_fo`**: with EM, either every functional relation on
-  a set has an image, or some ordinal ρ contains ω, is a limit, and `V_ρ` is closed under images
-  of first-order definable functions with parameters.
+- `ConCic/Fml.lean`: formulas over ∈, =, ⊥, →, ∀ (de Bruijn; ¬ ∧ ∨ ↔ ∃ derived), `Sat M φ e` in a
+  class model `M : PSet → Prop`, `sat_rename`, `Bound`/`sat_bound`, injective codes `enc`.
+- `ConCic/Proof.lean`: Hilbert system `Prf T` (K, S, DNE, MP, Gen, ∀-instantiation, ∀-distribution,
+  equality axioms; axioms are open formulas), `soundness`, `Con T := ¬ Prf T fls`, `Con.of_model`.
+- `ConCic/ZF.lean`: `ZFAx.*` and `ZF` (ext, found, pair, union, power, inf, sep/repl schemas with
+  arbitrary parameters), `ZFModel` closure conditions, `ZFModel.valid`, `ZFModel.con`.
+- `ConCic/ZFRead.lean`: readback of each axiom in ordinary notation (checks the indices).
+- `ConCic/FirstOrder.lean`: `ISat` with finitely many parameters coded (`tup`) into the label,
+  `Vl_model`, `V_model`, and **`con_ZF (em : ∀ p : Prop, p ∨ ¬p) : Con ZF`**.
 
-Axioms as of commit 317ccae: `materialize`, `replacement`, `Rule.replacement`, `dichotomy` none;
-`dichotomy_fo` and `replacement_nat` propext.
+Axioms as of commit 4c5c100: `con_ZF` depends on **no axioms**. Only `replacement_nat` (obsolete
+sanity instance) still uses propext. Traps for propext: `rw` on iffs, `cases` on an equation of two
+distinct nonzero literals (use `absurd _ (by decide)`), core `Nat.le_max_left` (use `nmax`).
 
 ## Route (2026-09-18): the definability rule; no L, no Hartogs
 
@@ -75,23 +79,19 @@ Axioms as of commit 317ccae: `materialize`, `replacement`, `Rule.replacement`, `
   label.**
 - First-order I: an unreachable non-successor ρ ≠ 0, ω is a limit > ω with V_ρ ⊨ ZF (worldly).
 
-## Not done (the whole remaining gap)
+## Not done
 
-(a) Packaging: state "V ⊨ ZF" (first horn) and "V_ρ ⊨ ZF" (second horn) with all axioms. Each
-axiom is a construction already present (pairing `upair`, union `sUnion`, power set `powerset`,
-separation `sep`, infinity `omega`, extensionality = ≈, foundation = `mem_induction`), and
-their closure in `V_ρ` for a limit ρ > ω is rank arithmetic already in `VLevel.lean`.
-(b) Translation between the paper's type theory (paper3 §2: W, Σ, 𝐧, ℕ, identity, quotients,
-Acc) and the Lean terms used here (List, Label, Subtype, ULift, PLift, structural recursion).
-The carrier `List Label` can be replaced by `PSet` (nested pairs) as in the paper.
-(c) Relativization of a fixed formula to V_ρ agrees with internal satisfaction (metatheoretic).
+(a) Translation between the paper's type theory (paper3 §2: W, Σ, 𝐧, ℕ, identity, quotients,
+Acc) and the Lean terms used (List, Label, Subtype, ULift, PLift, structural recursion). The
+carrier `List Label` can be replaced by `PSet` (nested pairs) as in the paper.
+(b) Optionally: completeness is not needed (the proof system is a standard complete one; only
+soundness is used), but a reader may want the derivability of the usual rules.
 
 ### Suggested order for whoever continues
 
 A. (paper) Clean up §3–6 and the introduction around the refuted conjecture (see "State of
    paper3"); retitle.
-B. (Lean, small) (a) above, if a single "ZF is interpretable" statement is wanted.
-C. Expected, unchecked: with n+2 universes, rank(V_level k) is a regular (so inaccessible)
+B. Expected, unchecked: with n+2 universes, rank(V_level k) is a regular (so inaccessible)
    cardinal of V_level k+1, by the same recursion with a parameter from the higher level in R.
    That would match the ZFC + n inaccessibles lower bound of Lean-with-choice, without choice.
 
