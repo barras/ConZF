@@ -6,3 +6,4 @@ import ConCic.NatInstance
 import ConCic.Pair
 import ConCic.Ord
 import ConCic.VLevel
+import ConCic.Worldly
