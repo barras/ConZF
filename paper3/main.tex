@@ -1718,19 +1718,52 @@ types all the ordinals below $\hartogs(\zeta(\eta)\cup\omega)\ge\eta$. If $\eta$
 is not of type 1 and $c:\mu\to\eta$ is cofinal and increasing with
 $\mu<\eta$, the clauses are $\tau(\langle p,0\rangle):=\mu$ and
 $\tau(\langle p,\langle 1,w\rangle\rangle):=c(\xi)$ for $w$ of order type
-$\xi<\mu$. These clauses define $\tau$ on a path by recursion on its
-length, with no reference to $F$, as soon as a cofinal map is chosen
-definably for every ordinal that is not of type 1. We know of no way to
-do that in $V$ without choice, so we pass to the constructible
-sets of $V$, where the least cofinal map in the canonical well-order
-serves. An ordinal not of type 1 is a limit cardinal of $L$, since
-$(|\zeta|^+)^L\le\hartogs(\zeta)$; if it is regular in $L$ it is inaccessible
-in $L$. Let $\rho$ be the least such ordinal if there is one. Then every
-$\eta$ below $\rho$, or every $\eta$ if there is no $\rho$, is the root
-target of a coherent assignment $\tau_\eta$ defined uniformly in $\eta$.
+$\xi<\mu$. In both cases the children with a target have targets
+cofinal in $\eta$ (all ordinals below $\eta$, or the values of $c$), and
+the child $0$ has a target below $\eta$, so (1) and (2) hold at $p$ as soon
+as every child with a target has itself a subtree with that target.
+These clauses define $\tau$ on a path by recursion on its length, with no
+reference to $F$, as soon as a cofinal map is chosen definably for every
+ordinal that is not of type 1 (Lemma~\ref{lem:rule} below makes this
+precise). We know of no way to do that in $V$ without choice, and some
+choice of a canonical map is unavoidable: an ordinal is the target of
+a node only if a definable rule sends labels, which are sets of rank below
+it, cofinally into it. So we take the maps from the constructible sets of
+$V$: $c_\eta$ is the $<_L$-least increasing cofinal map in $L$ from the least
+ordinal $\mu_\eta$ from which $L$ has one. A cofinal map in $L$ is cofinal in
+$V$. Call $\eta$ \emph{handled} if $\eta=0$ (no child has a target), or
+$\eta$ is of type 1, or $\mu_\eta<\eta$.
+
+\begin{lemma}[canonical assignments from a local rule]\label{lem:rule}
+Let $r(\eta,v,\xi)$ be a formula, the \emph{rule}, which for each $\eta$
+and label $v$ determines at most one $\xi$, respects $\approx$, and satisfies,
+for every $\eta$ in a class $C$: every $\xi$ with $r(\eta,v,\xi)$ is in $\eta\cap C$;
+and $\eta=\bigcup\{\xi+1: r(\eta,v,\xi),\ v\in B_u(G)\}$, where $G$ is the $\xi$
+with $r(\eta,0,\xi)$, or $\emptyset$. Let $\tau_\eta$ be defined by recursion on
+the length of paths: $\tau_\eta(\emptyset)=\eta$, and $\tau_\eta(\langle p,v\rangle)=\xi$
+iff $r(\tau_\eta(p),v,\xi)$. Then for $\eta\in C$ the assignment $\tau_\eta$ is
+coherent.
+\end{lemma}
+\begin{proof}
+Every target is in $C$, by induction on the path. Condition (1) is the
+first hypothesis on $r$, and (2) at $p$ is the second, applied to
+$\tau_\eta(p)\in C$, because the targets of the children of $p$ are the
+$\xi$ with $r(\tau_\eta(p),v,\xi)$ and $G_{\tau_\eta}(p)$ is the $G$ of the hypothesis.
+\end{proof}
+
+With the rule of the clauses above, the handled ordinals $\eta$ such that
+every ordinal below $\eta$ is handled form a class $C$ satisfying the
+hypotheses. An ordinal $\eta>\omega$ that is not handled is a limit
+cardinal of $L$, since $(|\zeta|^+)^L\le\hartogs(\zeta)$ (an ordinal that
+injects into $\zeta$ in $L$ injects into it in $V$), and it is regular in
+$L$, because $\mu_\eta=\eta$. Let $\rho$ be the least such ordinal, if there
+is one. Then $C$ is the class of all ordinals below $\rho$, or of all
+ordinals if there is no $\rho$.
 
 \begin{theorem}[claimed]\label{thm:bigacc}
-$\ZFC$ is interpretable in $\CIC_2+\EM$. Consequently
+$\ZFC$ is interpretable in $\CIC_2+\EM$: either the sets-as-trees satisfy
+$\ZF$, or $L_\rho$ satisfies $\ZFC$ for an inaccessible cardinal $\rho$ of $L$.
+Consequently
 $\Con(\CIC_2+\EM)$ implies $\Con(\ZF)$, provably in primitive recursive
 arithmetic, and $\ZF$ does not prove $\Con(\CIC_2+\EM)$ unless it is
 inconsistent. The same holds for any extension, in particular for
@@ -1739,12 +1772,18 @@ stated in Section~\ref{sec:tt}.
 \end{theorem}
 \begin{proof}[Proof sketch]
 Work in the type theory, reasoning in $\Prop$ about $V$, which satisfies
-Zermelo set theory with $\in$-recursion \cite{paper2}. By excluded middle
-either $\rho$ exists or not. If it exists, $L_\rho$ satisfies $\ZFC$, by
-the usual argument for an inaccessible of $L$. If not, we show that $L$
-satisfies Replacement, the other axioms being standard. Let $s\in L$ and
-let $\varphi$ define over $L$ a function on $s$, with $\eta_a$ the $L$-rank
-of the value at $a\in s$. Take $u:=s$ in Definition~\ref{def:mat}, and
+Zermelo set theory with $\in$-recursion \cite{paper2}; in particular
+$V_\alpha$ exists for every ordinal $\alpha$, by recursion on $\alpha$, and so do
+$L$ and its canonical well-order. By excluded middle either $\rho$ exists
+or not. If it exists, $L_\rho$ satisfies $\ZFC$, by the usual argument for
+an inaccessible of $L$: Replacement because $\rho$ is regular in $L$ and a
+function definable over $L_\rho$ is in $L$, Power set and Separation
+because a constructible subset of $x\in L_\rho$ is in $L_{(|x|^+)^L}$ by
+condensation. If not, we show that $V$ satisfies Replacement; then $V$
+satisfies $\ZF$, and $L$ satisfies $\ZFC$ by G\"odel's argument inside
+$V$. Let $s$ be a set and let $\varphi$ define a function on $s$, with
+$\eta_a$ the rank of the value at $a\in s$. Take $u:=s$ in
+Definition~\ref{def:mat}, and
 let $\tau(\langle\emptyset,\langle 2,a\rangle\rangle):=\eta_a$, and below the path
 $\langle\emptyset,\langle 2,a\rangle\rangle$ the canonical assignment
 $\tau_{\eta_a}$. The root is given \emph{no} target: its target would be
@@ -1758,13 +1797,19 @@ constructor, and unfolding the recursion once shows that the root value
 $F_{R_\tau}\,\emptyset\,a$, which is a term of type $V$ because $s$ is a
 variable of type $V$, is the union of the $\eta_a+1$. So there is a set
 $\theta$ with $\eta_a<\theta$ for all $a\in s$, and the image of $s$ is
-separated from $L_\theta$; that the separated set is in $L$ is the usual
-argument by reflection for the $L$-hierarchy, and reflection is
-available because the bounding just proved applies to the
-ordinal-valued functions that its proof iterates. The
-interpretation of $\ZFC$ relativizes to $L_\rho$ if $\rho$ exists and to
-$L$ otherwise, which is one definable class.
+separated from $V_\theta$. No reflection argument is needed, because
+Replacement is proved for $V$ itself and not for $L$. The interpretation
+of $\ZFC$ relativizes to $L_\rho$ if $\rho$ exists and to $L$ otherwise,
+which is one definable class.
 \end{proof}
+
+The case distinction is only needed because we cannot choose cofinal
+maps in $V$. Note that the argument uses $L$ only for its definable
+well-order: any definable class with a definable well-order that
+computes the cofinalities that matter would do. If $V$ has a definable
+well-order and no inaccessible cardinal, taking the maps from $V$
+itself shows that the sets-as-trees satisfy $\ZF$, with no reference
+to $L$.
 
 \paragraph{What has and has not been checked.}
 Lemma~\ref{lem:mat} and the gluing step of Theorem~\ref{thm:bigacc} are
@@ -1775,11 +1820,11 @@ in place of $D$; and \texttt{PSet.replacement} says that a functional
 relation on a set whose values lie in a class with uniformly defined
 coherent assignments has an image. Both depend on the axiom
 \texttt{propext} only: no choice, no quotients, and no excluded middle.
-What is not formalized is that the ordinals below $\rho$ of $L$ form
-such a class. The parts taken on
+What is not formalized is that the handled ordinals form such a
+class. The parts taken on
 trust are the theory of $L$ inside $V$, that is, in Zermelo set theory
-with $\in$-recursion (the canonical well-order, condensation for
-$(|\zeta|^+)^L\le\hartogs(\zeta)$ and for the power set axiom in $L_\rho$), and
+with $\in$-recursion (the canonical well-order, and condensation for the
+power set axiom in $L_\rho$), and
 the intensional form of the interpretation of \cite{paper2}. The second
 universe is used only to form $V$. With $n+2$ universes we expect, and have
 not checked, that the rank of the sets of one level is a regular, hence
