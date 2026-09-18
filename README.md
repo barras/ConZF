@@ -37,4 +37,6 @@ operator: large elimination of `Acc` over a carrier as big as the type of sets i
 | `ConZF/Fml.lean`, `Proof.lean` | first-order formulas, satisfaction in class models, codes, the proof system, soundness |
 | `ConZF/ZF.lean`, `ZFRead.lean` | the axioms of ZF, `ZFModel`, readback lemmas for the axioms |
 | `ConZF/FirstOrder.lean` | the two models and `con_ZF` |
+| `ConZF/Uniform.lean` | a single model, the sets of hereditarily good rank (`hg_model`, `con_ZF'`) |
+| `ConZF/Stable.lean`, `Negative.lean` | `Con ZF` from ¬¬EM; a probe of the negative translation and why `Acc` is the obstruction |
 | `ConZF/NatInstance.lean` | an early sanity check (finite ordinals); not used |

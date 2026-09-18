@@ -529,6 +529,34 @@ rank at least $\zeta$, and $b:=V_\zeta$ is as required.
 By Theorem~\ref{thm:dich} for this $I$, the two lemmas, and soundness.
 \end{proof}
 
+\paragraph{One model (\lean{HG}, \lean{hg\_model}).}
+The two alternatives can be merged into a single model whose definition
+involves neither a case distinction nor the ordinal $\rho$. Call an
+ordinal \emph{good} if it is $0$, a successor, $\omega$, or reachable, and
+\emph{hereditarily good} if every ordinal up to it is good; this is the
+class $C$ of Lemma~\ref{lem:worldlyrule}. Let $H$ be the class of the
+sets whose rank is hereditarily good. If every ordinal is good then $H$
+is the class of all sets, and otherwise it is $V_\rho$ for the least
+ordinal $\rho$ that is not good, but one does not need to know which.
+
+\begin{theorem}[\lean{hg\_model}]
+Assume excluded middle. Then $H$ is a model of $\ZF$.
+\end{theorem}
+\begin{proof}
+$H$ is transitive, and it is closed under the set operations because
+they raise ranks by at most one and the successor of a hereditarily good
+ordinal is hereditarily good. For Replacement let $\psi$, with parameters
+in $H$, be functional in $H$ on $a$ in $H$. The ranks of the values are
+hereditarily good, so by Lemma~\ref{lem:worldlyrule} and
+Theorem~\ref{thm:repl} they form a set, and their strict supremum $\theta$
+exists; every ordinal below $\theta$ is hereditarily good. If $\theta$ is good,
+then $V_\theta$ is in $H$ and contains the values. If $\theta$ were not good,
+then, the hereditarily good ordinals being closed downwards, they would
+be exactly the elements of $\theta$; so $H$ would be $V_\theta$, satisfaction in
+$H$ would be satisfaction in $V_\theta$, and Lemma~\ref{lem:vrho} would
+bound the values inside $V_\theta$. (In fact this case is contradictory: the
+values would have ranks cofinal in $\theta$ and also bounded below it.)
+\end{proof}
 \section{The formalization}\label{sec:lean}
 
 The development is a Lean~4 package with no dependencies. We did not
@@ -546,7 +574,9 @@ of dependency:
 \lean{Worldly} & 291 & the rule, Lemma~\ref{lem:worldlyrule}, Theorem~\ref{thm:dich}\\
 \lean{Fml}, \lean{Proof} & 283 & formulas, satisfaction, codes, the proof system, soundness\\
 \lean{ZF}, \lean{ZFRead} & 275 & the axioms, models, readback of the axioms\\
-\lean{FirstOrder} & 263 & $I$, Lemma~\ref{lem:vrho}, Theorem~\ref{thm:main}
+\lean{FirstOrder} & 263 & $I$, Lemma~\ref{lem:vrho}, Theorem~\ref{thm:main}\\
+\lean{Uniform} & 131 & the single model $H$\\
+\lean{Stable}, \lean{Negative} & 123 & see the paragraph on excluded middle in Section~\ref{sec:discussion}
 \end{tabular}
 \end{center}
 Excluded middle is never an axiom. It is a hypothesis
