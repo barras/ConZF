@@ -800,10 +800,12 @@ Its function spaces, where they are not small, consist of the functions
 \emph{definable by a term from parameters of bounded content}, the
 content of a parameter being the supremum of the ranks of the small
 types it contains; and the extent $\lambda_N$ of $\Type_N$ is an ordinal
-such that a type-valued term with parameters of content below
-$\gamma<\lambda_N$ has rank below some $\delta<\lambda_N$. With that
-definition of $\lambda_N$ type formation is sound by construction, and
-the whole difficulty is the existence of such ordinals.
+with a regularity property for definable families: as its parameters
+range over content below $\gamma<\lambda_N$, the values of a term that
+are types of rank below $\lambda_N$ have rank below some
+$\delta<\lambda_N$. With that definition of $\lambda_N$ the uniform
+half of type formation is sound by construction, and the whole
+difficulty is the existence of such ordinals.
 
 \paragraph{Plan of the construction.}
 The definitions are given in the order in which they are used. Codes and
@@ -889,12 +891,21 @@ proposition $Q$ and an environment $\rho$ for its free variables.
 Fix a structure and a truth assignment $\sigma$. For a term $t$ and an
 environment $\rho$ assigning sets to variables, define $\sem t^\sigma\rho$
 by recursion on $t$; the clauses are Werner's, made total by returning
-$\emptyset$ where a clause does not apply. The \emph{family} of a binder
-$x{:}A$ with body $B$ at $\rho$ is the function on
+$\emptyset$ where a clause does not apply. Terms are \emph{sorted}: each
+type former $\Pi$, $\Sigma$, $W$, $/$ that is not a proposition carries
+the level $i$ of the sort $\Type_i$ at which it is formed, written
+$\Pi^ix{:}A.B$ when it matters; a derivation determines the sorting of
+its terms, and two sortings of one term will have equivalent values in
+the model, differing only off it. The evaluation is defined on all
+sorted raw terms, typable or not. The \emph{family at level $i$} of a
+binder $x{:}A$ with body $B$ at $\rho$ is the function on
 $V_{\rk(c)\cdot\omega}$, for $c:=\sem A^\sigma\rho$, whose value at $a$ is
 $\sem B^\sigma\rho[x{:=}a]$ if $a\in\El^{\mathrm f}(c)$ and this value is a
-code, and $\bot$ otherwise. Since $\emptyset$ is the code $\bot$, every
+code in $U_i$, and $\bot$ otherwise. So a family is \emph{sanitized}: its
+values lie in $U_i$ by fiat. Since $\emptyset$ is the code $\bot$, every
 type former evaluates to a code in every environment, junk or not.
+Example~\ref{ex:confusion} explains why typing cannot be relied on to
+keep the fibres in $U_i$.
 \begin{itemize}
 \item $\sem x^\sigma\rho:=\rho(x)$; $\sem{\Prop}^\sigma\rho:=\code\Prop$,
   $\sem{\Type_i}^\sigma\rho:=\code{\U_i}$,
@@ -905,8 +916,8 @@ type former evaluates to a code in every environment, junk or not.
   $\sigma$. Propositions that are variables, applications, or
   eliminator terms are computed by the clauses below like any other
   term. All proofs and propositional constants evaluate to $\star$.
-\item $\sem{\Pi x{:}A.B}^\sigma\rho:=\code\Pi(\sem A^\sigma\rho,G)$ when $B$
-  is not a proposition, with $G$ the family of the binder, and likewise
+\item $\sem{\Pi^ix{:}A.B}^\sigma\rho:=\code\Pi(\sem A^\sigma\rho,G)$ when $B$
+  is not a proposition, with $G$ the family at level $i$ of the binder, and likewise
   $\Sigma$ and $W$; $\sem{A/R}^\sigma\rho:=\code/(\sem A^\sigma\rho,R')$
   with $R'$ the set of pairs $(a,a')$ of elements of
   $\El^{\mathrm f}(\sem A^\sigma\rho)$ such that
@@ -1010,8 +1021,9 @@ For a code $c$ and $e\in\El^{\mathrm f}(c)$ define the \emph{$N$-content}
 $\|e\|_c$, an ordinal, by recursion on $c$:
 \begin{itemize}
 \item $\|e\|_c:=0$ for $c$ one of $\bot,\top,\code\Prop,\code{\mathbf n},\code\N$;
-\item for $c=\code{\U_j}$, where $e$ is a code in $U_j$:
-  $\|e\|_c:=\rk(e)+1$ if $j\le N$, and $\|e\|_c:=0$ if $j>N$;
+\item for $c=\code{\U_j}$ with any $j$, where $e$ is a code in $U_j$:
+  $\|e\|_c:=\rk(e)+1$ if $\rk(e)<\epsilon_N$, that is if $e\in U_N$, and
+  $\|e\|_c:=0$ otherwise;
 \item $\|\langle a,b\rangle\|_{\code\Sigma(c',G)}:=\max(\|a\|_{c'},\|b\|_{G(a)})$;
 \item $\|t\|_{\code W(c',G)}:=$ the supremum of $\|a\|_{c'}$ over the labels
   $a$ of the tree $t$;
@@ -1024,7 +1036,14 @@ So the content of an element is the supremum of the ranks of the types
 of level at most $N$ that occur in it as values, through all arguments
 and all components. It is computed fibrewise: an element of
 $\Pi b{:}\mathbf 2.\,B(b)$ with $B(0)=\Type_{N+5}$ and $B(1)=\Type_N$ has
-the content of its value at $1$, whatever its value at $0$ is. Three
+the content of its value at $1$, whatever its value at $0$ is. The level
+of a code is read off the code and not off the universe it is presented
+in: since $U_N\subseteq U_{N+1}$, a family $\N\to\Type_{N+1}$ whose values
+happen to lie in $U_N$ has the content of those values, and only a code
+of rank at least the cut counts for nothing. (An earlier draft gave
+every element of a higher universe content $0$, which admitted as a
+parameter a cofinal sequence in $U_N$ presented at type
+$\N\to\Type_{N+1}$.) Three
 cases orient the definition. The identity on $U_N$ has content $\alpha$,
 the cut. A family $\N\to U_N$ whose ranks are cofinal in $\alpha$ has
 content $\alpha$. And if $c\in U_j$ with $j\le N$ then every
@@ -1033,70 +1052,83 @@ constant mentioned by $c$ has rank below $\rk(c)$ and so extent below
 $\rk(c)$: the elements of a small type have small content.
 
 \begin{definition}[generated environments]\label{def:wenv}
-A \emph{generation tree} $\theta$ for a context $\Gamma$ assigns to each
-variable $x$ of $\Gamma$ either the mark \emph{free} or a triple
-$(\Gamma_x,t_x,\theta_x)$ of a context, a term in that context, and a
-generation tree for $\Gamma_x$; it is required to be well founded, hence
-is a finite tree, and there are countably many triples
-$(\Gamma,t,\theta)$. For an ordinal $\gamma$ and a truth assignment
-$\sigma$, a \emph{$\gamma$-generated $\sigma$-environment for
-$(\Gamma,\theta)$} is defined by recursion on $\theta$ as an environment
-$\rho$ such that
+A \emph{generation tree} $\theta$ for a finite set $\vec x$ of variables
+assigns to each $x$ either the mark \emph{free} or a pair $(t_x,\theta_x)$
+of a sorted raw term and a generation tree for its free variables; it is
+required to be well founded, hence is a finite tree, and there are
+countably many pairs $(t,\theta)$ of a term and a generation tree for its
+variables. For an ordinal $\gamma$, a \emph{$\gamma$-generated environment
+for $\theta$} is defined by recursion on $\theta$ as an environment $\rho$
+on $\vec x$ such that
 \begin{itemize}
-\item $\rho$ is a $\sigma$-environment: $\rho(x)\in\El^{\mathrm f}(\sem A^\sigma\rho)$
-  for every $x{:}A$ in $\Gamma$, the code $\sem A^\sigma\rho$ being
-  computed from the earlier values;
-\item if $x$ is free then $\|\rho(x)\|_{\sem A^\sigma\rho}<\gamma$;
-\item if $x$ has the triple $(\Gamma_x,t_x,\theta_x)$ then
+\item if $x$ is free then $\rho(x)\in\El^{\mathrm f}(c_x)$ for some code
+  $c_x$ of the structure with $\|\rho(x)\|_{c_x}<\gamma$;
+\item if $x$ has the pair $(t_x,\theta_x)$ then
   $\rho(x)=\sem{t_x}^{\sigma_x}\rho_x$ for some truth assignment $\sigma_x$
-  and some $\gamma$-generated $\sigma_x$-environment $\rho_x$ for
-  $(\Gamma_x,\theta_x)$.
+  and some $\gamma$-generated environment $\rho_x$ for $\theta_x$.
 \end{itemize}
-Each node of the tree may use its own truth assignment. For a fixed
-structure, $(\Gamma,\theta)$, and $\gamma$, the $\gamma$-generated
-environments over all truth assignments form a set, by recursion on
-$\theta$ and on the length of $\Gamma$, using Lemma~\ref{lem:sigmaloc}
-to see that the possible codes $\sem A^\sigma\rho$ form a set.
+No typing is imposed, neither on the terms nor between the variables:
+a free variable is any element of bounded content of any code, and each
+node of the tree may use its own truth assignment. For a fixed structure,
+$\theta$, and $\gamma$, the $\gamma$-generated environments form a set, by
+recursion on $\theta$: the codes of the structure form a set, and the
+possible values at a node form a set by Lemma~\ref{lem:sigmaloc}.
 \end{definition}
 
 \begin{definition}[closed ordinals]\label{def:closed}
 An ordinal $\lambda>\lambda_{N-1}$ (or $\lambda>\omega$ if $N=0$) is
-\emph{$N$-closed} if for every context $\Gamma$, every term $t$ with
-$\Gamma\vdash t:\Type_N$, every generation tree $\theta$ for $\Gamma$,
-and every $\gamma<\lambda$ there is $\delta<\lambda$ such that
+\emph{$N$-closed} if $\beta\cdot\omega<\lambda$ for every $\beta<\lambda$,
+and for every sorted raw term $t$, every generation tree $\theta$ for its
+variables, and every $\gamma<\lambda$ there is $\delta<\lambda$ such that:
+for every sequence $\vec\alpha'$ of higher extents, every truth assignment
+$\sigma$, and every $\gamma$-generated environment $\rho$ for $\theta$ in
+the $(N,\lambda,\vec\alpha')$-structure,
 \[
-\rk\sem t^\sigma\rho<\delta
+\text{if }\sem t^\sigma\rho\text{ is a code of rank below }\lambda
+\text{ then its rank is below }\delta.
 \]
-for every sequence $\vec\alpha'$ of higher extents, every truth
-assignment $\sigma$, and every $\gamma$-generated $\sigma$-environment
-$\rho$ for $(\Gamma,\theta)$ in the $(N,\lambda,\vec\alpha')$-structure.
 The extent $\lambda_N$ is the least $N$-closed ordinal, if there is one.
 \end{definition}
 
-This is a property of $\lambda$ stated in the structure cut at $\lambda$
-itself; it refers to $\lambda_j$ for $j<N$ and to no higher extent,
-since the higher extents are quantified. An $N$-closed ordinal is a
-limit, and $\beta\cdot\omega<\lambda$ for $\beta<\lambda$: apply the
-definition to $X{:}\Type_N\vdash X\to\N:\Type_N$ with $X$ free, whose
-value at a code of rank $\beta$ has rank above $\beta\cdot\omega$ by the
-convention on family domains. It is closed under Hartogs numbers in the
-sense of Example~\ref{ex:set}, by the term of that example. And no
-$N$-closed ordinal is reached by iterating a definable type operator:
-for the operator $t$ of Example~\ref{ex:sat}, the term
-$\Sigma n{:}\N.\,t^n(\N)$ has no parameters, so its rank in the structure
-cut at $\lambda$ is below $\lambda$.
+So closedness is a \emph{gap condition}: a term with parameters of
+content below $\gamma$ cannot take, as the parameters vary, values in
+$U_N$ of rank cofinal in $\lambda$. It is a regularity property of
+$\lambda$ with respect to definable families, which is what is left of
+the regularity of an inaccessible when the families are restricted to
+the generated ones. Three features are deliberate, and
+Example~\ref{ex:confusion} shows each is forced. The condition is about
+raw terms, with no typing hypothesis: under equality reflection the
+typing of a term is only as meaningful as the equations of its context
+are true, and truth in the model is not available when $\lambda_N$ is
+being defined. It bounds only the values that lie in $U_N$: a term may
+perfectly well take values of rank at least $\lambda$, and whether the
+value of a well-typed term lies in $U_N$ is the business of the
+soundness induction, not of this definition. And it quantifies over all
+truth assignments and all higher extents, so that it refers to
+$\lambda_j$ for $j<N$ only.
+
+An $N$-closed ordinal is not reached by iterating a definable type
+operator: for the operator $t$ of Example~\ref{ex:sat}, the values
+$t^n(\N)$ of the term $t^x(\N)$ with $x$ a free variable ranging over
+$\N$ lie in $U_N$ as long as their ranks are below $\lambda$, so they are
+bounded below $\lambda$, and then so is their supremum. It bounds the
+heights of the trees over small types in the same way, by the term of
+Example~\ref{ex:set}.
 
 \begin{conjecture}[rank lemma]\label{conj:rank}
-For every $N$, every $(\Gamma,t,\theta)$ with $\Gamma\vdash t:\Type_N$,
+For every $N$, every sorted raw term $t$ with generation tree $\theta$,
 and every ordinal $\gamma$ there is an ordinal $G_{t,\theta}(\gamma)$
-such that $\rk\sem t^\sigma\rho<G_{t,\theta}(\gamma)$ for every cut
-$\alpha>\max(\gamma,\lambda_{N-1})$, every $\vec\alpha'$, every $\sigma$, and
-every $\gamma$-generated $\sigma$-environment $\rho$ for
-$(\Gamma,\theta)$ in the $(N,\alpha,\vec\alpha')$-structure.
+such that, for every cut $\alpha>\max(\gamma,\lambda_{N-1})$, every
+$\vec\alpha'$, every $\sigma$, and every $\gamma$-generated environment
+$\rho$ for $\theta$ in the $(N,\alpha,\vec\alpha')$-structure: if
+$\sem t^\sigma\rho$ is a code of rank below $\alpha$ then its rank is below
+$G_{t,\theta}(\gamma)$.
 \end{conjecture}
 
-The conjecture says that the supremum of the ranks, taken over
-\emph{all} structures at once, is a set. It is the analogue of
+The conjecture says that, over \emph{all} structures at once, the values
+of a term that fall below the cut are bounded by an ordinal that does
+not depend on the cut: no term can produce a type just below the extent
+of the universe, whatever that extent is. It is the analogue of
 Lemma~\ref{lem:rank}: there the majorant $f_t$ is a total ordinal
 function, computed in the universe, and $\lambda$ is a closure point of
 it; here $G_{t,\theta}$ is to be a total ordinal function that does not
@@ -1108,16 +1140,18 @@ ordinal exists, so $\lambda_N$ is defined.
 \end{lemma}
 \begin{proof}
 Take $G_{t,\theta}(\gamma)$ least, so that it is monotone in $\gamma$, and
-enumerate the countably many triples as $(\Gamma_k,t_k,\theta_k)$. Put
+enumerate the countably many pairs as $(t_k,\theta_k)$. Put
 $\alpha_0:=\lambda_{N-1}+1$ (or $\omega+1$) and
-$\alpha_{n+1}:=\max\{G_{t_k,\theta_k}(\alpha_n):k\le n\}+1$, and let
-$\lambda:=\sup_n\alpha_n$. Given the $k$-th triple and $\gamma<\lambda$,
-choose $n\ge k$ with $\gamma\le\alpha_n$ and put
+$\alpha_{n+1}:=\max(\{\alpha_n\cdot\omega\}\cup\{G_{t_k,\theta_k}(\alpha_n):k\le n\})+1$,
+and let $\lambda:=\sup_n\alpha_n$; then $\beta\cdot\omega<\lambda$ for
+$\beta<\lambda$. Given the $k$-th pair and $\gamma<\lambda$, choose
+$n\ge k$ with $\gamma\le\alpha_n$ and put
 $\delta:=G_{t_k,\theta_k}(\alpha_n)<\alpha_{n+1}<\lambda$. The structure
 cut at $\lambda$ is one of those the conjecture quantifies over, since
-$\lambda>\gamma$, so every $\gamma$-generated environment in it gives
-$\rk\sem{t_k}^\sigma\rho<G_{t_k,\theta_k}(\gamma)\le\delta$. So $\lambda$
-is $N$-closed, and the least $N$-closed ordinal exists.
+$\lambda>\gamma$; so in it, every value of $t_k$ at a $\gamma$-generated
+environment that is a code of rank below $\lambda$ has rank below
+$G_{t_k,\theta_k}(\gamma)\le\delta$. So $\lambda$ is $N$-closed, and the
+least $N$-closed ordinal exists.
 \end{proof}
 
 \subsection{The model}\label{sec:adm}
@@ -1129,31 +1163,29 @@ quantified over in the definition of $N$-closed.
 
 \begin{definition}[generated elements]\label{def:adm}
 For each $N$ let $\mathcal A_N$ be the class of all values
-$\sem t^\sigma\rho$, for a term $t$ in a context $\Gamma$, a generation
-tree $\theta$ for $\Gamma$, a truth assignment $\sigma$, and a
-$\gamma$-generated $\sigma$-environment $\rho$ for $(\Gamma,\theta)$ with
-$\gamma<\lambda_N$, the content being the $N$-content. The class of
-\emph{generated elements} is $\mathcal A:=\bigcap_N\mathcal A_N$.
+$\sem t^\sigma\rho$, for a sorted raw term $t$, a generation tree $\theta$
+for its variables, a truth assignment $\sigma$, and a $\gamma$-generated
+environment $\rho$ for $\theta$ with $\gamma<\lambda_N$, the content being
+the $N$-content. The class of \emph{generated elements} is
+$\mathcal A:=\bigcap_N\mathcal A_N$.
 \end{definition}
 
 \begin{lemma}\label{lem:termadm}
-(1) If $e\in\El^{\mathrm f}(c)$ for a code $c$ in some universe and
-$\|e\|_c<\lambda_N$, then $e\in\mathcal A_N$. (2) If $\rho$ is a
-$\sigma$-environment for $\Gamma$ with all values in $\mathcal A_N$, then
-$\sem t^\sigma\rho\in\mathcal A_N$ for every term $t$ in $\Gamma$. (3) If
-$c\in U_i$ and $e\in\El^{\mathrm f}(c)$ then $e\in\mathcal A_N$ for every
-$N\ge i$; and every code in every universe is in $\mathcal A$.
+(1) If $e\in\El^{\mathrm f}(c)$ for a code $c$ and $\|e\|_c<\lambda_N$,
+then $e\in\mathcal A_N$. (2) If all values of $\rho$ are in
+$\mathcal A_N$, then $\sem t^\sigma\rho\in\mathcal A_N$ for every term $t$
+and every $\sigma$. (3) If $c\in U_i$ and $e\in\El^{\mathrm f}(c)$ then
+$e\in\mathcal A_N$ for every $N\ge i$; and every code in every universe
+is in $\mathcal A$.
 \end{lemma}
 \begin{proof}
-(1) Take the context $X{:}\Type_i,\ x{:}X$ with $c\in U_i$, both
-variables free, $\rho(X):=c$, $\rho(x):=e$, and $t:=x$; the content of
-$c$ as an element of $\code{\U_i}$ is $\rk(c)+1<\lambda_N$ if $i\le N$
-and $0$ otherwise. (2) Graft the generation trees of the values onto
-the variables of $\Gamma$; there are finitely many, so the maximum of
-their bounds $\gamma$ is below $\lambda_N$. (3) By the remark after
-Definition~\ref{def:content}, $\|e\|_c\le\rk(c)<\lambda_i\le\lambda_N$;
-a code in $U_i$ is an element of $\code{\U_i}$ of content $\rk+1<\lambda_N$
-for $N\ge i$ and $0$ for $N<i$.
+(1) Take $t:=x$ with $x$ free and $\rho(x):=e$. (2) Graft the generation
+trees of the values onto the variables; there are finitely many, so the
+maximum of their bounds $\gamma$ is below $\lambda_N$. (3) By the remark
+after Definition~\ref{def:content},
+$\|e\|_c\le\rk(c)<\lambda_i\le\lambda_N$. A code $X\in U_i$ is an element
+of $\code{\U_i}$ whose $N$-content is $\rk(X)+1$ if $X\in U_N$ and $0$
+otherwise, in either case below $\lambda_N$.
 \end{proof}
 
 So only the elements of types that are not small at level $N$ are
@@ -1232,35 +1264,41 @@ related, $\rho\sim\rho'$, when their values are.
 \end{definition}
 
 \begin{lemma}[type formation]\label{lem:tyform}
-Let $\rho$ be an environment of the model for $\Gamma$, and suppose
-$c:=\sem A\rho\in U_N$ and $\Gamma,x{:}A\vdash B:\Type_N$. Then there is
-$\delta<\lambda_N$ with $\rk\sem B\rho[x{:=}a]<\delta$ for every
-$a\in\El^{\mathrm f}(c)$, and the codes $\sem{\Pi x{:}A.B}\rho$,
-$\sem{\Sigma x{:}A.B}\rho$, $\sem{Wx{:}A.B}\rho$ lie in $U_N$; likewise for
-quotients.
+Let $\rho$ be an environment all of whose values are generated, let $A$
+and $B$ be sorted raw terms, and suppose $c:=\sem A\rho\in U_N$. Then
+the codes $\sem{\Pi^Nx{:}A.B}\rho$, $\sem{\Sigma^Nx{:}A.B}\rho$,
+$\sem{W^Nx{:}A.B}\rho$ lie in $U_N$; likewise for quotients.
 \end{lemma}
 \begin{proof}
-The values of $\rho$ lie in $\El(\cdot)\subseteq\mathcal A\subseteq\mathcal A_N$,
-so each is $\sem{t_y}^{\sigma_y}\rho_y$ for a $\gamma_y$-generated
-environment with $\gamma_y<\lambda_N$. Let $\theta$ be the generation
-tree for $\Gamma,x{:}A$ that gives each $y$ of $\Gamma$ its triple and
-marks $x$ free, and let
+The values of $\rho$ lie in $\mathcal A\subseteq\mathcal A_N$, so each is
+$\sem{t_y}^{\sigma_y}\rho_y$ for a $\gamma_y$-generated environment with
+$\gamma_y<\lambda_N$. Let $\theta$ be the generation tree for the
+variables of $B$ that gives each $y$ its pair and marks $x$ free, and let
 $\gamma:=\max(\{\gamma_y\}\cup\{\rk(c)+1\})<\lambda_N$. For every
 $a\in\El^{\mathrm f}(c)$ we have $\|a\|_c\le\rk(c)<\gamma$, so
-$\rho[x{:=}a]$ is a $\gamma$-generated $\sigma^*$-environment for
-$(\Gamma,x{:}A;\theta)$ in the true structure, which is the
-$(N,\lambda_N,\vec\lambda_{>N})$-structure. Since $\lambda_N$ is
-$N$-closed, there is $\delta<\lambda_N$, depending only on
-$(B,\theta,\gamma)$, with $\rk\sem B\rho[x{:=}a]<\delta$ for all such $a$.
-The code $\code Q(c,G)$ is a pair of $c$ and the family $G$, which is
-$a\mapsto\sem B\rho[x{:=}a]$ on $\El^{\mathrm f}(c)$ and $\bot$ elsewhere
-on $V_{\rk(c)\cdot\omega}$; so its rank is below
+$\rho[x{:=}a]$ is a $\gamma$-generated environment for $\theta$ in the
+true structure, which is the $(N,\lambda_N,\vec\lambda_{>N})$-structure.
+The family $G$ at level $N$ takes the value $\sem B\rho[x{:=}a]$ where
+this is a code in $U_N$, that is a code of rank below $\lambda_N$, and
+$\bot$ elsewhere. Since $\lambda_N$ is $N$-closed, there is
+$\delta<\lambda_N$, depending only on $(B,\theta,\gamma)$, that bounds
+the rank of every value of $B$ at a $\gamma$-generated environment that
+is a code of rank below $\lambda_N$; so every value of $G$ has rank below
+$\delta$. The code $\code Q(c,G)$ is a pair of $c$ and $G$, a function on
+$V_{\rk(c)\cdot\omega}$; so its rank is below
 $\max(\rk(c)\cdot\omega,\delta)+\omega<\lambda_N$.
 \end{proof}
 
-The proof uses nothing about the model except that its environments
-are generated; all the content is in the word ``closed''. Note that the
-bound is over the whole full decoding of $c$, not only over $\El(c)$.
+The proof uses no typing and nothing about the model except that its
+environments are generated. The division of labour is this: that an
+\emph{individual} fibre $\sem B\rho[x{:=}a]$ at an element $a$ of the
+model lies in $U_N$ is the induction hypothesis of the soundness proof
+for the premise $\Gamma,x{:}A\vdash B:\Type_N$, so that sanitizing the
+family changes nothing on the model; that the fibres are
+\emph{uniformly} bounded, so that the code of the family lies in $U_N$,
+is closedness. Off the model a fibre may be anything
+(Example~\ref{ex:confusion}), and there the sanitized value $\bot$ is
+used.
 
 \begin{lemma}[soundness]\label{lem:sound}
 Let $\rho\sim\rho'$ be related environments of the model for $\Gamma$.
@@ -1283,10 +1321,15 @@ $\El(\cdot)\subseteq\mathcal A$; and it is related to
 $\sem{\lambda x.b}\rho'$ because $\rho[x{:=}a]\sim\rho'[x{:=}a']$ for
 $a\sim a'$. The rule $\xi$ and function extensionality hold because
 relatedness at $\Pi$ tests related arguments only. \emph{Application:}
-by the definition of $\sim$ at $\Pi$. \emph{Type formers:} the codes are
-equivalent by the induction hypothesis for the family under related
-arguments, and lie in $U_i$ by Lemma~\ref{lem:tyform} at level $i$, the
-premises $A:\Type_i$ and $B:\Type_i$ being available by cumulativity;
+by the definition of $\sim$ at $\Pi$. \emph{Type formers} at sort
+$\Type_i$, the premises $A:\Type_i$ and $B:\Type_i$ being available by
+cumulativity: at every element $a$ of the model the fibre
+$\sem B\rho[x{:=}a]$ lies in $U_i$ by the induction hypothesis for $B$,
+so it is the value of the sanitized family there; the codes at related
+environments are equivalent by the induction hypothesis under related
+arguments, the values of the families off the model being irrelevant to
+$\approx$; and the code lies in $U_i$ by Lemma~\ref{lem:tyform} at level
+$i$;
 formed propositions are truth values, which lie in $U_0$, so the
 impredicative $\Pi$ needs no bound. \emph{Propositions:} $\sigma^*$ is
 invariant under related environments by induction on the proposition,
@@ -1374,12 +1417,15 @@ computed by a recursion that mirrors the term inside a cut structure,
 or they saturate at the cut (Example~\ref{ex:sat}).
 
 \paragraph{Why the cut should not matter.}
-The cut enters the evaluation in three ways. It is the range of a bound
-variable of universe type; but a type former at sort $\Type_N$ binds
-only variables of types in $U_N$, whose elements have content bounded
-by the rank of the type, and an abstraction over a larger type is only
-ever applied, by the term or by a parameter, to arguments that have
-themselves been bounded. It decides when an application is junk,
+The cut enters the evaluation in four ways. It is the range of a bound
+variable of universe type; but a type former whose domain is not in
+$U_N$ has a code of rank at least the cut, which the conjecture does
+not constrain, while one whose domain is in $U_N$ binds a variable whose
+values have content bounded by the rank of the domain; and an
+abstraction over a larger type is only ever applied, by the term or by
+a parameter, to arguments that have themselves been bounded. It is the
+threshold at which families are sanitized; but a fibre replaced by
+$\bot$ only lowers the rank. It decides when an application is junk,
 because the argument fell outside the universe; but junk is $\emptyset$,
 of rank $0$. And it changes the truth of propositions; but the
 conjecture quantifies over all truth assignments. A parameter of
@@ -1395,10 +1441,22 @@ function returns a small value, but the defined function may be applied
 by the parameter's own argument to something large; this does not
 affect the returned value's rank, and the fundamental lemma must be set
 up so that it is not asked to bound what is never returned. The
-inspected-predecessor argument for $\mathsf{Acc}$ needs the extensional
-fact that evaluation depends on a bound function only through its
-values at the arguments it is applied to, proved for the evaluation of
-Definition~\ref{def:fulleval} with junk included. And the conjecture is
+inspected-predecessor argument for $\mathsf{Acc}$, which is needed for
+$W$ as well when the branching types are not small, is more delicate
+than the first-order case suggests. The set of predecessors at which
+the recursive function is \emph{applied} need not be small: a step
+$K(\lambda X{:}\Type_N.\,\mathrm{rec}\,(h\,X))$, with $K$ a parameter,
+evaluates it at $h(X)$ for every $X$ in the universe. What is small is
+the set of predecessors whose values can reach the \emph{rank} of the
+result, since the value of $K$ is bounded whatever it is given; so the
+profile of the recursive function must be allowed to depend on the
+actual predecessor and not only on a bound for it, which makes the
+profiles hybrid in the sense of the earlier version, and the pure
+Howard profiles that give uniformity must then be shown to dominate
+them. Since the conjecture is about raw terms, the proof cannot use
+typing at all; the relation between values and profiles has to be
+defined on the evaluation as it is, junk and sanitized fibres
+included. And the conjecture is
 stated with a supremum over a proper class of structures, so a proof in
 $\ZF$ must produce $G_{t,\theta}$ as a definable class function by
 recursion on $(t,\theta)$, as Definition~\ref{def:maj} does, and not by
@@ -1449,6 +1507,39 @@ content of $f$ at level $0$ is the supremum of the ranks of the
 $f(n)(1)$, the values at $0$ counting for nothing.
 \end{example}
 
+\begin{example}[level confusion: why closedness is a gap condition on raw terms]\label{ex:confusion}
+A first formulation of Definition~\ref{def:closed} asked that every term
+with $\Gamma\vdash t:\Type_N$ have rank below some $\delta<\lambda$ at
+every environment typed by $\Gamma$ under any truth assignment. No
+ordinal satisfies it. Let $f,g$ be distinct parameters of a function
+type, of content $0$; let $B$ be a parameter with $B(f)=\code{\U_{N+1}}$
+and $B(g)=\code{\U_N}$, also of content $0$; and take the context
+$e{:}f=g,\ e'{:}B\,g=\Type_N,\ Y{:}B\,f$. By reflection
+$B\,f\equiv B\,g\equiv\Type_N$, so $Y:\Type_N$ is derivable, while
+$\rho(Y)$ is any code in $U_{N+1}$, of rank unbounded in the higher
+extents. The context is inhabited as soon as the truth assignment calls
+$f=g$ true; and restricting to the truth of the model does not help,
+since there $f\sim g$ is possible for distinct full functions and $B$
+need not respect $\sim$. The typing of a term says nothing about its
+value at an environment that is not an environment of the model, and
+the model is not available when $\lambda_N$ is being defined. Hence the
+gap condition, which does not mention typing: here the values of $Y$
+that lie in $U_N$ have rank below $\gamma$, because $\rho(Y)$ is a
+parameter of content below $\gamma$ (this is where the content of an
+element of $\code{\U_{N+1}}$ must count the codes that lie in $U_N$),
+and the values that do not lie in $U_N$ are not constrained.
+
+The same phenomenon inside a family is why families are sanitized. Let
+$C(b):=\mathsf{ind}^{\mathbf 2}\,\Type_N\,\Type_{N+1}\,b$, let
+$h:A\to\mathbf 2$ be a parameter that is $0$ exactly on the elements of
+the model, and let $e:\Pi x{:}A.\,h\,x=0$, which is true in the model.
+Then $x{:}A\vdash\mathsf{ind}^{\mathbf 2}_C\,\N\,\Type_N\,(h\,x):\Type_N$ is
+derivable, by reflection, and its value at an $a$ outside the model is
+$\code{\U_N}$, of rank above $\lambda_N$; an unsanitized family would
+put the code of $\Sigma x{:}A.\,\mathsf{ind}^{\mathbf 2}_C\,\N\,\Type_N\,(h\,x)$
+outside $U_N$.
+\end{example}
+
 \begin{example}[an element that inspects the universe]\label{ex:probe}
 Let $H:(\Type_0\to\Type_0)\to\N$ be $H(G):=0$ if $G$ is the identity on
 all of $U_0$ and $1$ otherwise. $H$ has content $0$, so it is a
@@ -1488,9 +1579,11 @@ hierarchy of height the order type of $x$, so the ranks $r_n$ of
 $t^n(\N)$ satisfy $r_{n+1}\ge\hartogs(V_{r_n})$. Each $t^n(\N)$ has rank
 below $\eta$, and $n\mapsto t^n(\N)$ is a term, by $\mathsf{ind}^\N$ with
 motive $\Type_N$; but $\Sigma n{:}\N.\,t^n(\N):\Type_N$ has rank
-$\sup_nr_n=\eta$. In Definition~\ref{def:closed} this term, which has no
-parameters, must have rank below $\lambda_N$ in the structure cut at
-$\lambda_N$, where its value is the honest one; so $\lambda_N>\eta$. And
+$\sup_nr_n=\eta$. Under Definition~\ref{def:closed} the term $t^x(\N)$
+with $x$ ranging over $\N$ takes, in the structure cut at $\lambda$,
+the honest values $t^n(\N)$ as long as they lie below $\lambda$; if
+$\lambda\le\eta$ these are cofinal in $\lambda$, which closedness
+forbids; so $\lambda_N>\eta$. And
 no term can diagonalize against $\lambda_N$ in the same way, because the
 sequence constructed in Lemma~\ref{lem:closedex} uses the bounds of all
 terms at once.
@@ -1499,8 +1592,9 @@ terms at once.
 \paragraph{Status.}
 Proved, given the definitions: the existence of closed ordinals from the
 rank lemma (Lemma~\ref{lem:closedex}); type formation in the model
-(Lemma~\ref{lem:tyform}), which is immediate from the definition of
-closed; the closure properties of the generated elements
+(Lemma~\ref{lem:tyform}), whose uniform half is immediate from the
+definition of closed and whose fibrewise half is the soundness
+induction; the closure properties of the generated elements
 (Lemma~\ref{lem:termadm}); and the locality of evaluation in the truth
 assignment (Lemma~\ref{lem:sigmaloc}). Sketched: soundness
 (Lemma~\ref{lem:sound}), a standard argument not yet checked rule by
@@ -1515,7 +1609,15 @@ closure ordinals were too small (Example~\ref{ex:sat}). The present
 version keeps its codes, its evaluation, and its examples, replaces
 majorants by content and term majorization by generation from
 parameters of bounded content, and moves all the difficulty into one
-statement about ranks.
+statement about ranks. Its first draft already needed three
+corrections, all found by attacking the rank lemma and all recorded in
+Example~\ref{ex:confusion} and after Definition~\ref{def:content}: the
+content of an element of a higher universe must count the codes that
+lie in $U_N$; closedness must be a gap condition on raw terms, since
+typed closedness is unsatisfiable under equality reflection; and
+families must be sanitized, since a well-typed family can take a value
+outside its universe off the model. We regard the definitions as not
+yet stable, and the conjecture as the place to keep attacking them.
 
 {\small
 \bibliographystyle{plain}
