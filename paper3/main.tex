@@ -1,0 +1,891 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[margin=0.85in]{geometry}
+\usepackage{amsmath,amsthm,amssymb,stmaryrd}
+\usepackage{hyperref,thmtools,enumitem,xcolor}
+
+\hypersetup{colorlinks,linkcolor={red!50!black},citecolor={blue!50!black},urlcolor={blue!80!black}}
+
+\declaretheorem[name=Theorem,numberwithin=section]{theorem}
+\declaretheorem[name=Lemma,sibling=theorem]{lemma}
+\declaretheorem[name=Proposition,sibling=theorem]{proposition}
+\declaretheorem[name=Corollary,sibling=theorem]{corollary}
+\declaretheorem[name=Definition,sibling=theorem,style=definition]{definition}
+\declaretheorem[name=Remark,sibling=theorem,style=remark]{remark}
+\declaretheorem[name=Conjecture,sibling=theorem]{conjecture}
+\declaretheorem[name=Example,sibling=theorem,style=remark]{example}
+\setlist[itemize]{parsep=0pt,topsep=2pt,before=\leavevmode}
+\setlist[enumerate]{parsep=0pt,topsep=2pt,before=\leavevmode}
+\setlength{\parindent}{1em}
+\setlength{\parskip}{.15em}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Prop}{\mathsf{Prop}}
+\newcommand{\Type}{\mathsf{Type}}
+\newcommand{\CIC}{\mathrm{CIC}}
+\newcommand{\ZF}{\mathrm{ZF}}
+\newcommand{\ZFC}{\mathrm{ZFC}}
+\newcommand{\ZFh}{\mathrm{ZF}^{1/2}}
+\newcommand{\EM}{\mathrm{EM}}
+\newcommand{\Con}{\mathrm{Con}}
+\newcommand{\rk}{\operatorname{rank}}
+\newcommand{\dom}{\operatorname{dom}}
+\newcommand{\PP}{\mathcal{P}}
+\newcommand{\sem}[1]{\llbracket #1\rrbracket}
+\newcommand{\hartogs}{\aleph}
+\newcommand{\El}{\mathrm{El}}
+\newcommand{\code}[1]{\ulcorner #1\urcorner}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\ind}{\mathsf{ind}}
+\newcommand{\Acc}{\mathsf{Acc}}
+\newcommand{\refl}{\mathsf{refl}}
+
+\begin{document}
+
+\title{Definable regularity:\\
+  \large towards a set model of $\CIC$ with $\omega$ universes and excluded middle in $\ZF$}
+\author{Mario Carneiro}
+% Drafted with Claude; adjust authorship/acknowledgement as you see fit.
+\date{Draft, \today}
+\maketitle
+
+\begin{abstract}
+The Calculus of Inductive Constructions with an impredicative universe
+of propositions, a tower of predicative universes, and excluded middle,
+but without a choice or description operator, is usually modelled in
+$\ZFC$ with one inaccessible cardinal per universe. We ask whether $\ZF$
+alone proves its consistency, and we set out a model that would show
+it. The function spaces of the model contain only the functions
+definable by a term from parameters of bounded content; the extent
+$\lambda_N$ of the universe $\Type_N$ is an ordinal with a regularity
+property for such definable families only; and truth in the model,
+which is not available while the extents are being determined, is
+handled by evaluating terms relative to an arbitrary oracle for the
+class of admitted elements and instantiating the oracle with the model
+itself at the end. We prove that the model is sound provided the
+extents exist, and we reduce their existence to a single statement, a
+rank lemma saying that the types a term can denote below the extent of
+a universe are bounded independently of that extent. The rank lemma is
+open. This is a working paper: it fixes the type theory and the
+definitions, records what is proved and what is not, and explains the
+design decisions by the counterexamples that forced them.
+\end{abstract}
+
+\section{Introduction}
+
+\paragraph{The question.}
+Let $\CIC_\omega$ be the intensional type theory of
+Section~\ref{sec:tt}: an impredicative, proof-irrelevant $\Prop$,
+predicative cumulative universes $\Type_0:\Type_1:\cdots$, dependent
+products and sums, $W$-types, natural numbers and finite types, an
+identity type in $\Prop$ eliminating into every sort, propositional
+truncation, quotients, an accessibility predicate eliminating into every
+sort, propositional extensionality, and excluded middle in $\Prop$. It
+has no choice operator, no description operator, and no unique choice.
+Werner's set-theoretic model \cite{werner97} interprets $\Type_i$ as
+$V_{\kappa_i}$ with $\kappa_i$ inaccessible, and with a description
+operator the inaccessibles are necessary, since the sets-as-trees
+interpretation then validates Replacement. Without one they are not
+known to be. We conjecture:
+
+\begin{conjecture}[main]\label{conj:main}
+$\ZF\vdash\Con(\CIC_\omega+\EM)$.
+\end{conjecture}
+
+\paragraph{What is known.}
+From below, $\CIC$ with $n+2$ universes and excluded middle interprets
+$\ZFh_n$, Zermelo set theory with recursion terms and $n$ universes, and
+proves its consistency \cite{paper2}; $\ZF$ proves the consistency of
+all of these, so the lower bound is well below $\ZF$ and the boundary
+is exactly Replacement for functional relations that are not given by
+terms. From above, the inaccessibles cannot be removed from Werner's
+model by replacing set-theoretic function spaces with realizability:
+a set-sized universe of assemblies closed under sums over tracked
+families has inaccessible size \cite[Prop.~4.4]{paper1}. The reason is
+the context $X{:}\Type_0,\ f{:}X\to\Type_0$: whatever $f$ is allowed to
+range over, $\Sigma x{:}X.\,f\,x$ must be in $\Type_0$, and the extent of
+$\Type_0$ is a singular ordinal unless it is inaccessible, so some
+small $X$ carries a cofinal family. No pointwise condition on $f$ can
+exclude such a family (Example~\ref{ex:climb}). What excludes it in
+$\ZFh$ is that a family there is a term, and the rank of a term's value
+is bounded by an ordinal function of the ranks of its parameters, under
+which the height of the model is closed \cite[\S3--4]{paper2}.
+
+\paragraph{The model.}
+We import that argument into type theory. The function spaces of the
+model consist of the functions that are values of terms whose
+parameters have bounded \emph{content}, the content of a parameter being
+the supremum of the ranks of the small types occurring in it; and the
+extent $\lambda_N$ of $\Type_N$ is \emph{$N$-closed}: as the parameters of
+a term range over content below $\gamma<\lambda_N$, those values of the
+term that are types of rank below $\lambda_N$ have rank below some
+$\delta<\lambda_N$. This is what is left of the regularity of an
+inaccessible when families are restricted to the definable ones, and
+it makes the uniform half of type formation sound by definition. Two
+difficulties remain.
+
+The first is a circularity. The extents are determined from the bottom
+up, and while $\lambda_N$ is being determined neither the higher
+extents nor truth in the model are available: a proposition may
+quantify over a function space, which is a set of definable functions,
+whose definitions contain propositions. We resolve it by evaluating
+terms relative to an \emph{oracle}, an arbitrary set $\X$ of admitted
+elements: function spaces are cut down to $\X$, truth is computed from
+the resulting decoding, and closedness quantifies over all oracles and
+all higher extents. The generated elements $\A$ are the values of terms
+under any oracle, and the model is the evaluation under the oracle
+$\X:=\A$, which is one of those quantified over. No truth assignment
+has to be guessed.
+
+The second is the existence of $N$-closed ordinals. It follows from a
+\emph{rank lemma} (Conjecture~\ref{conj:rank}): the types below the cut
+that a term can denote are bounded by an ordinal that does not depend
+on the cut. This is the analogue of the rank lemma of \cite{paper2} and
+we believe it, having failed to refute it in several rounds; but its
+proof is not an adaptation of Howard's majorizability argument
+\cite{howard73}, for reasons given in Section~\ref{sec:ranklemma}, and
+it is open. So the status of Conjecture~\ref{conj:main} is: reduced to
+Conjecture~\ref{conj:rank}, modulo a soundness proof that is written by
+cases and not yet checked rule by rule.
+
+\paragraph{Why intensional.}
+An earlier draft \cite[\S8]{paper2} worked with the extensional theory
+of \cite{vdbergotten23,paper1}. Equality reflection makes the typing of
+a term depend on the truth of the equations in its context, which
+forced closedness to be stated for untyped terms, made every term
+typable in some context, and defeated every attempt to stratify a
+majorizability argument by types. The theory that proof assistants
+implement is intensional, and for it none of this arises: typing is
+decidable and independent of truth, and definitional equality is
+computation, which holds in a set-theoretic evaluation outright. The
+one place where a false equation could still do harm, the eliminator of
+the identity type, is evaluated with a check.
+
+\section{The type theory}\label{sec:tt}
+
+\paragraph{Syntax.}
+Sorts are $s::=\Prop\mid\Type_i$ for $i<\omega$. Terms:
+\begin{align*}
+t,u,A,B,C::={}&x\mid s\mid\Pi x{:}A.B\mid\lambda x{:}A.t\mid t\,u
+  \mid\Sigma x{:}A.B\mid\langle t,u\rangle\mid\pi_1t\mid\pi_2t\\
+ &\mid Wx{:}A.B\mid\mathsf{sup}\,t\,u\mid\ind^W_Ct
+  \mid\mathbf n\mid\mathbf k_{\mathbf n}\mid\ind^{\mathbf n}_Ct_0\cdots t_{n-1}
+  \mid\N\mid0\mid\mathsf S\,t\mid\ind^\N_Ct\,u\\
+ &\mid t=_Au\mid\refl\,t\mid\ind^=_Ct
+  \mid\|A\|\mid|t|\mid\ind^{\|\|}_Ct
+  \mid A/R\mid[t]_R\mid\mathsf{lift}_Ct\,u\mid\mathsf{qind}_Pt\mid\mathsf{snd}_R\\
+ &\mid\Acc_R\mid\mathsf{acc}\,t\,u\mid\ind^{\Acc}_Ct
+  \mid\mathsf{propext}\mid\mathsf{em}
+\end{align*}
+with $\mathbf n$ the type with $n$ elements $\mathbf 0_{\mathbf n},\dots,(\mathbf{n{-}1})_{\mathbf n}$
+for each $n<\omega$. We write $A\to B$ for $\Pi x{:}A.B$ with $x$ not
+free in $B$, $\bot:=\|\mathbf 0\|$, $\neg P:=P\to\bot$, and
+$P\vee Q:=\|\Sigma b{:}\mathbf 2.\,\ind^{\mathbf 2}_{\lambda\_.\Prop}\,P\,Q\,b\|$.
+
+\paragraph{Judgments.}
+$\vdash\Gamma$, $\Gamma\vdash t:A$, and $\Gamma\vdash t\equiv u:A$. We
+write $\Gamma\vdash A:s$ for a type at a sort. The rules are those of a
+pure type system with the following specifics.
+
+\emph{Sorts and cumulativity.} $\Prop:\Type_0$ and $\Type_i:\Type_{i+1}$;
+if $A:\Prop$ then $A:\Type_0$, and if $A:\Type_i$ then $A:\Type_{i+1}$.
+
+\emph{Products.} If $A:s_1$ and $x{:}A\vdash B:s_2$ then
+$\Pi x{:}A.B:\Prop$ when $s_2=\Prop$, and $\Pi x{:}A.B:\Type_{\max(i,j)}$
+when $s_2=\Type_j$ and $s_1=\Type_i$, reading $\Prop$ as $\Type_0$ for
+$s_1$. Abstraction and application as usual, with $\beta$ and $\eta$.
+
+\emph{Sums, $W$-types, quotients.} If $A:\Type_i$ and
+$x{:}A\vdash B:\Type_i$ then $\Sigma x{:}A.B:\Type_i$ and
+$Wx{:}A.B:\Type_i$; if $A:\Type_i$ and $R:A\to A\to\Prop$ then
+$A/R:\Type_i$. Pairs with projections, $\beta$ and $\eta$. Trees
+$\mathsf{sup}\,a\,d:Wx{:}A.B$ for $a:A$ and $d:B[a/x]\to Wx{:}A.B$, with
+$\ind^W_Cf:\Pi w{:}(Wx{:}A.B).\,C$ for a motive $w{:}W\vdash C:s$ in any
+sort and
+$f:\Pi a{:}A.\Pi d{:}(B[a/x]\to W).\,(\Pi b{:}B[a/x].\,C[d\,b/w])\to C[\mathsf{sup}\,a\,d/w]$,
+and $\ind^W_Cf\,(\mathsf{sup}\,a\,d)\equiv f\,a\,d\,(\lambda b.\,\ind^W_Cf\,(d\,b))$.
+Classes $[a]_R:A/R$ for $a:A$, the proof
+$\mathsf{snd}_R:\Pi a\,a'{:}A.\,R\,a\,a'\to[a]_R=_{A/R}[a']_R$, and
+$\mathsf{lift}_Cf\,h:A/R\to C$ for $C:s$ in any sort, $f:A\to C$, and
+$h:\Pi a\,a'{:}A.\,R\,a\,a'\to f\,a=_Cf\,a'$, with
+$\mathsf{lift}_Cf\,h\,[a]_R\equiv f\,a$; and the induction principle
+$\mathsf{qind}_Pf:\Pi q{:}A/R.\,P\,q$ for $P:A/R\to\Prop$ and
+$f:\Pi a{:}A.\,P\,[a]_R$.
+
+\emph{Finite types and numbers.} $\mathbf n:\Type_0$ and $\N:\Type_0$ with
+their constructors, and eliminators $\ind^{\mathbf n}_C\vec c:\Pi k{:}\mathbf n.\,C$
+and $\ind^\N_Cc\,f:\Pi m{:}\N.\,C$ for motives in any sort, with the
+usual computation rules.
+
+\emph{Identity.} If $A:s$ and $a,a':A$ then $a=_Aa':\Prop$, with
+$\refl\,a:a=_Aa$. For a motive $x{:}A,\,e{:}a=_Ax\vdash C:s$ in any sort
+and $d:C[a/x,\refl\,a/e]$,
+\[
+\ind^=_Cd:\Pi x{:}A.\,\Pi e{:}a=_Ax.\,C,\qquad
+\ind^=_Cd\,a\,(\refl\,a)\equiv d .
+\]
+There is no reflection rule.
+
+\emph{Truncation.} If $A:s$ then $\|A\|:\Prop$, $|a|:\|A\|$ for $a:A$, and
+$\ind^{\|\|}_Pf:\|A\|\to P$ for $P:\Prop$ and $f:A\to P$. It eliminates
+into propositions only.
+
+\emph{Accessibility.} For $X:s$ and $R:X\to X\to\Prop$,
+$\Acc_R:X\to\Prop$, with
+$\mathsf{acc}\,x\,h:\Acc_R\,x$ for $h:\Pi y{:}X.\,R\,y\,x\to\Acc_R\,y$. For a
+motive $x{:}X\vdash C:s$ in any sort and
+$f:\Pi x{:}X.\,(\Pi y{:}X.\,R\,y\,x\to C[y/x])\to C$,
+\[
+\ind^{\Acc}_Cf:\Pi x{:}X.\,\Acc_R\,x\to C,\qquad
+\ind^{\Acc}_Cf\,x\,(\mathsf{acc}\,x\,h)\equiv f\,x\,(\lambda y\,r.\,\ind^{\Acc}_Cf\,y\,(h\,y\,r)).
+\]
+
+\emph{Proof irrelevance.} If $P:\Prop$ and $p,q:P$ then $p\equiv q:P$.
+
+\emph{Axioms.} $\mathsf{propext}:\Pi P\,Q{:}\Prop.\,(P\to Q)\to(Q\to P)\to P=_\Prop Q$
+and $\mathsf{em}:\Pi P{:}\Prop.\,P\vee\neg P$.
+
+\emph{Conversion.} $\equiv$ is the congruence generated by the
+computation rules above, $\beta$, $\eta$ for $\Pi$ and $\Sigma$, and
+proof irrelevance; and if $t:A$ and $A\equiv B:s$ then $t:B$.
+
+$\CIC_n$ is the theory with the sorts $\Prop,\Type_0,\dots,\Type_{n-1}$
+only, and $\CIC_\omega$ is the union. Function extensionality is
+derivable from the quotient rules by the usual argument. The theory is
+close to the core of Lean~4 without $\mathsf{choice}$ \cite{carneiro19},
+with $W$-types and $\Acc$ standing for the general inductive families,
+and to the predicative calculus of inductive constructions with
+$\mathsf{em}$, $\mathsf{propext}$ and quotients added. We have not
+included general inductive families; we expect $W$, $=$ and $\Acc$ to
+carry the features that matter for the strength, namely large
+elimination over a well-founded structure of unbounded height and
+singleton elimination.
+
+\section{Evaluation relative to an oracle}\label{sec:sem}
+
+All of this section is Werner's set-theoretic semantics \cite{werner97}
+with three changes: universes have arbitrary ordinal extents; function
+spaces, and the subtree functions of trees, are cut down to an arbitrary
+set $\X$; and nothing is assumed to be sound. The evaluation is a total
+$\ZF$-definable function, and what it is good for is decided afterwards.
+
+\begin{definition}[structures, codes]\label{def:codes}
+A \emph{structure} is an increasing sequence
+$\vec\epsilon=(\epsilon_0<\epsilon_1<\cdots)$ of ordinals above $\omega$,
+the \emph{extents}. We fix a representation of semantic objects as sets
+in which natural numbers, the proof $\star$, pairs, functions, trees,
+classes, and codes are pairwise distinct kinds, by tagging. The
+\emph{codes} are: the constants $\bot,\top,\code\Prop,\code{\mathbf n},\code\N$,
+of finite rank; the \emph{universe constants}
+$\code{\U_i}:=\langle\mathsf U,\epsilon_i\rangle$, of rank about $\epsilon_i$;
+and $\code\Pi(c,G)$, $\code\Sigma(c,G)$, $\code W(c,G)$, $\code/(c,R)$ for $c$
+a code, $G$ a function into codes, and $R$ a set of pairs. The truth
+values are the codes $\bot$ and $\top$. Put $U_i:=\{c:c\text{ a code},\ \rk(c)<\epsilon_i\}$,
+so that $\code{\U_i}\in U_{i+1}\setminus U_i$.
+
+Given $\lambda_0<\dots<\lambda_{N-1}$, an ordinal
+$\alpha>\lambda_{N-1}$ (or $\alpha>\omega$ if $N=0$), and an increasing
+sequence $\vec\alpha'$ of ordinals above $\alpha$, the
+\emph{$(N,\alpha,\vec\alpha')$-structure} has extents
+$\lambda_0,\dots,\lambda_{N-1},\alpha,\alpha'_{N+1},\alpha'_{N+2},\dots$:
+the lower universes are given, $U_N$ is \emph{cut at} $\alpha$, the higher
+universes are arbitrary.
+\end{definition}
+
+\begin{definition}[decoding relative to an oracle]\label{def:El}
+An \emph{oracle} is a set $\X$. For a structure and an oracle, define
+$\El^\X(c)$ by recursion on the rank of the code $c$:
+\begin{itemize}
+\item $\El^\X(\bot):=\emptyset$, $\El^\X(\top):=\{\star\}$,
+  $\El^\X(\code\Prop):=\{\bot,\top\}$, $\El^\X(\code{\mathbf n}):=n$,
+  $\El^\X(\code\N):=\omega$, $\El^\X(\code{\U_i}):=U_i$;
+\item $\El^\X(\code\Pi(c,G))$ is the set of functions $f\in\X$ with
+  $\dom f=\El^\X(c)$ and $f(a)\in\El^\X(G(a))$ for all $a$, if
+  $\dom G\supseteq\El^\X(c)$, and $\emptyset$ otherwise;
+\item $\El^\X(\code\Sigma(c,G))$ is the set of pairs $\langle a,b\rangle$
+  with $a\in\El^\X(c)$ and $b\in\El^\X(G(a))$;
+\item $\El^\X(\code W(c,G))$ is the set of well-founded trees, represented
+  as sets of finite paths, whose nodes carry labels $a\in\El^\X(c)$ and
+  have children indexed by $\El^\X(G(a))$, and such that at every node the
+  function sending a child index to the subtree at that child is in $\X$;
+\item $\El^\X(\code/(c,R))$ is the set of classes of $\El^\X(c)$ under the
+  equivalence relation generated by $R\cap\El^\X(c)^2$.
+\end{itemize}
+By induction on codes $\El^\X(c)\subseteq V_{\rk(c)\cdot\omega}$; this is
+why trees are sets of paths and not nested pairs.
+\end{definition}
+
+So a function of the decoding has \emph{exactly} the decoding of its
+domain as its domain. Two consequences will matter. Functions are
+extensional, so equality in the model can be equality of sets, and no
+partial equivalence relation is needed. And the oracle is the only
+unknown: once $\X$ is given, truth is computed.
+
+\begin{definition}[evaluation]\label{def:eval}
+Fix a structure and an oracle $\X$. Terms are \emph{sorted}: each type
+former $\Pi$, $\Sigma$, $W$, $/$ that is not a proposition carries the
+level $i$ of the sort $\Type_i$ at which it is formed, written
+$\Pi^ix{:}A.B$ when it matters, and each subterm that is a proof, that is
+whose type is a proposition, carries a mark; a derivation determines
+the sorting and the marks, and typing is decidable, so this is
+bookkeeping. For a sorted term $t$ and an environment $\rho$ assigning sets to variables
+define $\sem t^\X\rho$ by recursion on $t$, returning $\emptyset$, which
+is the code $\bot$, wherever a clause does not apply.
+\begin{itemize}
+\item $\sem x^\X\rho:=\rho(x)$; $\sem\Prop^\X\rho:=\code\Prop$,
+  $\sem{\Type_i}^\X\rho:=\code{\U_i}$, $\sem{\mathbf n}^\X\rho:=\code{\mathbf n}$,
+  $\sem\N^\X\rho:=\code\N$.
+\item \emph{Type formers.} With $c:=\sem A^\X\rho$, the \emph{family at
+  level $i$} of the binder $x{:}A$ with body $B$ is the function $G$ on
+  $\El^\X(c)$ with $G(a):=\sem B^\X\rho[x{:=}a]$ if this is a code in $U_i$,
+  and $G(a):=\bot$ otherwise. Then
+  $\sem{\Pi^ix{:}A.B}^\X\rho:=\code\Pi(c,G)$, and likewise $\Sigma^i$ and
+  $W^i$; and $\sem{A/R}^\X\rho:=\code/(c,R')$ with $R'$ the set of pairs
+  $(a,a')\in\El^\X(c)^2$ with $\sem R^\X\rho(a)(a')=\top$. Families are
+  \emph{sanitized}: their values lie in $U_i$ by fiat.
+\item \emph{Propositions} are evaluated to truth values, computed from
+  the decoding:
+  $\sem{\Pi x{:}A.P}^\X\rho:=\top$ iff $\sem P^\X\rho[x{:=}a]=\top$ for
+  all $a\in\El^\X(c)$, when $P$ is a proposition;
+  $\sem{\|A\|}^\X\rho:=\top$ iff $\El^\X(c)\ne\emptyset$;
+  $\sem{a=_Aa'}^\X\rho:=\top$ iff $\sem a^\X\rho=\sem{a'}^\X\rho$;
+  $\sem{\Acc_R}^\X\rho$ is the function on $\El^\X(c)$, for $c$ the code of
+  the carrier, that is $\top$ exactly on the accessible part of the
+  relation $y\prec x:\iff\sem R^\X\rho(y)(x)=\top$ on $\El^\X(c)$.
+  Every marked subterm, that is every proof, evaluates to $\star$; this
+  covers $\refl$, $|{\cdot}|$, $\mathsf{acc}$, $\mathsf{snd}$,
+  $\mathsf{qind}$, $\mathsf{propext}$, $\mathsf{em}$, and abstractions and
+  applications of proofs.
+\item $\sem{\lambda x{:}A.b}^\X\rho:=$ the function
+  $a\mapsto\sem b^\X\rho[x{:=}a]$ on $\El^\X(c)$. It need not belong to
+  $\X$. $\sem{t\,u}^\X\rho:=\sem t^\X\rho(\sem u^\X\rho)$ if the first is a
+  function with the second in its domain, and $\emptyset$ otherwise.
+\item Pairs and projections componentwise; $\mathsf{sup}\,a\,d$ is the
+  tree with root label $\sem a^\X\rho$ and subtrees $\sem d^\X\rho(b)$;
+  $[a]_R$ is the class of $\sem a^\X\rho$; numerals are numbers.
+\item $\ind^{\mathbf n}$ evaluates by cases on the actual argument,
+  $\ind^\N$ by primitive recursion, $\ind^W$ by recursion on the
+  well-founded tree, all as functions on the decoding of the argument
+  type. $\mathsf{lift}_Cf\,h$ is the function on the classes that sends
+  $q$ to the common value of $\sem f^\X\rho$ on the members of $q$ if
+  they agree, and to $\emptyset$ otherwise. $\ind^{\|\|}$ is constantly $\star$.
+\item $\sem{\ind^=_Cd}^\X\rho$, where the motive is over $x{:}A$ and
+  $e{:}a=_Ax$, is the function sending $x\in\El^\X(c)$ to the function
+  that is $\star\mapsto\sem d^\X\rho$ if $x=\sem a^\X\rho$ and the empty
+  function otherwise. So \emph{the eliminator of equality checks the
+  equation}.
+\item $\sem{\ind^{\Acc}_Cf}^\X\rho$ is defined by recursion along $\prec$
+  on the accessible part $D$: at $x\in D$ it is
+  $\star\mapsto\sem f^\X\rho(x)(\mathrm{rec}_x)$, where $\mathrm{rec}_x$ is
+  the function on $\El^\X(c)$ with $\mathrm{rec}_x(y):=\{(\star,v_y)\}$, $v_y$
+  the value at $y$, if $y\prec x$, and $\mathrm{rec}_x(y):=\emptyset$, the
+  empty function, otherwise; at $x\notin D$ it is the empty function.
+\end{itemize}
+\end{definition}
+
+\begin{remark}[what the evaluation does and does not assert]\label{rem:asserts}
+The evaluation asserts nothing: not that a type lands in its universe,
+nor that a term lands in the decoding of its type. For the oracle
+$\X=V_\theta$ with $\theta$ large it is Werner's evaluation with
+universes of arbitrary extent, and its failure to be a model is the
+familiar one: $\sem{\Sigma x{:}X.\,f\,x}\rho$ is a code of rank
+$\epsilon_0$ when $\rho(f)$ is cofinal, and with sanitized families a
+pair $\langle a,b\rangle$ may fail to be in the decoding of its type
+because the fibre was replaced by $\bot$. For a general oracle there is
+a second failure: the value of an abstraction need not be in $\X$, and
+then it is not an element of the function space and everything
+downstream is junk. Soundness is a property of particular oracles, and
+Section~\ref{sec:model} exhibits one.
+\end{remark}
+
+\section{Content, generated environments, closed ordinals}\label{sec:closed}
+
+Throughout this section a level $N$ and ordinals
+$\lambda_0<\dots<\lambda_{N-1}$ are fixed, the extents already
+determined, and everything is relative to an
+$(N,\alpha,\vec\alpha')$-structure and an oracle.
+
+\begin{definition}[content]\label{def:content}
+For a code $c$ and $e\in\El^\X(c)$ define the \emph{$N$-content}
+$\|e\|_c$, an ordinal, by recursion on $c$:
+\begin{itemize}
+\item $\|e\|_c:=0$ for $c$ one of $\bot,\top,\code\Prop,\code{\mathbf n},\code\N$;
+\item for $c=\code{\U_j}$ with any $j$, where $e$ is a code in $U_j$:
+  $\|e\|_c:=\rk(e)+1$ if $e\in U_N$, that is if $\rk(e)$ is below the
+  cut, and $\|e\|_c:=0$ otherwise;
+\item $\|\langle a,b\rangle\|_{\code\Sigma(c',G)}:=\max(\|a\|_{c'},\|b\|_{G(a)})$;
+\item $\|t\|_{\code W(c',G)}:=$ the supremum of $\|a\|_{c'}$ over the labels
+  $a$ of $t$;
+\item $\|q\|_{\code/(c',R)}:=\min\{\|a\|_{c'}:a\in q\}$;
+\item $\|f\|_{\code\Pi(c',G)}:=\sup\{\|f(a)\|_{G(a)}:a\in\El^\X(c')\}$.
+\end{itemize}
+\end{definition}
+
+The content of an element is the supremum of the ranks of the types of
+level at most $N$ that occur in it as values, through all arguments and
+components, fibre by fibre. The level of a code is read off the code and
+not off the universe it is presented in, since $U_N\subseteq U_{N+1}$: a
+family $\N\to\Type_{N+1}$ whose values lie in $U_N$ has the content of
+those values. The identity on $U_N$ has content $\alpha$, the cut; so
+does a family $\N\to U_N$ of cofinal ranks. If $c\in U_j$ with $j\le N$
+then $\|e\|_c\le\rk(c)$ for every $e\in\El^\X(c)$, since a universe
+constant mentioned by $c$ has extent below $\rk(c)$.
+
+\begin{definition}[generated environments]\label{def:gen}
+A \emph{generation tree} $\theta$ for a context $\Gamma$ assigns to each
+variable $x$ of $\Gamma$ either the mark \emph{free} or a triple
+$(\Gamma_x,t_x,\theta_x)$ of a context, a term typable in it, and a
+generation tree for it; $\theta$ is required to be well founded, hence is
+a finite tree, and there are countably many triples $(\Gamma,t,\theta)$
+with $t$ typable in $\Gamma$. For an ordinal $\gamma$ and an oracle $\X$, a
+\emph{$\gamma$-generated $\X$-environment for $(\Gamma,\theta)$} is an
+environment $\rho$ such that, by recursion on $\theta$,
+\begin{itemize}
+\item $\rho$ is an \emph{$\X$-environment} for $\Gamma$:
+  $\rho(x)\in\El^\X(\sem A^\X\rho)$ for every $x{:}A$ in $\Gamma$;
+\item if $x$ is free then $\|\rho(x)\|_{\sem A^\X\rho}<\gamma$;
+\item if $x$ has the triple $(\Gamma_x,t_x,\theta_x)$ then
+  $\rho(x)=\sem{t_x}^{\X_x}\rho_x$ for some oracle $\X_x$ and some
+  $\gamma$-generated $\X_x$-environment $\rho_x$ for $(\Gamma_x,\theta_x)$.
+\end{itemize}
+Each node may use its own oracle. Oracles may be taken to be subsets of
+$V_\vartheta$ for $\vartheta$ the supremum of the extents, so for a fixed
+structure the $\gamma$-generated environments form a set.
+\end{definition}
+
+\begin{definition}[closed ordinals]\label{def:closedord}
+An ordinal $\lambda>\lambda_{N-1}$ (or $\lambda>\omega$ if $N=0$) is
+\emph{$N$-closed} if $\beta\cdot\omega<\lambda$ for every $\beta<\lambda$,
+and for every triple $(\Gamma,t,\theta)$ and every $\gamma<\lambda$ there
+is $\delta<\lambda$ such that: for every sequence $\vec\alpha'$ of higher
+extents, every oracle $\X$, and every $\gamma$-generated $\X$-environment
+$\rho$ for $(\Gamma,\theta)$ in the $(N,\lambda,\vec\alpha')$-structure,
+\[
+\text{if }\sem t^\X\rho\text{ is a code of rank below }\lambda
+\text{ then its rank is below }\delta.
+\]
+The extent $\lambda_N$ is the least $N$-closed ordinal, if there is one.
+\end{definition}
+
+Closedness is a \emph{gap condition}: a term whose parameters have
+content below $\gamma$ cannot take, as the parameters, the oracle, and the
+higher extents vary, values in $U_N$ of rank cofinal in $\lambda$. It is
+stated in the structure cut at $\lambda$ itself and refers to no higher
+extent. It bounds only the values that lie in $U_N$; whether the value
+of a term of type $\Type_N$ does lie in $U_N$ is the business of the
+soundness induction. For instance, for a definable operator
+$t:\Type_N\to\Type_N$ the term $\ind^\N\,\N\,(\lambda\_.\,t)\,x$ with $x{:}\N$
+free takes the values $t^n(\N)$; if these are all in $U_N$ they are
+bounded below $\lambda$, and then $\Sigma n{:}\N.\,t^n(\N)$ is in $U_N$.
+So an $N$-closed ordinal is not reached by iterating a definable type
+operator, however fast that operator raises ranks
+(Example~\ref{ex:sat}).
+
+\begin{conjecture}[rank lemma]\label{conj:rank}
+For every $N$, every triple $(\Gamma,t,\theta)$, and every ordinal
+$\gamma$ there is an ordinal $G_{t,\theta}(\gamma)$ such that, for every cut
+$\alpha>\max(\gamma,\lambda_{N-1})$, every $\vec\alpha'$, every oracle $\X$,
+and every $\gamma$-generated $\X$-environment $\rho$ for $(\Gamma,\theta)$ in
+the $(N,\alpha,\vec\alpha')$-structure: if $\sem t^\X\rho$ is a code of
+rank below $\alpha$ then its rank is below $G_{t,\theta}(\gamma)$.
+\end{conjecture}
+
+\begin{lemma}[existence of closed ordinals]\label{lem:closedex}
+Assume Conjecture~\ref{conj:rank} at level $N$. Then an $N$-closed
+ordinal exists, so $\lambda_N$ is defined.
+\end{lemma}
+\begin{proof}
+Take $G_{t,\theta}(\gamma)$ least, so that it is monotone in $\gamma$, and
+enumerate the triples as $(\Gamma_k,t_k,\theta_k)$. Put
+$\alpha_0:=\lambda_{N-1}+1$ (or $\omega+1$) and
+$\alpha_{n+1}:=\max(\{\alpha_n\cdot\omega\}\cup\{G_{t_k,\theta_k}(\alpha_n):k\le n\})+1$,
+and let $\lambda:=\sup_n\alpha_n$; then $\beta\cdot\omega<\lambda$ for
+$\beta<\lambda$. Given the $k$-th triple and $\gamma<\lambda$, choose
+$n\ge k$ with $\gamma\le\alpha_n$ and put
+$\delta:=G_{t_k,\theta_k}(\alpha_n)<\alpha_{n+1}<\lambda$. The structure
+cut at $\lambda$ is one of those the conjecture quantifies over, so in
+it every value of $t_k$ at a $\gamma$-generated environment that is a
+code of rank below $\lambda$ has rank below
+$G_{t_k,\theta_k}(\gamma)\le\delta$.
+\end{proof}
+
+\section{The model}\label{sec:model}
+
+Assume that $\lambda_N$ exists for every $N$, and work in the \emph{true
+structure}, whose extents are the $\lambda_N$. For each $N$ it is the
+$(N,\lambda_N,\vec\lambda_{>N})$-structure. Let
+$\lambda_\omega:=\sup_N\lambda_N$; oracles are subsets of
+$V_{\lambda_\omega}$.
+
+\begin{definition}[generated elements]\label{def:A}
+For each $N$ let $\A_N$ be the set of all values $\sem t^\X\rho$ in
+$V_{\lambda_\omega}$, for a triple $(\Gamma,t,\theta)$, an oracle $\X$, and
+a $\gamma$-generated $\X$-environment $\rho$ for $(\Gamma,\theta)$ with
+$\gamma<\lambda_N$, the content being the $N$-content. The set of
+\emph{generated elements} is $\A:=\bigcap_N\A_N$. The \emph{model} is the
+evaluation relative to the oracle $\A$: its decoding is $\El:=\El^{\A}$,
+its interpretation is $\sem t\rho:=\sem t^{\A}\rho$, and its environments
+for $\Gamma$ are the $\A$-environments.
+\end{definition}
+
+The definition is not circular: $\A$ is a union over \emph{all} oracles,
+and the oracle $\A$ is one of them. Truth in the model is whatever the
+evaluation relative to $\A$ computes; it was never needed in order to
+define $\A$.
+
+\begin{lemma}[generated elements]\label{lem:gen}
+(1) If $e\in\El^\X(c)$ for some oracle $\X$ and code $c$ in a universe,
+and $\|e\|_c<\lambda_N$, then $e\in\A_N$. (2) If $\rho$ is an
+$\X$-environment for $\Gamma$ with all values in $\A_N$ and $t$ is typable
+in $\Gamma$, then $\sem t^\X\rho\in\A_N$. (3) Every code in a universe is
+in $\A$; and if $c\in U_i$ and $e\in\El^\X(c)$ then $e\in\A_N$ for every
+$N\ge i$. (4) $\El(c)\subseteq\A$ for every code $c$ in a universe.
+\end{lemma}
+\begin{proof}
+(1) Take the context $X{:}\Type_i,\ x{:}X$ with both variables free,
+$\rho(X):=c\in U_i$, $\rho(x):=e$, and $t:=x$. The content of $c$ as an
+element of $\code{\U_i}$ is $\rk(c)+1$ if $c\in U_N$ and $0$ otherwise, in
+either case below $\lambda_N$. (2) Graft the generation trees of the
+values onto the variables of $\Gamma$; there are finitely many, so the
+maximum of their bounds is below $\lambda_N$; and $\rho$ is an
+$\X$-environment by hypothesis. (3) The first part was shown in (1); for
+the second, $\|e\|_c\le\rk(c)<\lambda_i\le\lambda_N$. (4) By induction on
+$c$. A function in $\El(\code\Pi(c,G))$ is in $\A$ by definition. A pair,
+a tree, or a class of generated elements is the value of the
+constructor term at a generated environment; for a tree the subtree
+functions are in $\A$ by the definition of the decoding, and for a
+class the relation enters as a variable $R:A\to A\to\Prop$ whose value
+has content $0$. Codes are covered by (3), and numbers, truth values
+and $\star$ by (1).
+\end{proof}
+
+So only the types that are not small at level $N$ are restricted by
+$\A_N$: a function $\Type_N\to\Type_N$ must be the value of a term whose
+parameters have content below $\lambda_N$, while every function between
+two types in $U_N$ is its own parameter, so that the small types decode
+as in Werner's model.
+
+\begin{lemma}[type formation]\label{lem:tyform}
+Let $\rho$ be an environment of the model for $\Gamma$, suppose
+$\Gamma,x{:}A\vdash B:\Type_N$ is derivable, and suppose
+$c:=\sem A\rho\in U_N$. Then $\sem{\Pi^Nx{:}A.B}\rho$,
+$\sem{\Sigma^Nx{:}A.B}\rho$, and $\sem{W^Nx{:}A.B}\rho$ lie in $U_N$;
+likewise for quotients.
+\end{lemma}
+\begin{proof}
+The values of $\rho$ lie in $\A\subseteq\A_N$ by Lemma~\ref{lem:gen}(4),
+so each is $\sem{t_y}^{\X_y}\rho_y$ for a $\gamma_y$-generated environment
+with $\gamma_y<\lambda_N$. Let $\theta$ be the generation tree for
+$\Gamma,x{:}A$ that gives each $y$ of $\Gamma$ its triple and marks $x$
+free, and let $\gamma:=\max(\{\gamma_y\}\cup\{\rk(c)+1\})<\lambda_N$. For
+every $a\in\El(c)$ we have $\|a\|_c\le\rk(c)<\gamma$, so $\rho[x{:=}a]$ is a
+$\gamma$-generated $\A$-environment for $(\Gamma,x{:}A;\theta)$ in the true
+structure. The family $G$ at level $N$ takes at $a$ the value
+$\sem B\rho[x{:=}a]$ if this is a code of rank below $\lambda_N$, and
+$\bot$ otherwise. Since $\lambda_N$ is $N$-closed there is
+$\delta<\lambda_N$, depending only on $(B,\theta,\gamma)$, that bounds the
+rank of every such value; so every value of $G$ has rank below $\delta$.
+The code $\code Q(c,G)$ is a pair of $c$ and $G$, a function on
+$\El(c)\subseteq V_{\rk(c)\cdot\omega}$; so its rank is below
+$\max(\rk(c)\cdot\omega,\delta)+\omega<\lambda_N$.
+\end{proof}
+
+The division of labour is this. That an \emph{individual} fibre
+$\sem B\rho[x{:=}a]$ lies in $U_N$ is the induction hypothesis of the
+soundness proof for the premise $\Gamma,x{:}A\vdash B:\Type_N$; so in the
+model the sanitization changes nothing. That the fibres are
+\emph{uniformly} bounded, so that the code of the family lies in $U_N$,
+is closedness.
+
+\begin{lemma}[soundness]\label{lem:sound}
+Let $\rho$ be an environment of the model for $\Gamma$.
+\begin{enumerate}
+\item If $\Gamma\vdash A:\Type_i$ then $\sem A\rho\in U_i$; if
+  $\Gamma\vdash P:\Prop$ then $\sem P\rho$ is a truth value.
+\item If $\Gamma\vdash t:A$ then $\sem t\rho\in\El(\sem A\rho)$.
+\item If $\Gamma\vdash t\equiv u:A$ then $\sem t\rho=\sem u\rho$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+By simultaneous induction on derivations, with the usual substitution
+lemma $\sem{t[u/x]}\rho=\sem t\rho[x{:=}\sem u\rho]$. This is Werner's
+argument; we go through the cases that differ.
+\emph{Abstraction.} $\sem{\lambda x{:}A.b}\rho$ is a function on
+$\El(\sem A\rho)$ with values in the right fibres by the induction
+hypothesis for $b$ at the environments $\rho[x{:=}a]$, which are
+environments of the model; and it is in $\A$ by
+Lemma~\ref{lem:gen}(2),(4). So it is in the decoding of the product.
+\emph{Application.} The argument lies in the decoding of the domain,
+which is exactly the domain of the function.
+\emph{Type formers} at sort $\Type_i$: at every $a\in\El(\sem A\rho)$ the
+fibre $\sem B\rho[x{:=}a]$ lies in $U_i$ by the induction hypothesis for
+$B$, so it is the value of the sanitized family there, and the code
+lies in $U_i$ by Lemma~\ref{lem:tyform} at level $i$, the premises
+$A:\Type_i$ and $B:\Type_i$ being available by cumulativity. Propositions
+are truth values, in $U_0$, so the impredicative product needs no bound.
+\emph{Trees.} The subtree function of $\mathsf{sup}\,a\,d$ at the root is
+$\sem d\rho$, which is in $\A$, and at deeper nodes it is the subtree
+function of a subtree, which is an element of the model.
+\emph{Computation rules} hold as equations between sets: $\beta$ by the
+substitution lemma; $\eta$ because a function of the decoding has
+exactly the decoding of its domain as its domain; the rules for
+$\ind^{\mathbf n}$, $\ind^\N$, $\ind^W$ by the recursions that define
+them; $\ind^=_Cd\,a\,(\refl\,a)\equiv d$ because the check succeeds. For
+$\ind^{\Acc}$ the right-hand side applies $\sem f\rho(x)$ to the value of
+$\lambda y\,r.\,\ind^{\Acc}_Cf\,y\,(h\,y\,r)$, which is the function
+$\mathrm{rec}_x$ of Definition~\ref{def:eval} on the nose, the inner
+abstraction having the domain $\El$ of the truth value of $R\,y\,x$; and
+$\mathrm{rec}_x$ is in $\A$ because it is the value of that term. For
+$\mathsf{lift}_Cf\,h\,[a]_R\equiv f\,a$: the premise $h$ is a proof, so
+its type is true, so $\sem f\rho$ takes equal values, as sets, on
+$R$-related elements and hence on the members of a class.
+\emph{Elimination of equality.} If $e:a=_Ax$ in the context of the rule
+then the truth value of $a=_Ax$ is $\top$, that is
+$\sem a\rho=\sem x\rho$; so the check succeeds and
+$C[a,\refl]$ and $C[x,e]$ have the same code, proofs being all $\star$.
+\emph{Proof irrelevance, $\mathsf{propext}$, $\mathsf{em}$.} Every proof is
+$\star$; two equivalent propositions have the same truth value, which
+is equality of codes; and $\El(\code\Prop)$ has two elements.
+\emph{Cumulativity.} $U_i\subseteq U_{i+1}$, truth values are in $U_0$,
+and $\code{\U_i}\in U_{i+1}$ because $\lambda_i\cdot\omega<\lambda_{i+1}$.
+\end{proof}
+
+\begin{theorem}\label{thm:main}
+Assume Conjecture~\ref{conj:rank}. Then the evaluation relative to $\A$ is
+a model of $\CIC_\omega+\EM$ in which $\bot$ is empty. So if $\ZF$ proves
+Conjecture~\ref{conj:rank} then $\ZF\vdash\Con(\CIC_\omega+\EM)$.
+\end{theorem}
+\begin{proof}
+Lemmas~\ref{lem:closedex} and \ref{lem:sound}; $\sem\bot\rho$ is the
+truth value of $\|\mathbf 0\|$, which is $\bot$, and $\El(\bot)=\emptyset$.
+\end{proof}
+
+Lemma~\ref{lem:sound} is written at the level of its cases and has not
+been checked against every rule of Section~\ref{sec:tt}. Three points
+deserve a second look when it is: that the sorting and the proof marks
+which the evaluation reads are determined by the derivation and are
+stable under conversion; that the accessible part computed in the
+decoding agrees with the inductive reading of $\Acc$ that the
+introduction rule needs; and the substitution lemma under sanitized
+families.
+
+\section{The rank lemma}\label{sec:ranklemma}
+
+Everything rests on Conjecture~\ref{conj:rank}. We say why we believe
+it, what a proof has to contain, and what is known to obstruct the
+obvious proof.
+
+\paragraph{The first-order case.}
+For a term all of whose variables are free and of small type the
+conjecture is the rank lemma of \cite[\S3]{paper2} in type-theoretic
+dress. A type former adds a bounded amount to the ranks of its
+components. $\ind^\N$ with a type-valued motive iterates the bound of its
+step, and the supremum over $n<\omega$ of the iterates is an ordinal. A
+$W$-recursion over a tree with small branching iterates the bound of its
+step along the height of the tree, which is below the Hartogs number of
+its branching types. An $\Acc$-recursion needs an idea: the accessible
+part of a relation on a large carrier has unbounded height, but the
+value at $x$ depends on the recursive function only at the predecessors
+at which the step applies it, which are the values of finitely many
+subterms in environments varying in bound variables of small type; the
+tree of inspected predecessors has small branching, so its height is
+below a Hartogs number, as for well-founded recursion in \cite{paper2}.
+None of these bounds mentions the cut.
+
+\paragraph{Higher types.}
+A term may bind a variable of a type that is not small, such as
+$G:\Type_N\to\Type_N$, and apply a defined functional to the identity,
+whose content is the cut. So the bound for a term of function type must
+be a function of the bounds of its arguments, hereditarily: a
+\emph{profile}, a majorant in Howard's sense \cite{howard73} with
+ordinals for numbers. The statement to prove is a fundamental lemma:
+the value of a term has the profile computed from the profiles of its
+variables by recursion on the term, and the profiles so computed do not
+depend on the cut. Since terms are now typed, and every value lives in
+the decoding of a code, profiles can be assigned by recursion on the
+code, which is well founded; no universal domain of profiles is needed.
+Three things are known to be delicate.
+\begin{itemize}
+\item \emph{Bounds are monotone but not continuous}, because the rank of
+  $\Sigma n{:}\N.\,B(n)$ is a genuine supremum. So a recursion cannot be
+  bounded by a least fixed point: the step
+  $\mathrm{rec}\mapsto(\Sigma n{:}\N.\,\mathrm{rec}\,(p\,x\,n))\to\Prop$ has the
+  bound $o\mapsto o+k$, whose only fixed point is ``no bound'', while the
+  truth is a countable ordinal. The inspection argument is essential.
+\item \emph{The inspected predecessors are not simply those at which the
+  recursive function is applied.} Let $K$ be a parameter of bounded
+  content. A step of the form
+  $K(\lambda X{:}\Type_N.\,\mathrm{rec}\,(h\,X))$ evaluates the recursive
+  function at $h(X)$ for every $X$ in the universe.
+  What is small is the set of predecessors whose values can reach the
+  \emph{rank} of the result, the value of $K$ being bounded whatever it
+  is given. So the profile of the recursive function must depend on the
+  actual predecessor and not only on a bound for it.
+\item \emph{Large elimination makes the shape of a value depend on
+  data.} For $B:\N\to\Type_{N+1}$ with $B\,0=\Type_N$ and
+  $B\,(n{+}1)=B\,n\to B\,n$, an element of $B\,n$ is a functional of order
+  $n$ over the universe. Profiles indexed by codes handle this, but they
+  must be joined fibrewise and never across the branches of an
+  eliminator whose branches have different levels
+  (Example~\ref{ex:hetero}).
+\end{itemize}
+
+\paragraph{Why the cut should not matter.}
+The cut enters the evaluation in four ways. It is the range of a bound
+variable of universe type; but a type former whose domain is not in
+$U_N$ has a code of rank at least the cut, which the conjecture does not
+constrain, while one whose domain is in $U_N$ binds a variable whose
+values have content bounded by the rank of the domain; and an
+abstraction over a larger type is only ever applied to arguments that
+have themselves been bounded. It is the threshold at which families are
+sanitized; but a fibre replaced by $\bot$ only lowers the rank. It
+decides when an application is junk, because the argument fell outside
+the universe; but junk is $\emptyset$. And it changes the truth of
+propositions, through the oracle and through the extents; but the
+conjecture quantifies over all oracles and extents, and a proposition
+can influence a type only through the relation of a quotient, the
+domain of an $\Acc$-recursion, the check in $\ind^=$, and the decoding of
+a proof type, each of which selects among alternatives that are bounded
+anyway.
+
+\paragraph{Attacks that failed.}
+In the extensional setting of \cite[\S8]{paper2}, where the conjecture
+was stated for untyped terms and arbitrary truth assignments and is
+therefore stronger, the following attempts to produce types just below
+the cut from parameters of bounded content failed: ill-typed terms
+binding a universe; parameters of content $0$ over a large carrier
+without codes, such as a well-order of length above the cut on
+$\Type_N\to\Prop$ with a countable predecessor function, driving an
+$\Acc$-recursion of a Hartogs-raising step (the inspected tree is
+countable, and after an overflow the junk value restarts the iteration
+from the bottom); trees of large height and content $0$ with large
+branching; classes of a quotient of the universe containing both a
+small code and a code near the cut; and selection of a code by a
+proposition, which would need a description operator. The present
+formulation has not yet been attacked on its own terms, and the oracle
+is a new degree of freedom for an adversary: an oracle may contain a
+cofinal family, and the conjecture claims that a term with bounded
+parameters cannot get at it.
+
+\section{Examples}\label{sec:examples}
+
+\begin{example}[a climbing function]\label{ex:climb}
+Suppose $\lambda_0$ has cofinality $\omega$; fix a cofinal sequence
+$(\beta_n)$, let $\mathrm{next}(\beta)$ be the least $\beta_n>\beta$, and
+let $F(X)$ be a code of rank $\mathrm{next}(\rk X)$. Every pointwise
+condition on $F$, such as a Howard majorant mapping ordinals below
+$\lambda_0$ to ordinals below $\lambda_0$, accepts $F$; yet
+$\Sigma n{:}\N.\,F^n(\N):\Type_0$ denotes a code of rank $\lambda_0$. The
+extent of a universe below an inaccessible is singular, so some small
+index type always admits a cofinal family, and no condition on values
+excludes it. In the model $F$ is excluded because it is not generated:
+if $F=\sem s^\X\rho$ with $\rho$ of content below $\gamma<\lambda_0$ then
+the term $\ind^\N\,\N\,(\lambda\_.\,s)\,x$, with $x{:}\N$ free, takes the
+values $F^n(\N)$, which lie in $U_0$ and are cofinal in $\lambda_0$,
+contradicting closedness.
+\end{example}
+
+\begin{example}[trees and Hartogs numbers]\label{ex:set}
+Let $\mathsf{set}:=Wx{:}\Type_0.\,x$ and define $T:\mathsf{set}\to\Type_0$ by
+$W$-recursion, $T(\mathsf{sup}\,X\,d):=(\Sigma x{:}X.\,T(d\,x))\to\Prop$. Then
+$\rk T(w)$ is at least the height of $w$. A tree in the decoding under
+the oracle $V_\vartheta$ over a label of rank below $\gamma$ can have any
+height below a Hartogs number of $V_{\gamma\cdot\omega}$, and $T(w)$ with
+$w$ free of content below $\gamma$ is then a type of that rank; so an
+$N$-closed ordinal is closed under $\beta\mapsto\hartogs(V_{\beta+1})$, and
+in $\ZFC$ it is a strong limit cardinal. In the model the subtree
+functions are generated, and the heights of the trees of the model are
+bounded below $\lambda_0$ for that reason.
+\end{example}
+
+\begin{example}[heterogeneous fibres]\label{ex:hetero}
+Let $B'(0):=\Type_5$ and $B'(1):=\Type_0$. A family
+$f:\N\to\Pi b{:}\mathbf 2.\,B'(b)$ can have ranks at $1$ cofinal in
+$\lambda_0$ while being dominated, in any order that joins the fibres of
+a dependent function, by a constant family that is large at $0$. Content
+is computed fibre by fibre for this reason, and so must profiles be.
+\end{example}
+
+\begin{example}[why closedness is stated in the structure cut at $\lambda$ itself]\label{ex:sat}
+A tempting alternative defines $\lambda_N$ as the least ordinal closed
+under functions $\nu_t(\alpha)$ computed in the structure cut at
+$\alpha<\lambda$, and compares the model with those structures
+afterwards. It fails. In a structure cut at $\alpha$ the recursive
+function of a recursion, as a bound variable of the step, ranges over
+functions into the cut universe, so the computed bound of any
+rank-raising recursion saturates near $\alpha$, every $\nu_t(\alpha)$ is
+about $\alpha$, and the least closed ordinal is just the least ordinal
+$\eta$ closed under $\alpha\mapsto\hartogs(V_{\alpha+1})$. But for
+$X:\Type_N$ and a well-founded linear order $o=(R,\dots)$ on $X$ define
+$T_o:X\to\Type_N$ by $\Acc$-recursion,
+$T_o(x):=(\Sigma y{:}X.\,\Sigma h{:}R\,y\,x.\,T_o(y))\to\Prop$, and put
+$t(X):=\Sigma o.\,\Sigma x{:}X.\,T_o(x)$. Then $\rk t(X)\ge\hartogs(\El(X))$,
+the decoding of $T_o(x)$ is a cumulative hierarchy of height the order
+type of $x$, the ranks of $t^n(\N)$ are cofinal in $\eta$, and
+$\Sigma n{:}\N.\,t^n(\N):\Type_N$ has rank $\eta$. Under
+Definition~\ref{def:closedord} the values $t^n(\N)$ are honest in the
+structure cut at $\lambda$ as long as they lie below $\lambda$, so
+$\lambda_N>\eta$; and no term can diagonalize against $\lambda_N$,
+because the sequence in Lemma~\ref{lem:closedex} uses the bounds of all
+terms at once.
+\end{example}
+
+\begin{example}[why the eliminator of equality checks the equation]\label{ex:confusion}
+Closedness quantifies over oracles and environments that are not those
+of the model, and at such an environment a proposition may be true for
+no good reason. Let $B$ be a parameter with $B(f)=\code{\U_{N+1}}$ and
+$B(g)=\code{\U_N}$ for two elements $f,g$, in a context with
+$e:B\,f=B\,g$ and $Y:B\,f$. If $\ind^=$ evaluated to the identity
+whenever a proof of the equation is supplied, the transport of $Y$ along
+$e$ would be a term of type $\Type_N$ whose value is an arbitrary code of
+$U_{N+1}$, of rank unbounded in the higher extents, and no ordinal would
+be closed. Here the truth value of $B\,f=B\,g$ is computed, it is
+$\bot$, and the context has no environment at all; and in general the
+check makes the value junk unless the two sides are equal. In the
+extensional theory the same confusion arises from reflection with no
+eliminator to guard, which is one reason this paper is about the
+intensional theory. Sanitized families answer the remaining case, a
+well-typed family that takes a value outside its universe at an
+argument outside the model.
+\end{example}
+
+\section{Status}\label{sec:status}
+
+\emph{Proved, given the definitions:} the existence of closed ordinals
+from the rank lemma (Lemma~\ref{lem:closedex}); the closure properties of
+the generated elements (Lemma~\ref{lem:gen}); type formation
+(Lemma~\ref{lem:tyform}). \emph{Proved by cases, to be checked rule by
+rule:} soundness (Lemma~\ref{lem:sound}). Known loose ends there: that
+the class of a quotient of a large type is generated, which
+Lemma~\ref{lem:gen}(4) obtains from the relation as a parameter of
+content $0$ and which needs the relation's curried function to be
+admitted by an oracle without disturbing the decoding of the carrier;
+and the three points listed after Theorem~\ref{thm:main}.
+\emph{Open:} Conjecture~\ref{conj:rank}, on which the theorem depends.
+\emph{Not attempted:} general inductive families; the refinement to
+finitely many universes, $\ZFh_{n+1}\vdash\Con(\CIC_{n+2}+\EM)$, which
+would close the hierarchy of \cite{paper2}.
+
+This paper supersedes \cite[\S8]{paper2}. That section went through
+three designs: Howard-style majorants with closure functions computed in
+cut structures and a retraction between structures, which fails by
+Example~\ref{ex:sat}; a partial equivalence relation over full function
+spaces for the extensional theory, with typed closedness under arbitrary
+truth assignments, which is unsatisfiable by the extensional form of
+Example~\ref{ex:confusion}; and the same with closedness as a gap
+condition on untyped terms, for which the rank lemma is plausible but
+resists proof because untyped terms include junk self-applications that
+are typable under reflection. The present design keeps from them the
+codes, the notion of content, the gap form of closedness, and the
+examples, and replaces truth assignments and the partial equivalence
+relation by the oracle.
+
+{\small
+\bibliographystyle{plain}
+\bibliography{references}}
+
+\end{document}
