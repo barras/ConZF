@@ -1,6 +1,6 @@
 import ConZF.Repl
 /-
-Canonical assignments from a local rule (paper3, Lemma rule). A rule `r η l ξ` says that the
+Canonical assignments from a local rule (doc/main.tex, Lemma 4.2). A rule `r η l ξ` says that the
 child with label `l` of a node with target `η` has target `ξ`. The assignment `Tr r η` is
 defined from it by recursion on the path, so coherence reduces to conditions at one node.
 -/

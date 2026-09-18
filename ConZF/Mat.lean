@@ -1,10 +1,8 @@
 import ConZF.PSet
 /-
-The materializing recursion (paper3, section "Accessibility on a big carrier gives
-Replacement"). Differences from the paper, all simplifications: paths are lists of labels
-(a big type) instead of nested pairs in `V`, so nothing needs to be decoded; targets are
-arbitrary sets instead of ordinals; and the operation `D` (in the paper: the well-orderings of
-subsets of `G ∪ ω`) is an arbitrary parameter.
+The materializing recursion (doc/main.tex, section 3). Paths are lists of labels, a type in
+the same universe as `PSet`; targets are arbitrary sets; and the operation `D` (in the
+application: `G ↦ V_{rank G + ω}`) is an arbitrary parameter.
 -/
 universe u
 

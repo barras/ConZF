@@ -1,7 +1,7 @@
 import ConZF.Rule
 import ConZF.VLevel
 /-!
-The definability rule (paper3, Lemma `worldlyrule`, Theorem `bigacc`).
+The definability rule (doc/main.tex, section 5).
 
 `I η q x y` is an arbitrary notion of "`y` is the value at `x` of the function defined over
 `V_η` with parameter `q`". For the theorem in the paper it is satisfaction of a formula over
