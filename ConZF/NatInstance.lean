@@ -1,4 +1,4 @@
-import ConCic.Repl
+import ConZF.Repl
 /-
 A sanity check that the hypotheses of `PSet.replacement` are satisfiable: the class of finite
 ordinals has uniformly defined coherent assignments (a chain of `a`-children), for every `D`

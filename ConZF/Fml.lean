@@ -1,4 +1,4 @@
-import ConCic.Worldly
+import ConZF.Worldly
 /-!
 First-order formulas of set theory with de Bruijn variables, satisfaction in a class model
 `M : PSet → Prop` (quantifiers range over `M`), renaming of variables, bounds on the free

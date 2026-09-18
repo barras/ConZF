@@ -1,4 +1,4 @@
-import ConCic.ZF
+import ConZF.ZF
 /-!
 Readback of the axioms of `ZF`: what each one says in a class model `M`, in ordinary notation.
 These lemmas are not used by the consistency proof; they are there to check that the de Bruijn

@@ -1,4 +1,4 @@
-import ConCic.NatInstance
+import ConZF.NatInstance
 /-!
 Ordinals and rank. Excluded middle, where needed, is an explicit hypothesis
 `em : ∀ p : Prop, p ∨ ¬p`, never `Classical.em` (which is proved from choice).

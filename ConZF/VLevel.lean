@@ -1,5 +1,5 @@
-import ConCic.Ord
-import ConCic.Pair
+import ConZF.Ord
+import ConZF.Pair
 /-!
 Power set, the levels `V_x` (for any set `x`, of rank `rank x`), finite ordinals and `ω`, and the
 label set `D G = V_{G+ω}` of the definability rule, all characterized through ranks.

@@ -1,4 +1,4 @@
-import ConCic.Proof
+import ConZF.Proof
 /-!
 `ZF` as a first-order theory: extensionality, foundation, pairing, union, power set, infinity,
 and the schemas of separation and replacement. Free variables of an axiom are parameters. The

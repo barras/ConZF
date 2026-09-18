@@ -1,5 +1,5 @@
-name = "ConCic"
-defaultTargets = ["ConCic"]
+name = "ConZF"
+defaultTargets = ["ConZF"]
 
 [[lean_lib]]
-name = "ConCic"
+name = "ConZF"

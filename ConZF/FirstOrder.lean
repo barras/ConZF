@@ -1,4 +1,4 @@
-import ConCic.ZF
+import ConZF.ZF
 /-!
 The first-order instance of the dichotomy. `ISat η q x y`: `q` codes a formula `φ`, a number
 `k` and a `k`-tuple of parameters, the free variables of `φ` are below `k+2`, and
@@ -259,4 +259,5 @@ theorem con_ZF (em : ∀ p : Prop, p ∨ ¬p) : Con ZF := by
   · exact (V_model h).con em
   · exact (Vl_model em hρ h0 hs hω hr).con em
 
-#print axioms con_ZF
+/-- info: 'PSet.con_ZF' does not depend on any axioms -/
+#guard_msgs in #print axioms con_ZF

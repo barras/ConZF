@@ -1,5 +1,5 @@
-import ConCic.Rule
-import ConCic.VLevel
+import ConZF.Rule
+import ConZF.VLevel
 /-!
 The definability rule (paper3, Lemma `worldlyrule`, Theorem `bigacc`).
 

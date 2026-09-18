@@ -1,4 +1,4 @@
-import ConCic.Fml
+import ConZF.Fml
 /-!
 A Hilbert-style proof system for first-order logic with `∈` and `=` (Mendelson's system with
 de Bruijn variables): the axioms `K`, `S`, double negation elimination, instantiation of a

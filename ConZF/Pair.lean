@@ -1,4 +1,4 @@
-import ConCic.PSet
+import ConZF.PSet
 /-! Kuratowski pairs, used to decode the labels of the definability rule. -/
 universe u
 

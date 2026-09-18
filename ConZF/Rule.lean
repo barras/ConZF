@@ -1,4 +1,4 @@
-import ConCic.Repl
+import ConZF.Repl
 /-
 Canonical assignments from a local rule (paper3, Lemma rule). A rule `r η l ξ` says that the
 child with label `l` of a node with target `η` has target `ξ`. The assignment `Tr r η` is
