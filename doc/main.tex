@@ -1,0 +1,644 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amsthm,amssymb,stmaryrd}
+\usepackage{hyperref,thmtools,enumitem,xcolor}
+
+\hypersetup{colorlinks,linkcolor={red!50!black},citecolor={blue!50!black},urlcolor={blue!80!black}}
+
+\declaretheorem[name=Theorem,numberwithin=section]{theorem}
+\declaretheorem[name=Lemma,sibling=theorem]{lemma}
+\declaretheorem[name=Corollary,sibling=theorem]{corollary}
+\declaretheorem[name=Definition,sibling=theorem,style=definition]{definition}
+\declaretheorem[name=Remark,sibling=theorem,style=remark]{remark}
+\declaretheorem[name=Question,sibling=theorem,style=definition]{question}
+\setlist[itemize]{parsep=0pt,topsep=2pt}
+\setlist[enumerate]{parsep=0pt,topsep=2pt}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Prop}{\mathsf{Prop}}
+\newcommand{\Type}{\mathsf{Type}}
+\newcommand{\ZF}{\mathrm{ZF}}
+\newcommand{\ZFC}{\mathrm{ZFC}}
+\newcommand{\EM}{\mathrm{EM}}
+\newcommand{\Con}{\mathrm{Con}}
+\newcommand{\rk}{\operatorname{rank}}
+\newcommand{\Acc}{\mathsf{Acc}}
+\newcommand{\V}{\mathbb{V}}
+\newcommand{\la}{\mathsf{a}}
+\newcommand{\lb}{\mathsf{b}}
+\newcommand{\lc}{\mathsf{c}}
+\newcommand{\lean}[1]{\texttt{#1}}
+\newcommand{\guard}[2]{\{#1\mid #2\}}
+
+\begin{document}
+
+\title{Accessibility proves Replacement:\\
+  \large the consistency of $\ZF$ in type theory with excluded middle and no choice}
+\author{Mario Carneiro}
+% Drafted with Claude; adjust authorship/acknowledgement as you see fit.
+\date{Draft, \today}
+\maketitle
+
+\begin{abstract}
+The sets-as-trees interpretation of set theory in a dependent type
+theory with an impredicative universe of propositions validates
+Zermelo set theory, and it validates Replacement if the type theory
+has a choice or description operator, which turns a functional relation
+into a function. It has been natural to expect that without such an
+operator the strength of the type theory drops well below that of $\ZF$. We
+show that it does not. In the type theory of Lean with two predicative
+universes, from excluded middle as the only assumption and with no
+axiom (no choice, no propositional extensionality, no quotients), we
+prove the consistency of $\ZF$, stated outright for a first-order proof
+system. The proof is formalized. The mechanism is the large elimination
+of the accessibility predicate over a type as large as the type of
+sets: a recursion on accessibility whose recursive calls are guarded by
+propositions, and whose later calls are indexed by the \emph{value} of
+an earlier call, computes as a term any ordinal that is specified by a
+proposition through a well-founded tree of a certain shape. We give a
+rule that produces such a tree for every ordinal, unless some $V_\rho$ is
+already a model of $\ZF$; the rule does not choose a cofinal map into a
+limit ordinal but takes all definable ones at once. In the first case
+the sets-as-trees satisfy Replacement for arbitrary propositional
+relations. Either way $\ZF$ has a model.
+\end{abstract}
+
+\section{Introduction}
+
+\paragraph{The question.}
+Consider a dependent type theory with an impredicative, proof-irrelevant
+universe $\Prop$, predicative universes $\Type_0:\Type_1:\cdots$,
+inductive types, and an accessibility predicate $\Acc$ in $\Prop$ that
+eliminates into every universe: the Calculus of Inductive Constructions
+in the form implemented by Lean \cite{lean4,carneiro19}. How strong is
+it, as a foundation, when excluded middle is assumed but no choice
+principle is?
+
+With choice the answer is known. Aczel's interpretation of sets as
+well-founded trees \cite{aczel78} gives a type $\V$ of sets in which
+the axioms of Zermelo set theory hold, by impredicativity of $\Prop$ for
+Separation and Power set. Replacement asks for the image of a set $s$
+under a functional relation $\varphi$. A set in $\V$ is a tree
+$\mathsf{sup}\,A\,f$ with $A$ a small type and $f:A\to\V$ a
+\emph{function}, so to form the image one needs a function $a\mapsto y_a$
+with $\varphi(a,y_a)$, and a functional relation in $\Prop$ does not
+provide one, because propositions do not eliminate into types. A choice
+or description operator closes the gap, and with it the type theory
+with $n+2$ universes interprets $\ZFC$ with $n$ inaccessible cardinals
+\cite{werner97,barras10,carneiro19}. Without it, the gap between a
+functional relation and a function looks like exactly the gap between
+Zermelo set theory and $\ZF$, and the standard set-theoretic model, in
+which the universes are $V_\kappa$ for inaccessible $\kappa$, does not tell
+whether the inaccessibles are needed.
+
+\paragraph{The result.}
+They are needed, in the sense that the type theory with two universes
+and excluded middle, without choice, already proves the consistency of
+$\ZF$.
+
+\begin{theorem}[formalized]\label{thm:main}
+In the type theory of Lean~4, using the universes $\Prop$, $\Type_0$ and
+$\Type_1$ and no axioms, excluded middle implies $\Con(\ZF)$, where $\ZF$
+is the usual first-order theory with the schemas of Separation and
+Replacement and $\Con$ is non-derivability of falsity in a Hilbert
+system. More precisely, excluded middle implies that one of the
+following holds.
+\begin{enumerate}
+\item Every functional relation $\varphi:\V\to\V\to\Prop$ on a set $s:\V$ has
+  an image in $\V$. Then $\V$ is a model of $\ZF$, in fact of its
+  second-order form.
+\item There is an ordinal $\rho>\omega$ of $\V$, a limit, such that $V_\rho$ is
+  closed under the images of functions definable over $V_\rho$ with
+  parameters. Then $V_\rho$ is a model of $\ZF$.
+\end{enumerate}
+\end{theorem}
+
+By G\"odel's second incompleteness theorem, $\ZF$, if consistent, does
+not prove the consistency of this type theory, with or without choice,
+so no model construction carried out in $\ZF$ can succeed for it.
+
+\paragraph{The mechanism.}
+Propositions do not eliminate into types, with one family of exceptions:
+inductive propositions with at most one constructor whose arguments are
+propositions or are determined by the indices. Accessibility is the
+important one. For a relation $R$ on a type $X$, $\Acc_R\,x$ has the one
+constructor $(\forall y.\ R\,y\,x\to\Acc_R\,y)\to\Acc_R\,x$, and its eliminator
+defines a function on the accessible elements of $X$ with values in any
+type, by recursion on $R$. This is what makes well-founded recursion
+available, and it is known to extract information from propositions:
+the standard library of Coq obtains a witness of $\exists n.\,P\,n$, for
+decidable $P$ on $\N$, by recursion on a proof of an inductive
+proposition of the same kind \cite{constructiveepsilon}. That is unbounded search, and it needs the
+decidability of $P$ to know when to stop.
+
+We use the same idea transfinitely, with the type of sets itself as the
+type of values, and two observations replace decidability.
+\begin{itemize}
+\item \emph{Guards.} For a proposition $P$ and $t:P\to\V$ there is a set
+  $\guard{t}{P}$ which is $t$ if $P$ holds and empty otherwise, namely
+  the union of the family $t$ indexed by the proofs of $P$. No decision is made:
+  the index type of the tree is $P$ itself.
+\item \emph{Adaptive calls.} A step of the recursion may call the
+  recursion at a child, obtain a set $G$ as the value, and then call it
+  at further children indexed by the elements of a set computed from
+  $G$. The index types of sets are small, but there is no bound on the
+  sets that occur as values, so the trees that such a recursion explores
+  are not bounded in advance by anything the recursion starts from.
+\end{itemize}
+The \emph{shape} of the tree explored by the recursion, that is, which
+guards hold, is given by a relation $R$ on paths which is an arbitrary
+proposition. If $R$ is the tree of a well-founded specification of an
+ordinal $\eta$, in a sense made precise below, then the root is accessible
+and the value of the recursion at the root is $\eta$: an ordinal that was
+only specified becomes the value of a term
+(Lemma~\ref{lem:mat}). Applied to the ranks of the values of a
+functional relation on a set $s$, with one child of the root for each
+element of $s$, the value at the root bounds all the ranks, and the
+image is obtained by Separation (Theorem~\ref{thm:repl}).
+
+What remains is to specify every ordinal by such a tree, uniformly,
+because the trees for the different elements of $s$ must be given by
+one proposition. At a limit ordinal $\eta$ the children must have targets
+cofinal in $\eta$ and be indexed by a set of rank below $\eta$. We cannot
+choose a cofinal map. Instead the children are indexed by \emph{all}
+triples of a first-order definition with parameters, a domain, and an
+argument, such that the definition gives over $V_\eta$ a function on the
+domain with values of unbounded rank; the target of a child is the rank
+of the value at the argument. This fails at $\eta$ exactly if no definable
+function from a set in $V_\eta$ is unbounded in $V_\eta$, and then $V_\eta$ is a
+model of $\ZF$ (Section~\ref{sec:rule}).
+
+\paragraph{The carrier must be big.}
+The recursion runs on paths whose labels are arbitrary sets, so its
+carrier lives in the same universe $\Type_1$ as $\V$. This is essential.
+On a carrier $X$ in $\Type_0$ the height of any accessible element is
+below the Hartogs number of the power set of $X$, which is an ordinal of
+$\V$ obtained by a term without Replacement, so the tree is bounded in
+advance.
+We do not know the strength of the type theory in which accessibility is
+restricted to carriers in the lowest universe
+(Question~\ref{q:small}).
+
+\paragraph{Formalization.}
+The development is in Lean~4 without Mathlib, about 2000 lines, and
+is described in Section~\ref{sec:lean}; it is available at
+\url{https://github.com/digama0/ConZF}. The statement of the main
+theorem is
+\begin{verbatim}
+theorem PSet.con_ZF (em : forall p : Prop, p \/ Not p) : Con ZF
+\end{verbatim}
+and Lean reports that it depends on no axioms. Everything in
+Sections~\ref{sec:sets} to~\ref{sec:zf} is formalized; the text follows
+the formal development and names the corresponding declarations.
+
+\section{Sets as trees}\label{sec:sets}
+
+\paragraph{The type theory.}
+We use $\Prop$ with its impredicative quantifier, two predicative
+universes, inductive types with structural recursion, and $\Acc$ with
+elimination into $\Type_1$. The inductive types used are natural numbers,
+lists, subtypes, the lifting of a proposition or a small type to a
+universe, a three-constructor type of labels, the syntax of formulas,
+and the type $\V$ below; all of them are instances of $W$-types and
+finite sums. Excluded middle is a hypothesis
+$\mathit{em}:\forall p{:}\Prop.\ p\vee\neg p$ of the theorems that need
+it. Proof irrelevance, propositional and function extensionality, and
+quotients are not used.
+
+\begin{definition}[\lean{PSet}]
+$\V:\Type_1$ is the inductive type with the constructor
+$\mathsf{sup}:\Pi A{:}\Type_0.\ (A\to\V)\to\V$. For $x=\mathsf{sup}\,A\,f$ we write
+$\bar x:=A$ for the \emph{index type} and $x_i:=f\,i$. Bisimulation
+$x\approx y$ is defined by recursion:
+$\forall i\,\exists j.\ x_i\approx y_j$ and $\forall j\,\exists i.\ x_i\approx y_j$.
+Membership is $x\in y:=\exists j.\ x\approx y_j$.
+\end{definition}
+
+Bisimulation is an equivalence relation, membership respects it on both
+sides, $x\approx y$ iff $x$ and $y$ have the same elements, and
+$\in$-induction holds for every predicate on $\V$, whether or not it
+respects $\approx$. We never quotient: a \emph{set} is an element of $\V$,
+and the statements below are about $\approx$.
+
+\paragraph{Operations.}
+All of the following are terms, with the expected membership
+conditions. The empty set; $\{A_i\mid i:\iota\}$ for a family indexed
+by a small type; $\bigcup x$, and $\bigcup_{i:\iota}A_i$; pairs
+$\{x,y\}$, the successor $x\cup\{x\}$, Kuratowski pairs $\langle x,y\rangle$, which
+are injective up to $\approx$, and tuples; Separation
+$\{z\in x\mid P\,z\}$ for an arbitrary $P:\V\to\Prop$, with index type the
+subtype $\{i:\bar x\mid P\,x_i\}$; the power set, with index type
+$\bar x\to\Prop$, which is small because $\Prop$ is impredicative;
+$\omega$; and, for a proposition $P$ and $t:P\to\V$, the \emph{guard}
+\[\guard tP:=\textstyle\bigcup_{h:P}t\,h,\qquad
+z\in\guard tP\iff\exists h{:}P.\ z\in t\,h.\]
+So $\V$ satisfies Zermelo set theory with Foundation, with Separation
+for all propositional predicates. With excluded middle, ordinals
+(transitive sets of transitive sets) are linearly ordered by $\in$. The
+rank $\rk x:=\bigcup_i(\rk x_i\cup\{\rk x_i\})$ is a term, it is an
+ordinal, and $\rk\eta\approx\eta$ for an ordinal $\eta$. The levels are given by
+the term $V_x:=\bigcup_i\mathcal P(V_{x_i})$, defined for every set
+$x$, with $y\in V_x$ iff $\rk y\in\rk x$. Note that $\rk$ and $V$ are
+functions because they are defined by recursion on \emph{data}. What
+$\V$ lacks is any way to obtain a set from a description of it.
+
+\section{The materializing recursion}\label{sec:mat}
+
+Fix a term $D:\V\to\V$ and a set $U:\V$. In the application $D(G)$
+is $V_{\rk G+\omega}$ and $U$ is the domain of a functional relation.
+
+\begin{definition}[\lean{Label}, \lean{Path}, \lean{step}, \lean{F}]\label{def:mat}
+A \emph{label} is $\la$, or $\lb\,w$, or $\lc\,x$, for sets $w,x$; two
+labels are equivalent if they have the same constructor and
+bisimilar arguments. A \emph{path} is a list of labels, deepest first;
+$[\,]$ is the root and $l::p$ is the child of $p$ with label $l$. Labels
+and paths are types in $\Type_1$. For a relation $R$ on paths, a path $p$
+and $\mathrm{rec}:\Pi c.\ R\,c\,p\to\V$ let
+\begin{align*}
+\mathrm{call}(l)&:=\guard{\mathrm{succ}\,(\mathrm{rec}\,(l::p)\,h)}{h:R\,(l::p)\,p},\\
+G&:=\guard{\mathrm{rec}\,(\la::p)\,h}{h:R\,(\la::p)\,p},\\
+\mathrm{step}_R\,p\,\mathrm{rec}&:=\mathrm{call}(\la)\ \cup
+  \textstyle\bigcup_{i:\overline{D(G)}}\mathrm{call}(\lb\,D(G)_i)\ \cup
+  \bigcup_{j:\bar U}\mathrm{call}(\lc\,U_j),
+\end{align*}
+and let $F_R:\Pi p.\ \Acc_R\,p\to\V$ be defined from $\mathrm{step}_R$ by the
+eliminator of $\Acc$, so that
+\[F_R\,p\,a=\mathrm{step}_R\,p\,(\lambda c\,h.\ F_R\,c\,a_{c,h}),\]
+where $a_{c,h}:\Acc_R\,c$ is obtained from $a$ and $h:R\,c\,p$.
+\end{definition}
+
+The step calls the recursion at the child $\la$; then at the children
+$\lb\,w$ for the elements $w$ of $D(G)$, where $G$ is the value of the
+first call; and at the children $\lc\,x$ for $x\in U$. Every call is
+guarded by the proposition that the child is below $p$, which the step
+cannot prove and does not need to decide. The value is the union of the
+successors of the values of the calls whose guard holds.
+
+\begin{definition}[\lean{Coherent}]\label{def:coherent}
+A \emph{target assignment} is a relation $\tau$ between paths and sets.
+We say that $p$ \emph{has the target} $t$ if $\tau\,p\,t$. Its relation is
+$R_\tau\,c\,p$: $c=l::p$ for some $l$, and $c$ has a target. Say that $G$
+\emph{is the first value at $p$} if the elements of $G$ are the elements
+of the targets of $\la::p$ (so $G$ is empty if $\la::p$ has no target),
+and that a label $l$ is \emph{available for $G$} if $l=\la$, or $l$ is
+equivalent to $\lb\,w$ with $w\in D(G)$, or to $\lc\,x$ with $x\in U$.
+The assignment is \emph{coherent} if
+\begin{enumerate}
+\item the targets of a path are closed under $\approx$, and any two are
+  bisimilar;
+\item equivalent labels give children with the same targets;
+\item if $l::p$ has the target $t$ and $p$ has the target $t'$ then
+  $t\in t'$; and
+\item if $p$ has the target $t$ and $G$ is the first value at $p$, then
+  $x\in t$ iff $x\in t'\cup\{t'\}$ for some target $t'$ of a child $l::p$
+  with $l$ available for $G$.
+\end{enumerate}
+\end{definition}
+
+A coherent assignment is a proposition about a relation. No part of it
+is data, and it may be defined using any quantifiers. Condition (3) does
+not require the parent of a path with a target to have one.
+
+\begin{lemma}[materialization; \lean{materialize}]\label{lem:mat}
+If $\tau$ is coherent and $p$ has the target $t$, then $p$ is
+$R_\tau$-accessible, and $F_{R_\tau}\,p\,a\approx t$ for every $a:\Acc_{R_\tau}\,p$.
+\end{lemma}
+\begin{proof}
+By $\in$-induction on $t$, for all $p$. If $R_\tau\,c\,p$ then $c=l::p$ has a
+target $t_c$, and $t_c\in t$ by (3); so the induction hypothesis applies
+to every such $c$: it is accessible, and the recursion returns $t_c$ at
+it. Hence $p$ is accessible, by the constructor. For the value, unfold
+$F\,p\,a$ once. A guard at a child holds iff the child has a target, and
+then the recursive call returns that target, up to $\approx$. So the set
+$G$ of the step is the first value at $p$; the labels at which the step
+makes calls are, up to equivalence, the labels available for $G$, and by
+(2) equivalence does not matter; and the value of the step has as
+elements the $x\in t'\cup\{t'\}$ for the targets $t'$ of the children with
+available labels. By (4) this is $t$.
+\end{proof}
+
+The proof uses no excluded middle. The height of the recursion is not
+bounded by anything computed from $p$: if the child $\la$ has value $G$,
+the children $\lb\,w$ range over $D(G)$, which may be much larger than
+anything seen so far, and so on below them.
+
+\section{Replacement from uniform assignments}\label{sec:repl}
+
+\begin{theorem}[\lean{replacement}]\label{thm:repl}
+Let $C$ be a class of sets and $T_\eta$ a target assignment for each set
+$\eta$, such that $T_\eta$ only depends on $\eta$ up to $\approx$ and, for $\eta$ in $C$,
+$T_\eta$ is coherent for the parameter $U=s$ and gives the root the
+target $\eta$. Let $\varphi$ be a relation that respects $\approx$ and is functional
+on $s$, with all values in $C$. Then there is a set whose elements are
+the $y$ with $\varphi(x,y)$ for some $x\in s$.
+\end{theorem}
+\begin{proof}
+Let $\tau$ be the assignment that gives the path $r\mathbin{+\!\!+}[\lc\,x]$ the
+target $t$ if $x\in s$, $\varphi(x,\eta)$, and $T_\eta\,r\,t$. It is \emph{one}
+proposition, defined from $s$, $\varphi$ and $T$; no assignment is chosen for
+each $x$. It is coherent, each condition reducing to the same condition
+for some $T_\eta$, since the paths below $[\lc\,x]$ are in bijection with all
+paths. The root has no target under $\tau$. Its target would be the union
+of the $\eta\cup\{\eta\}$, and the existence of that set is the point at
+issue. But every child of the root that has a target is accessible by
+Lemma~\ref{lem:mat}, so the root is accessible by the constructor, and
+$\theta:=F_{R_\tau}\,[\,]\,a$ is a term of type $\V$, because $s$ is a
+variable of type $\V$. Unfolding the recursion once, the first value at
+the root is empty, the children with a target are the $[\lc\,x]$ with
+$x\in s$, and by the lemma the calls there return the values of $\varphi$. So
+$y\in\theta$ iff $y\in\eta\cup\{\eta\}$ for some value $\eta$ of $\varphi$ on $s$, and the image is
+$\{y\in\theta\mid\exists x\in s.\ \varphi(x,y)\}$.
+\end{proof}
+
+The assignments will come from a rule that acts at one node at a time.
+
+\begin{lemma}[\lean{Rule.coherent}]\label{lem:rule}
+Let $r(\eta,l,\xi)$ be a relation, the \emph{rule}, which determines $\xi$ up
+to $\approx$ from $\eta$ and $l$ and respects $\approx$ and equivalence of labels. Let
+$C$ be a class closed under $\approx$ such that for $\eta$ in $C$: if $r(\eta,l,\xi)$
+then $\xi\in\eta$ and $\xi$ is in $C$; and, for $G$ with elements the
+elements of the $\zeta$ with $r(\eta,\la,\zeta)$, we have $x\in\eta$ iff
+$x\in\xi\cup\{\xi\}$ for some $l$ available for $G$ and $\xi$ with $r(\eta,l,\xi)$.
+Define $T_\eta$ by recursion on the path: the root has the targets
+bisimilar to $\eta$, and $l::p$ has the target $\xi$ if $p$ has a target $t$
+with $r(t,l,\xi)$. Then $T_\eta$ is coherent for every $\eta$ in $C$.
+\end{lemma}
+\begin{proof}
+Every target is in $C$, by induction on the path, and the conditions of
+Definition~\ref{def:coherent} at $p$ are the hypotheses on the rule at the
+target of $p$.
+\end{proof}
+
+\section{The definability rule}\label{sec:rule}
+
+We need a rule whose class $C$ contains every ordinal. At a successor
+$\zeta+1$ one child with target $\zeta$ suffices, and at $\omega$ the children can
+be indexed by the natural numbers. At any other limit $\eta$ the children
+must have targets cofinal in $\eta$, their labels must come from $D(G)$,
+and $G$, being the target of a child, is below $\eta$. So the rule must
+send sets of rank below $\eta$ cofinally into $\eta$, definably in $\eta$. It
+cannot select one cofinal map, since $\ZF$ has no definable choice of a
+cofinal map into a singular ordinal. The solution is not to select.
+
+\begin{definition}[\lean{Unb}, \lean{Reach}, \lean{G$\nu$}]
+Fix a relation $I(\eta,q,x,y)$ respecting $\approx$, read as ``$y$ is the value
+at $x$ of the function defined over $V_\eta$ by the code $q$''. A pair
+$(q,s)$ is \emph{unbounded at $\eta$} if $I(\eta,q,\cdot,\cdot)$ is functional on
+$s$, every value at an $x\in s$ has rank in $\eta$, and for every $\zeta\in\eta$
+some value at an $x\in s$ has rank at least $\zeta$. The ordinal $\eta$ is
+\emph{reached from $\nu$} if some pair $(q,s)$ with $\rk q,\rk s\in\nu$ is
+unbounded at $\eta$, and \emph{reachable} if it is reached from some
+$\nu\in\eta$. For reachable $\eta$ let
+$\nu(\eta):=\{\nu\in\eta\mid\eta\text{ is not reached from }\nu\}$, which is the
+least ordinal from which $\eta$ is reached.
+\end{definition}
+
+The least $\nu$ is obtained by Separation and not by choosing: being
+reached from $\nu$ is upwards closed in $\nu$, so the set of the $\nu$ that
+fail is an ordinal, it is an element of $\eta$, and with excluded middle
+$\eta$ is reached from it.
+
+\begin{definition}[\lean{rule}]\label{def:rule}
+With $D(G):=V_{\rk G+\omega}$, the rule $r(\eta,l,\xi)$ holds in the following
+cases and no others.
+\begin{enumerate}
+\item $\eta\approx\zeta\cup\{\zeta\}$, $l=\la$, and $\xi\approx\zeta$.
+\item $\eta\approx\omega$, and either $l=\la$ and $\xi\approx\emptyset$, or $l=\lb\,w$ with
+  $\rk w\in\omega$ and $\xi\approx\rk w$.
+\item $\eta$ is not a successor, not $\omega$, and reachable, and either
+  $l=\la$ and $\xi\approx\nu(\eta)$, or $l=\lb\,w$ with $w\approx\langle q,s,x\rangle$, where
+  $(q,s)$ is unbounded at $\eta$, $x\in s$, and $\xi$ is the rank of the value
+  at $x$.
+\end{enumerate}
+\end{definition}
+
+\begin{lemma}[\lean{worldly\_rule}]\label{lem:worldlyrule}
+Assume excluded middle. Let $C$ be the class of ordinals $\eta$ such that
+every ordinal $\mu\le\eta$ is $0$, a successor, $\omega$, or reachable. The rule
+satisfies the hypotheses of Lemma~\ref{lem:rule} for $C$.
+\end{lemma}
+\begin{proof}
+The cases are exclusive, and in each the target is determined by $\eta$
+and the label: in (3) because a triple determines its components and
+$(q,s)$ is functional on $s$. Every target is an element of $\eta$, and
+$C$ is closed downwards. For the covering condition let $x\in\eta$. In (1),
+$x\in\zeta\cup\{\zeta\}$ and $\la$ is available. In (2), $x$ is a natural number
+$n$, the first value is $\emptyset$, and $n\in V_\omega=D(\emptyset)$. In (3),
+$\eta$ is reached from $\nu(\eta)$, by a pair $(q,s)$; there is $x'\in s$ with a
+value $y$ such that $x\in\rk y\cup\{\rk y\}$; the first value is $\nu(\eta)$; and
+$\langle q,s,x'\rangle$ has rank below $\nu(\eta)+4$, since $q$, $s$ and $x'\in s$ have
+rank below $\nu(\eta)$, so it is in $D(\nu(\eta))$. If $\eta$ is $0$ it has no
+elements, and no child has a target.
+\end{proof}
+
+\begin{theorem}[\lean{dichotomy}]\label{thm:dich}
+Assume excluded middle. Either every relation $\varphi$ that respects $\approx$ and
+is functional on a set $s$ has an image in $\V$; or there is an ordinal
+that is not $0$, not a successor, not $\omega$, and not reachable.
+\end{theorem}
+\begin{proof}
+If every ordinal is $0$, a successor, $\omega$, or reachable, then $C$ is
+the class of all ordinals. Given $s$ and $\varphi$, apply
+Theorem~\ref{thm:repl} to the relation ``$\eta$ is the rank of the value of
+$\varphi$ at $x$'', whose values are ordinals, with the assignments of
+Lemmas~\ref{lem:rule} and~\ref{lem:worldlyrule}. Its image is a set of
+ordinals, which is included in an ordinal $\theta$ by the proof of the
+theorem, and the image of $\varphi$ is separated from $V_\theta$.
+\end{proof}
+
+The theorem holds for any $I$. The first alternative says more the
+fewer ordinals are reachable, the second says more the more are; we now
+choose $I$ so that the second gives a model of $\ZF$.
+
+\section{$\ZF$ and its two models}\label{sec:zf}
+
+\paragraph{Syntax and proofs (\lean{Fml}, \lean{Prf}, \lean{Con}).}
+Formulas are built from $v_i\in v_j$, $v_i=v_j$, $\bot$, $\to$ and $\forall$,
+with de Bruijn variables; $\neg$, $\wedge$, $\vee$, $\leftrightarrow$ and $\exists$ are
+defined. The proof system is a Hilbert system: the propositional axioms
+$K$ and $S$ and double negation elimination, modus ponens,
+generalization, instantiation of $\forall$ by a variable,
+$\forall(\varphi{\uparrow}\to\psi)\to\varphi\to\forall\psi$ where $\varphi{\uparrow}$ is $\varphi$ with its
+variables shifted, reflexivity of equality, and substitutivity of
+equality in atomic formulas. Nonlogical axioms are open formulas, their
+free variables being parameters. $\Con(T)$ says that $T$ does not prove
+$\bot$. Satisfaction $M\models\varphi[e]$ is defined for a class $M:\V\to\Prop$
+and an environment $e:\N\to\V$, by recursion on $\varphi$ into $\Prop$, with
+$\in$ and $\approx$ for the atoms and quantifiers ranging over $M$. Soundness
+(\lean{soundness}): if every axiom of $T$ holds in $M$ under every
+environment in $M$, so does every theorem; so a theory with a nonempty
+class model is consistent. Double negation elimination is where
+soundness uses excluded middle.
+
+\paragraph{The axioms (\lean{ZF}).}
+Extensionality; Foundation, as the existence of an $\in$-minimal element
+of a nonempty set; Pairing, Union and Power set, in the form that a
+set including the required one exists; Infinity, as a set containing an
+empty set and closed under $y\mapsto y\cup\{y\}$; Separation for every formula
+$\psi$, with arbitrary parameters,
+$\exists y\,\forall z\,(z\in y\leftrightarrow z\in x\wedge\psi)$; and Replacement for every
+formula $\psi$, with arbitrary parameters,
+\[\forall x{\in}a\ \forall y\,y'\,(\psi(x,y)\to\psi(x,y')\to y=y')\ \to\ \exists b\ \forall y\,
+  (\exists x{\in}a\ \psi(x,y)\to y\in b).\]
+For each axiom a lemma states what its satisfaction in a class model
+means in ordinary notation (\lean{sat\_ext}, \dots, \lean{sat\_repl}),
+as a check that the de Bruijn indices say what is intended.
+
+\paragraph{Models (\lean{ZFModel}).}
+A class $M$ is a model of $\ZF$ if it is transitive, contains $\emptyset$ and
+$\omega$, is closed under pairs, unions, power sets and subsets given by
+arbitrary predicates, and for every formula $\psi$, parameters in $M$ and
+$a$ in $M$ such that $\psi$ is functional on $a$ in the sense of $M$, some
+$b$ in $M$ contains the values.
+
+\begin{lemma}[\lean{V\_model}]
+If every functional relation on a set has an image, the class of all
+sets is a model of $\ZF$.
+\end{lemma}
+
+For the other alternative let $I(\eta,q,x,y)$ hold if $q\approx\langle\ulcorner\psi\urcorner,
+\langle k,\langle e_0,\dots,e_{k-1}\rangle\rangle\rangle$ for a formula $\psi$ with free variables
+below $k+2$ and a code $\ulcorner\psi\urcorner$ of it as a hereditarily finite set,
+$x,y\in V_\eta$, and $V_\eta\models\psi[x,y,e_0,\dots,e_{k-1}]$ (\lean{ISat}). Codes and
+tuples are injective up to $\approx$, so the code $q$ determines the
+relation.
+
+\begin{lemma}[\lean{Vl\_model}]\label{lem:vrho}
+Assume excluded middle. If $\rho$ is an ordinal that is not $0$, not a
+successor, not $\omega$, and not reachable for this $I$, then $V_\rho$ is a model
+of $\ZF$.
+\end{lemma}
+\begin{proof}
+By trichotomy $\omega\in\rho$ and $\rho$ is closed under successor. So finitely
+many elements of $V_\rho$ have ranks below a common element of $\rho$, and
+$V_\rho$ is closed under the operations, which raise ranks by a finite
+amount. For Replacement let $\psi$ have its free variables below $k+2$, let
+$e_0,\dots,e_{k-1}$ and $a$ be in $V_\rho$, with $\psi$ functional on $a$ in
+$V_\rho$, and let $q$ be the code. The ranks of $q$ and $a$ are below some
+$\nu\in\rho$: the code of $\psi$ has finite rank, and a tuple has rank a finite
+amount above its components. The pair $(q,a)$ is functional on $a$, with
+values in $V_\rho$. As $\rho$ is not reached from $\nu$, the pair is not
+unbounded, so by excluded middle there is $\zeta\in\rho$ such that no value has
+rank at least $\zeta$, and $b:=V_\zeta$ is as required.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+By Theorem~\ref{thm:dich} for this $I$, the two lemmas, and soundness.
+\end{proof}
+
+\section{The formalization}\label{sec:lean}
+
+The development is a Lean~4 package with no dependencies. We did not
+use Mathlib \cite{mathlib}, which has the sets-as-trees construction,
+because its proofs use the axiom of choice freely and Lean's report of
+the axioms used by a theorem would then say nothing. The files, in order
+of dependency:
+\begin{center}
+\begin{tabular}{lrl}
+\lean{PSet} & 146 & $\V$, $\approx$, $\in$, $\in$-induction, the basic operations, guards\\
+\lean{Mat} & 149 & labels, paths, the recursion $F$, coherence, Lemma~\ref{lem:mat}\\
+\lean{Repl} & 113 & the glued assignment, Theorem~\ref{thm:repl}\\
+\lean{Rule} & 100 & Lemma~\ref{lem:rule}\\
+\lean{Pair}, \lean{Ord}, \lean{VLevel} & 316 & pairs, ordinals, rank, power set, $V_x$, $\omega$, $D$\\
+\lean{Worldly} & 291 & the rule, Lemma~\ref{lem:worldlyrule}, Theorem~\ref{thm:dich}\\
+\lean{Fml}, \lean{Proof} & 283 & formulas, satisfaction, codes, the proof system, soundness\\
+\lean{ZF}, \lean{ZFRead} & 275 & the axioms, models, readback of the axioms\\
+\lean{FirstOrder} & 263 & $I$, Lemma~\ref{lem:vrho}, Theorem~\ref{thm:main}
+\end{tabular}
+\end{center}
+Excluded middle is never an axiom. It is a hypothesis
+\lean{(em :\ $\forall$ p :\ Prop, p $\vee$ $\neg$p)} of the theorems that use it, which are:
+trichotomy of ordinals and what depends on it (the characterization of
+$V_x$ by rank, the least $\nu$), the case distinctions in
+Lemma~\ref{lem:worldlyrule} and Theorem~\ref{thm:dich}, ``not unbounded
+implies bounded'' in Lemma~\ref{lem:vrho}, and the classical connectives
+in the semantics of formulas. Lemma~\ref{lem:mat},
+Theorem~\ref{thm:repl} and Lemma~\ref{lem:rule} do not use it.
+
+Lean reports that \lean{con\_ZF} depends on no axioms, and the source
+asserts this with \lean{\#guard\_msgs}. Propositional extensionality is easy
+to use by accident in Lean, and we record the three ways it entered: rewriting
+with an equivalence (\lean{rw} with an \lean{Iff}); case analysis on an
+equation between two distinct numerals other than $0$; and the library
+lemmas about \lean{max} on natural numbers. We avoided them by
+composing equivalences explicitly, by \lean{decide}, and by a
+three-line definition of the maximum.
+
+The universe level of $\V$ is a parameter throughout, and the main
+theorem is proved at level $0$, where $\V:\Type_1$. The recursion $F$ is
+an application of \lean{Acc.rec} with carrier the type of paths and
+motive the constant $\V$, both in $\Type_1$.
+
+\section{Discussion}\label{sec:discussion}
+
+\paragraph{What the first alternative says.}
+In the standard model of the type theory, where $\Type_0$ is
+$V_\kappa$ for an inaccessible $\kappa$ and propositions are truth values,
+$\V$ is $V_\kappa$ and the first alternative of
+Theorem~\ref{thm:main} holds, as does the second. The first alternative
+is Replacement for arbitrary propositional relations, the second-order
+form, so where it holds the height of $\V$ is regular with respect to
+everything the type theory can express. We do not know whether the type
+theory proves it outright. The proof gives it from a weaker
+hypothesis than the one we used: it suffices that for one relation $I$,
+which may be any proposition and need not be first-order satisfaction,
+every limit ordinal above $\omega$ is reachable.
+
+\paragraph{More universes.}
+With a third universe there is a type $\V_1$ of trees with index types
+in $\Type_1$, which contains a set $\kappa_0$ of the ranks of the elements
+of $\V$. We expect that the recursion of Section~\ref{sec:mat}, run on
+paths of $\V$ with a relation that mentions a parameter from $\V_1$,
+shows that $\kappa_0$ is a regular cardinal of $\V_1$, hence inaccessible
+there, and so on up the hierarchy, which would give $\ZF$ with $n$
+inaccessible cardinals from $n+2$ universes, matching the strength known
+with choice \cite{werner97,carneiro19}. This is not checked.
+
+\begin{question}
+Is the type theory with $\omega$ universes and excluded middle, without
+choice, equiconsistent with the same theory with choice, that is, with
+$\ZFC$ with $n$ inaccessible cardinals for every $n$?
+\end{question}
+
+\paragraph{Small carriers.}
+If $X$ is a type in $\Type_0$ and $R$ a relation on it, the accessible
+part of $R$ is a well-founded relation on a small type. Its height $\alpha$
+injects into the power set of $X$, by sending $\xi<\alpha$ to the set of
+elements of height $\xi$, so it is below the Hartogs number of
+$X\to\Prop$; and the Hartogs number of a small type $Y$ is an ordinal of
+$\V$ given by a term (it is the set of the order types of the
+well-orderings of subsets of $Y$, each of which is computed by recursion
+on its own accessibility, on a small carrier). So a recursion
+on $\Acc_R$ explores a tree that is bounded in advance, and the argument
+of this paper has no analogue. The restriction is not artificial: the
+well-founded recursion used in ordinary mathematics and programming is
+mostly on small carriers.
+
+\begin{question}\label{q:small}
+Does $\ZF$ prove the consistency of the type theory with excluded
+middle, without choice, in which $\Acc$ is restricted to carriers in
+$\Type_0$?
+\end{question}
+
+\paragraph{Excluded middle.}
+The materialization lemma and Theorem~\ref{thm:repl} are constructive.
+Excluded middle enters with the ordinals and with the classical
+reading of first-order logic. We have not investigated what the
+recursion gives in the type theory without excluded middle, where the
+natural target would be an intuitionistic set theory with Replacement
+or Collection.
+
+\paragraph{Other systems.}
+The argument uses nothing specific to Lean: an impredicative $\Prop$,
+inductive types, and large elimination for accessibility are also
+present in Coq and its successor Rocq, where the sets-as-trees have been
+studied extensively \cite{werner97,barras10}. We expect the development
+to port directly, with excluded middle as the only assumption.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
