@@ -1274,7 +1274,8 @@ $P_d\cdot1$.
 $F(a)(d)(\mathrm{rec}_w)$, a value of a value of a value of $F\lhd_oP_f$.
 \emph{$\ind^W_Cf$ at a big product.} Let $w$ be a tree in the domain with
 $w\lhd p$, and let $V(w)$ be the value at $w$. The fibre at a label $a$
-of $w$ is $\sem B\rho[x{:=}a]\lhd_o\beta_B:=P_B(\pi[x{:=}p])$ by induction,
+of $w$ is $\sem B\rho[x{:=}a]$, or $\bot$ if the family was sanitized
+there, and $\sem B\rho[x{:=}a]\lhd_o\beta_B:=P_B(\pi[x{:=}p])$ by induction,
 since $a\lhd p$. If $\beta_B<\Theta$, each fibre is therefore a pure code
 of rank below $\max(\beta_B,\omega)$ or is not a code, so the indices at
 every node lie in $V_{\beta_B\cdot\omega}$, the nodes of $w$ are finite
@@ -1364,6 +1365,40 @@ denotation $\sem E^\Theta$ is defined by recursion on $E$, uniformly in
 $\Theta$, an ordinal constant or an arithmetical result that is not below
 $\Theta$ denoting the top element. A \emph{closure} is a closed term of
 $\mathcal P$; it is \emph{below $\alpha$} if its ordinal constants are.
+
+\begin{lemma}[complexity of the evaluator]\label{lem:complexity}
+The relation $v=\sem E^\Theta_\eta$, in the variables $v$, $E$, $\Theta$, and
+the assignment $\eta$, is $\Delta_1$ in the language with the power-set
+operation, hence $\Delta_2$ in $\ZF$. So is the statement of
+Lemma~\ref{lem:defsup} below, in the parameters $E$ and $\ell$.
+\end{lemma}
+\begin{proof}
+Write $\Delta_0^{\PP}$ for the formulas whose quantifiers are bounded by
+terms built with $\PP$. The relation holds iff there are witnesses of
+the following kinds satisfying a $\Delta_0^{\PP}$ condition, and the
+witnesses are unique, which gives both a $\Sigma_1^{\PP}$ and a $\Pi_1^{\PP}$
+form. (i) The finite family $(D^\Theta_\kappa)_\kappa$ for the kinds occurring in
+$E$: $D_o$ is an interval of ordinals, $D_{\kappa\to\kappa'}$ is the set of
+monotone functions in $\PP(D_\kappa\times D_{\kappa'})$, products are products.
+(ii) For each occurrence of $\hbar$ at an argument $\beta<\Theta$, the set
+$W=V_{\beta\cdot\omega+\omega+1}$, which is given by a recursion with $\PP$, and the
+value $\min(\Theta,\hartogs(W))$, which is the least $\xi\le\Theta$ such that
+$\xi=\Theta$ or no element of $\PP(\xi\times W)$ is an injection of $\xi$ into
+$W$. (iii) The computation table, a function assigning to each subterm
+of $E$ and each assignment to its free variables, the assignments being
+finite tuples from the $D^\Theta_\kappa$, its value: variables, abstractions,
+applications, pairs, joins and the arithmetical constants by the evident
+clauses, ordinal arithmetic being computed inside $\Theta+1$, and
+$\mathrm{It}(\Psi,\ell)$ for $\ell<\Theta$ by the sequence
+$\langle N_\xi:\xi\le\ell\rangle$ of elements of $D^\Theta_\kappa$, the supremum of
+iterates over $\N$ being the case $\ell=\omega$. A $\Delta_0^{\PP}$ formula is
+$\Delta_2$ in $\ZF$: replace each term $\PP(y)$ by a variable $z$ subject to
+$z=\PP(y)$, which is $\Pi_1$, quantified existentially or universally,
+using Collection to pass the quantifier over $z$ through a bounded
+quantifier. For the statement of Lemma~\ref{lem:defsup} add the witnesses
+$\Theta$ and $s$ and, for the bounded quantifier over $\xi<\ell$, a function
+supplying the witnesses for each $\xi$.
+\end{proof}
 
 \begin{lemma}[coherence]\label{lem:coh}
 For $\Theta\le\Theta'$ define $p\sim_\kappa p'$ between $D^\Theta_\kappa$ and
@@ -1664,10 +1699,14 @@ $W$-types of small branching and $\Acc$ on small carriers
 $\Sigma_2$-correct ordinal. Both proofs assume the standard metatheory of
 the intensional theory, in Lemma~\ref{lem:rigid}. The second has been
 written once and attacked once, on the question of why a fixed level of
-correctness suffices (Remark~\ref{rem:complexity}); the steps to check
-next are the claim that the denotation relation of the profile calculus
-is $\Sigma_1$ in the power-set operation, which has been estimated and not
-written out, and the height bound in Lemma~\ref{lem:fund2}.
+correctness suffices (Remark~\ref{rem:complexity}); the complexity of the
+evaluator of the profile calculus is now written out
+(Lemma~\ref{lem:complexity}), and the height bound in
+Lemma~\ref{lem:fund2} has been rechecked, including fibres that are
+sanitized or of finite rank. It has not been read by anyone else, and
+the record of this project, in which every earlier design of the bound
+failed on inspection, is the reason to want an independent check or a
+formalization before relying on it.
 \emph{Conditional consequence:} $\ZF\vdash\Con(\CIC_2^{\mathrm s}+\EM)$
 (Corollary~\ref{cor:cic2}), given the rule-by-rule check of soundness; and
 the placement of that theory strictly between $\ZFh$ and $\ZF$, given
