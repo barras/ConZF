@@ -74,7 +74,7 @@ needed of it, by majorization in Howard's style, for the theory with two
 universes in which $W$-types have small branching and accessibility is
 taken on small carriers, which is the fragment that interprets Zermelo
 set theory with recursion; the extent of the universe is an ordinal
-$\alpha$ with $V_\alpha$ a $\Sigma_m$-elementary substructure of the universe,
+$\alpha$ with $V_\alpha$ a $\Sigma_2$-elementary substructure of the universe,
 elementarity doing the work that the regularity of an inaccessible does
 in the usual model, without any assumption on cofinality. So, subject
 to a soundness check that is written by cases, $\ZF$ proves the
@@ -165,7 +165,7 @@ $\CIC_2$ without $W$-types and $\Acc$, where the types that are not small
 have a simple kind fixed by their syntax and all bounds are countable,
 and in Section~\ref{sec:cic2} for $\CIC_2$ with $W$-types of small
 branching and $\Acc$ on small carriers, where recursions have Hartogs
-length and the extent of $\Type_0$ is taken to be a $\Sigma_m$-correct
+length and the extent of $\Type_0$ is taken to be a $\Sigma_2$-correct
 ordinal (Theorem~\ref{thm:cic2}). The second case contains the
 interpretation of $\ZFh$ of \cite{paper2}, so it is the first instance
 in which an upper bound below $\ZF$ meets the lower bound.
@@ -1311,14 +1311,41 @@ inaccessible. But the functions being iterated are not arbitrary: they
 are denoted by terms. An ordinal that is elementary for definable
 functions is closed under their iterations, whatever its cofinality.
 
-Fix a natural number $m$, large enough for the finitely many formulas
-used below, and call $\alpha$ \emph{correct} if $V_\alpha\prec_{\Sigma_m}V$. By the
+Call $\alpha$ \emph{correct} if $V_\alpha\prec_{\Sigma_2}V$. Since satisfaction
+for $\Sigma_2$ formulas is definable, this is a single formula, and by the
 reflection theorem $\ZF$ proves that the correct ordinals are unbounded.
-A correct $\alpha$ is a limit, $\beta\cdot\omega<\alpha$ and
-$\hbar(\beta)<\alpha$ for $\beta<\alpha$, and the domains $D^\Theta_\kappa$ for
-$\Theta<\alpha$ belong to $V_\alpha$ and are computed correctly there. We now
-write the dependence on $\Theta$ explicitly: $D^\Theta_\kappa$,
-$\top^\Theta$, and $P^\Theta_t$.
+The level $2$ is what the argument needs, and it does not depend on the
+term being bounded: elementarity will be applied to one formula only,
+the denotation relation $v=\sem E^\Theta$ of the profile calculus defined
+below, with the profile term $E$ as a parameter. That relation is
+defined by recursion on $E$ over the sets $D^\Theta_\kappa$, which are
+obtained from $\Theta$ by iterated monotone function spaces, and
+$\hbar$ is a Hartogs number of some $V_\delta$; so it is $\Sigma_1$ in the
+language with the power-set operation, hence $\Sigma_2$. We use the
+following standard fact.
+
+\begin{lemma}\label{lem:correct}
+Let $\alpha$ be correct, let $F$ be a class function that is
+$\Sigma_2$-definable with parameters in $V_\alpha$, and let $a\in V_\alpha$ with
+$a\subseteq\dom F$. Then $F[a]\in V_\alpha$. In particular $\alpha$ is a limit,
+$\beta\cdot\omega<\alpha$ and $\hbar(\beta)<\alpha$ for $\beta<\alpha$, and the
+domains $D^\Theta_\kappa$ for $\Theta<\alpha$ belong to $V_\alpha$ and are
+computed correctly there.
+\end{lemma}
+\begin{proof}
+Let $\varphi(x,y)$ define $F$. For $x\in a$ the sentence $\exists y\,\varphi(x,y)$
+is $\Sigma_2$ and true, so it holds in $V_\alpha$, with a witness that is
+$F(x)$ by upward absoluteness; so $F[a]\subseteq V_\alpha$. The sentence
+$\exists b\,\forall x{\in}a\,\exists y{\in}b\,\varphi(x,y)$ is equivalent in
+$\ZF$ to a $\Sigma_2$ sentence, by $\Sigma_2$-collection, and it is true by
+Replacement; so it holds in $V_\alpha$, and $F[a]$ is included in an element
+of $V_\alpha$.
+\end{proof}
+
+So a correct ordinal is regular \emph{for $\Sigma_2$-definable functions},
+which is all the regularity the argument uses. We now write the
+dependence on $\Theta$ explicitly: $D^\Theta_\kappa$, $\top^\Theta$, and
+$P^\Theta_t$.
 
 \paragraph{The profile calculus.}
 The clauses of Definitions~\ref{def:P} and \ref{def:P2} are the
@@ -1381,7 +1408,7 @@ $\xi<\ell$, then $\sup_{\xi<\ell}\sem{E(\bar\xi)}^\alpha<\alpha$.
 \begin{proof}
 Consider the statement: there are $\Theta$ and a function $s$ on $\ell$
 with $s(\xi)=\sem{E(\bar\xi)}^\Theta<\Theta$ for all $\xi<\ell$. It is
-$\Sigma_m$ in the parameters $E$ and $\ell$, which lie in $V_\alpha$, and
+$\Sigma_2$ in the parameters $E$ and $\ell$, which lie in $V_\alpha$, and
 it holds in $V$ with $\Theta:=\alpha$. So it holds in $V_\alpha$, with some
 $\Theta''<\alpha$ and $s''\in V_\alpha$, the denotation being computed
 correctly in $V_\alpha$. By Lemma~\ref{lem:coh},
@@ -1448,6 +1475,49 @@ term by a separate appeal to Replacement would give only the latter.
 Here the appeal to Replacement is made once, in the reflection theorem
 that produces a correct $\alpha$ for a fixed $m$; after that every term is
 handled by one induction about sets in $V_{\alpha+\omega}$.
+
+\begin{remark}[why the logical complexity of the type theory does not enter]\label{rem:complexity}
+$\CIC_2$ expresses propositions of unbounded complexity, by quantifying
+over $\Type_0$ and over the types built on it, and one may ask why a
+fixed level of correctness can suffice. It suffices because elementarity
+is never applied to anything in which a proposition of the type theory
+occurs. (1) The fundamental lemma is proved in the universe, for every
+structure and every oracle, and the profile of a term is computed without
+evaluating a proposition: every proposition has profile $1$. A subset
+type $\Sigma h{:}\varphi.\,B$ has the bound of $B$ whatever $\varphi$ is, a
+quotient has the bound of its carrier whatever the relation is, and an
+$\Acc$-recursion has the height bound of its carrier whatever the
+relation is. (2) Truth in the model is computed in the universe and is
+not reflected; and since every code of $\CIC_2$ lies in $V_{\alpha+\omega}$
+the model is a set, so truth in it is an ordinary definition by recursion
+and soundness is one induction on derivations inside $\ZF$. (3) A
+proposition can decide how far a recursion runs: by $\Acc$-recursion on
+$\N$ along $R\,m\,n:=m=n+1\wedge\varphi(n)$, the family
+$T(n):=\Sigma h{:}\varphi(n).\,T(n+1)$ searches for the first failure of an
+arbitrary $\varphi$. It cannot raise the bound on the height, because no term
+turns a proposition into data: there is no description operator and no
+elimination of truncation into types. This is where the hypothesis on
+the theory is used, and it is used at one identifiable place: if a
+description operator is added, the fundamental lemma has no clause for
+it at the type $\Type_0$, since truth would then select a code of any
+rank below the cut; and with a description operator the theory validates
+Replacement and does need inaccessibles. So the single formula to which
+elementarity is applied is the evaluator of the profile calculus, which
+is ordinal arithmetic built from $\beta\cdot\omega+\omega$, $\hbar$, suprema over
+$\N$, and iteration.
+
+Because the level is fixed, Theorem~\ref{thm:cic2} is one theorem of
+$\ZF$ and not a schema, and with the soundness lemma it yields the single
+sentence $\Con(\CIC_2^{\mathrm s}+\EM)$; the comparison with $\ZF$ is then
+strict by the second incompleteness theorem. Had the level needed to grow
+with the term, the argument would have shown only that $\ZF$ proves the
+consistency of each finite fragment, which $\ZF$ proves of itself and
+which is compatible with equal strength. In fact the argument uses only
+the existence of one $\Sigma_2$-correct ordinal and recursions of length
+below $\alpha+\omega$, so it should go through in a fragment of $\ZF$ with
+Replacement restricted to a low level of complexity; we have not
+determined which.
+\end{remark}
 
 \begin{corollary}\label{cor:cic2}
 With Theorem~\ref{thm:main}, specialised to one cut and to oracles
@@ -1591,11 +1661,13 @@ $\Type_0$ (Corollary~\ref{cor:omega1}); and the existence of a closed
 ordinal for $\CIC_2^{\mathrm s}$, the theory with two universes,
 $W$-types of small branching and $\Acc$ on small carriers
 (Theorem~\ref{thm:cic2}), the extent of $\Type_0$ being a
-$\Sigma_m$-correct ordinal. Both proofs assume the standard metatheory of
+$\Sigma_2$-correct ordinal. Both proofs assume the standard metatheory of
 the intensional theory, in Lemma~\ref{lem:rigid}. The second has been
-written once and not yet attacked; the steps to check first are
-Lemma~\ref{lem:defsup}, where the complexity $m$ should be made
-explicit, and the height bound in Lemma~\ref{lem:fund2}.
+written once and attacked once, on the question of why a fixed level of
+correctness suffices (Remark~\ref{rem:complexity}); the steps to check
+next are the claim that the denotation relation of the profile calculus
+is $\Sigma_1$ in the power-set operation, which has been estimated and not
+written out, and the height bound in Lemma~\ref{lem:fund2}.
 \emph{Conditional consequence:} $\ZF\vdash\Con(\CIC_2^{\mathrm s}+\EM)$
 (Corollary~\ref{cor:cic2}), given the rule-by-rule check of soundness; and
 the placement of that theory strictly between $\ZFh$ and $\ZF$, given
