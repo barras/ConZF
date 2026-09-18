@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lean:
+    name: Build the Lean development
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Installs elan and the toolchain from `lean-toolchain`, then runs `lake build`.
+      # The build fails if `con_ZF` acquires an axiom: see the `#guard_msgs` in
+      # ConZF/FirstOrder.lean.
+      - uses: leanprover/lean-action@v1
+        with:
+          test: false
+          lint: false
+          use-github-cache: true
+
+  paper:
+    name: Build the paper
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: doc
+          root_file: main.tex
+      - run: cp doc/main.pdf ConZF.pdf
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paper
+          path: ConZF.pdf
+      # On main, keep the current PDF at a stable URL:
+      #   https://github.com/<owner>/<repo>/releases/download/pdf/ConZF.pdf
+      - name: Publish the PDF to the rolling `pdf` release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view pdf >/dev/null 2>&1 ||
+            gh release create pdf --prerelease --title "Paper (latest build)" \
+              --notes "PDF of doc/main.tex, rebuilt by CI on every push to main."
+          gh release upload pdf ConZF.pdf --clobber

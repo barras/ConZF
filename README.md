@@ -15,7 +15,8 @@ the axiom report is meaningful.
 
 The point is that Replacement in the sets-as-trees model does not need a choice or description
 operator: large elimination of `Acc` over a carrier as big as the type of sets is enough. See
-`doc/main.tex` for the construction.
+`doc/main.tex` for the construction; CI builds it, and the current PDF is at
+[releases/download/pdf/ConZF.pdf](../../releases/download/pdf/ConZF.pdf).
 
 ## Build
 
