@@ -79,9 +79,14 @@ elementarity doing the work that the regularity of an inaccessible does
 in the usual model, without any assumption on cofinality. So, subject
 to a soundness check that is written by cases, $\ZF$ proves the
 consistency of that theory, whose strength therefore lies strictly
-between Zermelo set theory with recursion and $\ZF$. With more
-universes, or with recursion over big types, the rank lemma is open, and
-we say what each adds. This is a working paper: it
+between Zermelo set theory with recursion and $\ZF$. The restriction
+to small carriers turns out to be the boundary and not a limitation of
+the method: a late section argues that accessibility on a big carrier
+computes ordinals that are only specified by propositions, that this
+gives Replacement in the constructible sets-as-trees, and hence that the
+unrestricted theory with two universes already interprets $\ZFC$, so
+that the question in the title has a negative answer for it and remains
+open for small carriers with more universes. This is a working paper: it
 fixes the type theory and the
 definitions, records what is proved and what is not, and explains the
 design decisions by the counterexamples that forced them.
@@ -107,6 +112,13 @@ known to be. We conjecture:
 \begin{conjecture}[main]\label{conj:main}
 $\ZF\vdash\Con(\CIC_\omega+\EM)$.
 \end{conjecture}
+
+\emph{Note added.} Section~\ref{sec:bigacc} argues that this is false
+as stated, because accessibility on a big carrier yields Replacement
+(Theorem~\ref{thm:bigacc}), and that the conjecture to pursue is the one
+for the theory with accessibility on carriers in $\Type_0$ only. The
+introduction and Sections~\ref{sec:sem} to~\ref{sec:ranklemma} have not
+been rewritten around this.
 
 \paragraph{What is known.}
 From below, $\CIC$ with $n+2$ universes and excluded middle interprets
@@ -1593,7 +1605,196 @@ unapplied form a family indexed by its future arguments. What is wanted
 is a relation that bounds a value either by a constant or by the values
 of the recursive function on a small set, hereditarily; we have not
 found its definition. General inductive families with big indices or big
-recursive arguments meet the same problem.
+recursive arguments meet the same problem. Section~\ref{sec:bigacc}
+argues that for $\Acc$ on a big carrier no such relation exists, because
+the bound it would establish is false.
+
+\section{Accessibility on a big carrier gives Replacement}\label{sec:bigacc}
+
+This section is a lower bound, and it goes against
+Conjecture~\ref{conj:main}. It was found after the rest of the paper
+was written, by asking why the first failed attempt above fails; it has
+been checked once and read by nobody else. The claim is that in
+$\CIC_2+\EM$ with $\Acc$ on the big carrier of sets-as-trees, an ordinal
+that is merely \emph{specified} by a proposition can be \emph{computed}
+as an element, which is the instance of unique choice that Replacement
+needs. The mechanism is the transfinite form of the well-known
+extraction of a witness from $\exists n.\,P\,n$ by recursion on an
+accessibility proof. Two things replace the decidability of $P$ that the
+extraction needs: a set can be guarded by a proposition, and a step of
+the recursion can index its recursive calls by the \emph{value} of an
+earlier recursive call.
+
+\paragraph{Sets.}
+Let $V:=W X{:}\Type_0.\,X:\Type_1$ with Aczel's bisimulation $\approx$ and
+membership, both in $\Prop$ \cite{paper2}. We use the following closed
+terms, all definable with $W$-recursion and small sums: $\emptyset$; the
+pair $\langle p,v\rangle$; $\mathrm{succ}\,u=u\cup\{u\}$; the union
+$\bigcup_{i:\bar u}t(i)$ of a family indexed by the index type $\bar u$ of a
+set $u=\mathsf{sup}\,\bar u\,u_\bullet$; the \emph{guard}
+$\{t\mid P\}:=\mathsf{sup}\,P\,t$ for $P:\Prop$ and $t:P\to V$, whose union
+$\bigcup\{t\mid P\}$ is $t$ if $P$ holds and $\emptyset$ if not; and
+$D(u)$, the set of well-orderings of subsets of $u\cup\omega$, obtained by
+separation from a power set. Ordinals are von Neumann ordinals in $V$.
+In $V$, provably in the type theory, any two well-orderings are
+comparable, so ``$w$ has order type $\xi$'' and ``$w$ has order type below
+$\eta$'' are propositions with the expected properties, and the order
+types of the elements of $D(u)$ are exactly the ordinals below the
+Hartogs number $\hartogs(u\cup\omega)$.
+
+\begin{definition}[the materializing recursion]\label{def:mat}
+Fix a parameter $u:V$. For $G:V$ let
+$B_u(G):=\{0\}\cup\{\langle 1,w\rangle: w\in D(G)\}\cup\{\langle 2,a\rangle:a\in u\}$,
+a set of \emph{labels}. A \emph{path} is an element of $V$ read as a
+nested pair: $\emptyset$ is the root, and $\langle p,v\rangle$ is the child of
+$p$ with label $v$. For $R:V\to V\to\Prop$ define the step
+$f_R:\Pi p{:}V.\,(\Pi c{:}V.\,R\,c\,p\to V)\to V$ by
+\begin{align*}
+G&:=\textstyle\bigcup\{\mathrm{rec}\,\langle p,0\rangle\,h\mid h:R\,\langle p,0\rangle\,p\},\\
+f_R\,p\,\mathrm{rec}&:=\textstyle\bigcup_{v\in B_u(G)}\ \bigcup\{\mathrm{succ}\,(\mathrm{rec}\,\langle p,v\rangle\,h)\mid h:R\,\langle p,v\rangle\,p\},
+\end{align*}
+and let $F_R:=\ind^{\Acc}f_R:\Pi p{:}V.\,\Acc_R\,p\to V$. The carrier $V$
+is big and the motive is the constant $V$. The step first calls the
+recursion at the child with label $0$, and then at the children whose
+labels are computed from the value $G$ of that call; every call is
+guarded, because the step has no proof that the child is below $p$.
+\end{definition}
+
+\begin{definition}[coherent assignments]\label{def:coherent}
+A \emph{target assignment} is a relation $\tau:V\to V\to\Prop$ that
+respects $\approx$ and is a partial function from paths to ordinals; we
+write $\tau(p)$ for the value. Put $G_\tau(p):=\tau(\langle p,0\rangle)$ if
+that is defined and $\emptyset$ otherwise. The assignment is
+\emph{coherent} if
+\begin{enumerate}
+\item whenever $\tau(\langle p,v\rangle)$ is defined, so is $\tau(p)$, and
+  $\tau(\langle p,v\rangle)<\tau(p)$; and
+\item whenever $\tau(p)$ is defined,
+  $\tau(p)=\sup\{\tau(\langle p,v\rangle)+1: v\in B_u(G_\tau(p)),\ \tau(\langle p,v\rangle)\text{ defined}\}$.
+\end{enumerate}
+Its relation is $R_\tau\,c\,p:\Longleftrightarrow\exists v.\ c\approx\langle p,v\rangle\wedge\tau(c)\text{ is defined}$.
+\end{definition}
+
+\begin{lemma}[materialization]\label{lem:mat}
+$\CIC_2+\EM$ proves: if $\tau$ is coherent and $\tau(p)$ is defined, then
+$p$ is $R_\tau$-accessible, and $F_{R_\tau}\,p\,a\approx\tau(p)$ for every
+$a:\Acc_{R_\tau}\,p$.
+\end{lemma}
+\begin{proof}
+By induction on the ordinal $\tau(p)$, which is $\in$-induction on $V$ into
+$\Prop$. If $R_\tau\,c\,p$ then $\tau(c)$ is defined and, by (1) and
+invariance under $\approx$, below $\tau(p)$; so $c$ is accessible by the
+induction hypothesis, and $p$ is accessible by the constructor. For the
+value, $F\,p\,a$ is propositionally $f\,p\,(\lambda c\,h.\,F\,c\,(\cdots))$. By
+the induction hypothesis every recursive call whose guard holds returns
+the target of its child. So the set $G$ of the step is
+$\approx G_\tau(p)$, hence $B_u(G)\approx B_u(G_\tau(p))$, the guard at the label
+$v$ holds iff $\tau(\langle p,v\rangle)$ is defined, and the value is the
+union of the successors of those targets, which is their strict
+supremum, which is $\tau(p)$ by (2).
+\end{proof}
+
+A coherent assignment is a proposition; the lemma turns its root target
+into the value of a term. The height of the recursion is not bounded by
+anything computed from the root: a node whose child $0$ has target
+$\zeta$ has children indexed by the well-orderings of $\zeta$, whose
+targets range up to the Hartogs number of $\zeta$, and so on downwards.
+This is the dependence of an index on the value of a recursive call that
+defeated the restriction of heights in Section~\ref{sec:cic2}.
+
+\paragraph{Canonical assignments.}
+Say that an ordinal $\eta>0$ is of \emph{type 1} if
+$\eta\le\hartogs(\zeta\cup\omega)$ for some $\zeta<\eta$, and let $\zeta(\eta)$ be
+the least such; every $\eta\le\omega_1$ is of type 1 with $\zeta(\eta)=0$, and
+an ordinal fails to be of type 1 exactly if it is above $\omega_1$ and
+closed under $\zeta\mapsto\hartogs(\zeta)$. The
+clauses for a node $p$ with target $\eta$ of type 1 are:
+$\tau(\langle p,0\rangle):=\zeta(\eta)$, and
+$\tau(\langle p,\langle 1,w\rangle\rangle):=$ the order type of $w$, if $w$ is a
+well-ordering of order type below $\eta$. Conditions (1) and (2) hold at
+$p$: the labels $\langle 1,w\rangle$ with $w\in D(\zeta(\eta))$ have as order
+types all the ordinals below $\hartogs(\zeta(\eta)\cup\omega)\ge\eta$. If $\eta$
+is not of type 1 and $c:\mu\to\eta$ is cofinal and increasing with
+$\mu<\eta$, the clauses are $\tau(\langle p,0\rangle):=\mu$ and
+$\tau(\langle p,\langle 1,w\rangle\rangle):=c(\xi)$ for $w$ of order type
+$\xi<\mu$. These clauses define $\tau$ on a path by recursion on its
+length, with no reference to $F$, as soon as a cofinal map is chosen
+definably for every ordinal that is not of type 1. We know of no way to
+do that in $V$ without choice, so we pass to the constructible
+sets of $V$, where the least cofinal map in the canonical well-order
+serves. An ordinal not of type 1 is a limit cardinal of $L$, since
+$(|\zeta|^+)^L\le\hartogs(\zeta)$; if it is regular in $L$ it is inaccessible
+in $L$. Let $\rho$ be the least such ordinal if there is one. Then every
+$\eta$ below $\rho$, or every $\eta$ if there is no $\rho$, is the root
+target of a coherent assignment $\tau_\eta$ defined uniformly in $\eta$.
+
+\begin{theorem}[claimed]\label{thm:bigacc}
+$\ZFC$ is interpretable in $\CIC_2+\EM$. Consequently
+$\Con(\CIC_2+\EM)$ implies $\Con(\ZF)$, provably in primitive recursive
+arithmetic, and $\ZF$ does not prove $\Con(\CIC_2+\EM)$ unless it is
+inconsistent. The same holds for any extension, in particular for
+$\CIC_\omega+\EM$, so Conjecture~\ref{conj:main} fails for the theory as
+stated in Section~\ref{sec:tt}.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Work in the type theory, reasoning in $\Prop$ about $V$, which satisfies
+Zermelo set theory with $\in$-recursion \cite{paper2}. By excluded middle
+either $\rho$ exists or not. If it exists, $L_\rho$ satisfies $\ZFC$, by
+the usual argument for an inaccessible of $L$. If not, we show that $L$
+satisfies Replacement, the other axioms being standard. Let $s\in L$ and
+let $\varphi$ define over $L$ a function on $s$, with $\eta_a$ the $L$-rank
+of the value at $a\in s$. Take $u:=s$ in Definition~\ref{def:mat}, and
+let $\tau(\emptyset):=\sup_a(\eta_a+1)$,
+$\tau(\langle\emptyset,\langle 2,a\rangle\rangle):=\eta_a$, and below the path
+$\langle\emptyset,\langle 2,a\rangle\rangle$ the canonical assignment
+$\tau_{\eta_a}$. This is coherent, and it is a single proposition, defined
+from $s$ and $\varphi$ without any choice of one assignment for each $a$.
+Since $s$ is a variable of type $V$, the root value
+$F_{R_\tau}\,\emptyset\,a$ of Lemma~\ref{lem:mat} is a term of type $V$,
+so it witnesses that there is a set $\theta$ with $\eta_a<\theta$ for all
+$a\in s$; the image of $s$ is then separated from $L_\theta$. The
+interpretation of $\ZFC$ relativizes to $L_\rho$ if $\rho$ exists and to
+$L$ otherwise, which is one definable class.
+\end{proof}
+
+\paragraph{What has and has not been checked.}
+Lemma~\ref{lem:mat} is short and we believe it. The parts taken on
+trust are the theory of $L$ inside $V$, that is, in Zermelo set theory
+with $\in$-recursion (the canonical well-order, condensation for
+$(|\zeta|^+)^L\le\hartogs(\zeta)$ and for the power set axiom in $L_\rho$), and
+the intensional form of the interpretation of \cite{paper2}. The second
+universe is used only to form $V$. With $n+2$ universes we expect, and have
+not checked, that the rank of the sets of one level is a regular, hence
+inaccessible, cardinal of the next, by the same recursion with a
+parameter from the higher level in the relation.
+
+\paragraph{Consequences for this paper.}
+(i) The restriction to small carriers in $\CIC_2^{\mathrm s}$ is not a
+limitation of the method. If Theorem~\ref{thm:cic2} and
+Theorem~\ref{thm:bigacc} are both right, the line between theories that
+$\ZF$ proves consistent and theories that interpret $\ZF$ runs between
+$\Acc$ on small carriers and $\Acc$ on big ones. The recursion of
+Definition~\ref{def:mat} cannot be run on a small carrier, because the
+paths must be elements of the carrier and their labels range over sets
+of unbounded rank; on a carrier $X$ the heights are below $\hbar$ of the
+rank of $X$, as in Lemma~\ref{lem:fund2}.
+(ii) Conjecture~\ref{conj:rank} is refuted for the full theory: with
+Theorem~\ref{thm:main} it would give Conjecture~\ref{conj:main}. The
+profile of $F_R$ is the least pre-fixed point of an operator that raises
+ranks, which is the top element, and rightly so.
+(iii) The model should be unsound for the full theory at the least
+correct ordinal $\alpha$, concretely, when the ambient universe is $L$ and
+has no inaccessible cardinal, as we may assume: the ordinals $\theta_n$
+least with
+$L_{\theta_n}\prec_{\Sigma_n}L_\alpha$ are defined by propositions, the term
+$\lambda n.\,F\,\langle\emptyset,\langle 2,n\rangle\rangle$ materializes them, and
+the $W$-recursion $T(\mathsf{sup}\,X\,g):=\Sigma x{:}X.\,T(g\,x)$ turns their
+supremum into a small type of rank $\alpha$.
+(iv) A choice or description operator is therefore not what gives the
+type theory the strength of Replacement; large elimination of
+accessibility over a type as big as the motive is enough. The question
+of Conjecture~\ref{conj:main} remains for the theory in which $\Acc$ is
+taken on carriers in $\Type_0$ only, with any number of universes.
 
 \section{Examples}\label{sec:examples}
 
@@ -1712,11 +1913,19 @@ formalization before relying on it.
 the placement of that theory strictly between $\ZFh$ and $\ZF$, given
 also that the interpretation of \cite{paper2} goes through
 intensionally.
-\emph{Open:} recursion over big types, that is $W$ with big branching and
-$\Acc$ on big carriers, for the reasons at the end of
-Section~\ref{sec:cic2}; and more than two universes, where kinds are no
-longer syntactic (end of Section~\ref{sec:proved}). So
-Conjecture~\ref{conj:rank} is open in general.
+\emph{Claimed, against the main conjecture:} $\Acc$ on a big carrier
+interprets $\ZFC$ already with two universes
+(Theorem~\ref{thm:bigacc}); the core, Lemma~\ref{lem:mat}, is written
+out, and the theory of $L$ inside the sets-as-trees is taken on trust.
+If it stands, Conjectures~\ref{conj:main} and~\ref{conj:rank} are false
+for the theory of Section~\ref{sec:tt} and should be restated for
+$\Acc$ on carriers in $\Type_0$.
+\emph{Open:} $W$ with big branching, where no analogue of
+Section~\ref{sec:bigacc} is known to us (a tree can have branching
+types guarded by propositions, but we see no term that builds one of
+specified height without accessibility); and more than two universes with
+small carriers, where kinds are no longer syntactic (end of
+Section~\ref{sec:proved}).
 \emph{Not attempted:} general inductive families; the refinement to
 finitely many universes, $\ZFh_{n+1}\vdash\Con(\CIC_{n+2}+\EM)$, which
 would close the hierarchy of \cite{paper2}.
