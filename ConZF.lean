@@ -12,3 +12,5 @@ import ConZF.Proof
 import ConZF.ZF
 import ConZF.ZFRead
 import ConZF.FirstOrder
+import ConZF.Stable
+import ConZF.Negative

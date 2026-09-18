@@ -624,12 +624,44 @@ $\Type_0$?
 \end{question}
 
 \paragraph{Excluded middle.}
-The materialization lemma and Theorem~\ref{thm:repl} are constructive.
-Excluded middle enters with the ordinals and with the classical
-reading of first-order logic. We have not investigated what the
-recursion gives in the type theory without excluded middle, where the
-natural target would be an intuitionistic set theory with Replacement
-or Collection.
+Since $\Con(\ZF)$ is a negation, it follows from the double negation of
+excluded middle, which is equivalent to the double negation shift
+$(\forall x.\,\neg\neg A\,x)\to\neg\neg\forall x.\,A\,x$ for predicates on arbitrary types
+(\lean{con\_ZF\_of\_dns}). Whether the type theory proves $\Con(\ZF)$ with
+no hypothesis is open, and we can say where the difficulty lies. Most
+uses of excluded middle can be removed by a negative translation: read
+bisimulation and membership with $\neg\neg\exists$ in place of $\exists$ at every
+level of the trees (\lean{NEquiv}, \lean{NMem}); then every statement
+about sets is stable under double negation, so it may be proved
+classically, the semantics of formulas built from $\bot$, $\to$ and $\forall$
+validates double negation elimination, and the case distinction of
+Theorem~\ref{thm:dich} is only needed doubly negated. This includes
+the theory of ordinals. The materialization lemma and
+Theorem~\ref{thm:repl} are constructive as they stand.
+
+The one statement that is not stable is accessibility. It is needed as
+such, or at least doubly negated at the root, because the set that
+bounds the ranks is the value of the recursion at the root. In
+Lemma~\ref{lem:mat} accessibility is proved by $\in$-induction on the
+target, from condition (3) of Definition~\ref{def:coherent} read with an
+actual index: the target of a child is bisimilar to \emph{this} element
+of the target of its parent. The targets produced by the rule are
+specified by propositions (a least ordinal, the rank of the value of a
+definable function), and after the translation a child's target is only
+known not to fail to be an element. Induction along the translated
+membership holds for stable predicates (\lean{nmem\_induction}) and not
+for accessibility: passing from ``every child is not not accessible'' to
+``not not every child is accessible'' is an instance of the double
+negation shift. This is not an artefact. For the search relation of a
+decidable predicate $P$ on $\N$, the root is accessible iff $\exists k.\,P\,k$
+(\lean{exists\_of\_acc\_search}), so the principle that a relation which
+is well-founded for stable predicates is accessible contains Markov's
+principle, and its doubly negated form contains the double negation
+shift for $\forall n\,\exists k.\,P\,n\,k$. We do not know whether the particular
+instance needed here is provable. A proof of $\Con(\ZF)$ without any
+hypothesis would seem to need either a way to make the descent of
+targets honest, which a specification by propositions resists, or a
+different source of large elimination.
 
 \paragraph{Other systems.}
 The argument uses nothing specific to Lean: an impredicative $\Prop$,
