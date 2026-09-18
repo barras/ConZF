@@ -1667,8 +1667,9 @@ write $\tau(p)$ for the value. Put $G_\tau(p):=\tau(\langle p,0\rangle)$ if
 that is defined and $\emptyset$ otherwise. The assignment is
 \emph{coherent} if
 \begin{enumerate}
-\item whenever $\tau(\langle p,v\rangle)$ is defined, so is $\tau(p)$, and
-  $\tau(\langle p,v\rangle)<\tau(p)$; and
+\item whenever $\tau(\langle p,v\rangle)$ and $\tau(p)$ are both defined,
+  $\tau(\langle p,v\rangle)<\tau(p)$ (a path with a target may have a parent
+  without one; this is used at the root in Theorem~\ref{thm:bigacc}); and
 \item whenever $\tau(p)$ is defined,
   $\tau(p)=\sup\{\tau(\langle p,v\rangle)+1: v\in B_u(G_\tau(p)),\ \tau(\langle p,v\rangle)\text{ defined}\}$.
 \end{enumerate}
@@ -1744,21 +1745,38 @@ the usual argument for an inaccessible of $L$. If not, we show that $L$
 satisfies Replacement, the other axioms being standard. Let $s\in L$ and
 let $\varphi$ define over $L$ a function on $s$, with $\eta_a$ the $L$-rank
 of the value at $a\in s$. Take $u:=s$ in Definition~\ref{def:mat}, and
-let $\tau(\emptyset):=\sup_a(\eta_a+1)$,
-$\tau(\langle\emptyset,\langle 2,a\rangle\rangle):=\eta_a$, and below the path
+let $\tau(\langle\emptyset,\langle 2,a\rangle\rangle):=\eta_a$, and below the path
 $\langle\emptyset,\langle 2,a\rangle\rangle$ the canonical assignment
-$\tau_{\eta_a}$. This is coherent, and it is a single proposition, defined
-from $s$ and $\varphi$ without any choice of one assignment for each $a$.
-Since $s$ is a variable of type $V$, the root value
-$F_{R_\tau}\,\emptyset\,a$ of Lemma~\ref{lem:mat} is a term of type $V$,
-so it witnesses that there is a set $\theta$ with $\eta_a<\theta$ for all
-$a\in s$; the image of $s$ is then separated from $L_\theta$. The
+$\tau_{\eta_a}$. The root is given \emph{no} target: its target would be
+$\sup_a(\eta_a+1)$, whose existence is the point at issue. (An earlier
+version of this sketch assigned it, which is circular; the
+formalization found this.) The assignment is coherent, and it is a
+single proposition, defined from $s$ and $\varphi$ without any choice of one
+assignment for each $a$. By Lemma~\ref{lem:mat} every child of the root
+that has a target is accessible, so the root is accessible by the
+constructor, and unfolding the recursion once shows that the root value
+$F_{R_\tau}\,\emptyset\,a$, which is a term of type $V$ because $s$ is a
+variable of type $V$, is the union of the $\eta_a+1$. So there is a set
+$\theta$ with $\eta_a<\theta$ for all $a\in s$, and the image of $s$ is
+separated from $L_\theta$; that the separated set is in $L$ is the usual
+argument by reflection for the $L$-hierarchy, and reflection is
+available because the bounding just proved applies to the
+ordinal-valued functions that its proof iterates. The
 interpretation of $\ZFC$ relativizes to $L_\rho$ if $\rho$ exists and to
 $L$ otherwise, which is one definable class.
 \end{proof}
 
 \paragraph{What has and has not been checked.}
-Lemma~\ref{lem:mat} is short and we believe it. The parts taken on
+Lemma~\ref{lem:mat} and the gluing step of Theorem~\ref{thm:bigacc} are
+formalized in Lean~4 without Mathlib (directory \texttt{lean/}): the
+theorem \texttt{PSet.materialize} is the lemma, for paths that are lists
+of labels, targets that are arbitrary sets, and an arbitrary operation
+in place of $D$; and \texttt{PSet.replacement} says that a functional
+relation on a set whose values lie in a class with uniformly defined
+coherent assignments has an image. Both depend on the axiom
+\texttt{propext} only: no choice, no quotients, and no excluded middle.
+What is not formalized is that the ordinals below $\rho$ of $L$ form
+such a class. The parts taken on
 trust are the theory of $L$ inside $V$, that is, in Zermelo set theory
 with $\in$-recursion (the canonical well-order, condensation for
 $(|\zeta|^+)^L\le\hartogs(\zeta)$ and for the power set axiom in $L_\rho$), and

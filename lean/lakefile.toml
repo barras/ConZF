@@ -1,0 +1,5 @@
+name = "ConCic"
+defaultTargets = ["ConCic"]
+
+[[lean_lib]]
+name = "ConCic"
