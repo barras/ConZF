@@ -1843,12 +1843,20 @@ relation on a set whose values lie in a class with uniformly defined
 coherent assignments has an image. Both depend on the axiom
 \texttt{propext} only: no choice, no quotients, and no excluded middle.
 So is Lemma~\ref{lem:rule} (\texttt{PSet.Rule.coherent}, with Replacement
-for the class of a rule as \texttt{PSet.Rule.replacement}). What is not
-formalized is the definability rule, Lemma~\ref{lem:worldlyrule}, which
-needs ordinals, ranks, $V_\alpha$, codes of formulas and the satisfaction
-relation of $V_\eta$ in the sets-as-trees; all of it is elementary. The
-parts taken on trust are these elementary facts, and the intensional
-form of the interpretation of \cite{paper2}. The second
+for the class of a rule as \texttt{PSet.Rule.replacement}). So are the
+definability rule, Lemma~\ref{lem:worldlyrule}, and the case distinction
+of Theorem~\ref{thm:bigacc} (\texttt{PSet.dichotomy}), for an arbitrary
+relation $I(\eta,q,x,y)$ in place of ``$y$ is the value at $x$ of the
+function that the formula and parameter coded by $q$ define over
+$V_\eta$'', with excluded middle as a hypothesis: either every
+functional relation on a set has an image, or some ordinal is not $0$,
+not a successor, not $\omega$, and not reachable. This too depends on
+\texttt{propext} only. Not formalized: that for first-order $I$ such an
+ordinal is a limit above $\omega$ with $V_\rho\models\ZF$, which is the
+textbook argument given above; and the intensional form of the
+interpretation of \cite{paper2}, which is only needed to know that the
+sets-as-trees satisfy Zermelo set theory, most of which the
+formalization proves along the way. The second
 universe is used only to form $V$. With $n+2$ universes we expect, and have
 not checked, that the rank of the sets of one level is a regular, hence
 inaccessible, cardinal of the next, by the same recursion with a
@@ -2000,10 +2008,8 @@ also that the interpretation of \cite{paper2} goes through
 intensionally.
 \emph{Claimed, against the main conjecture:} $\Acc$ on a big carrier
 interprets $\ZF$ already with two universes
-(Theorem~\ref{thm:bigacc}); Lemmas~\ref{lem:mat} and~\ref{lem:rule} and the
-gluing step are formalized, and the definability rule
-(Lemma~\ref{lem:worldlyrule}) uses only elementary facts about ranks and
-satisfaction, not yet formalized.
+(Theorem~\ref{thm:bigacc}); everything up to the first-order instance
+of the definability relation is formalized in Lean without choice.
 If it stands, Conjectures~\ref{conj:main} and~\ref{conj:rank} are false
 for the theory of Section~\ref{sec:tt} and should be restated for
 $\Acc$ on carriers in $\Type_0$.
