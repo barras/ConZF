@@ -69,8 +69,12 @@ class of admitted elements and instantiating the oracle with the model
 itself at the end. We prove that the model is sound provided the
 extents exist, and we reduce their existence to a single statement, a
 rank lemma saying that the types a term can denote below the extent of
-a universe are bounded independently of that extent. The rank lemma is
-open. This is a working paper: it fixes the type theory and the
+a universe are bounded independently of that extent. We prove the rank
+lemma, by majorization in Howard's style, for the theory with two
+universes and recursion on the natural numbers only, where the extent
+of the universe can be taken to be $\omega_1$; in general it is open,
+and we say what the general case adds. This is a working paper: it
+fixes the type theory and the
 definitions, records what is proved and what is not, and explains the
 design decisions by the counterexamples that forced them.
 \end{abstract}
@@ -148,7 +152,10 @@ on the cut. This is the analogue of the rank lemma of \cite{paper2} and
 we believe it, having failed to refute it in several rounds; but its
 proof is not an adaptation of Howard's majorizability argument
 \cite{howard73}, for reasons given in Section~\ref{sec:ranklemma}, and
-it is open. So the status of Conjecture~\ref{conj:main} is: reduced to
+it is open in general. It is proved in Section~\ref{sec:proved} for
+$\CIC_2$ without $W$-types and $\Acc$, where the types that are not small
+have a simple kind fixed by their syntax and all bounds are countable.
+So the status of Conjecture~\ref{conj:main} is: reduced to
 Conjecture~\ref{conj:rank}, modulo a soundness proof that is written by
 cases and not yet checked rule by rule.
 
@@ -850,6 +857,323 @@ is a new degree of freedom for an adversary: an oracle may contain a
 cofinal family, and the conjecture claims that a term with bounded
 parameters cannot get at it.
 
+\section{A proved case: two universes, recursion on $\N$ only}\label{sec:proved}
+
+We prove the rank lemma for $\CIC_2^-$, the theory of
+Section~\ref{sec:tt} with the sorts $\Prop:\Type_0:\Type_1$ only, $\Type_1$
+not being a type, and without $W$-types and $\Acc$. It keeps $\Pi$,
+$\Sigma$, finite types, $\N$ with elimination into every sort, identity,
+truncation, quotients, $\mathsf{propext}$ and $\mathsf{em}$. Two features
+make this case tractable. In $\CIC_2$ nothing quantifies over $\Type_1$,
+so the types that are not small have a \emph{simple kind} fixed by their
+syntax, and profiles live in the finite-type hierarchy over the
+ordinals, as in Howard's theorem. And without $W$ and $\Acc$ the only
+supremum is over $\N$, so all bounds stay below a regular cardinal.
+Neither holds in general; what this case shows is that the architecture
+of Section~\ref{sec:ranklemma} closes when they do.
+
+We work in $\ZFC$, which is harmless by the remark on $L$ in
+Section~\ref{sec:ranklemma}. The level is $N=0$, a structure is a single
+cut $\alpha>\omega$, and there are no higher extents.
+
+\subsection{Kinds}
+
+A type $A$ in a context is \emph{small} if $A:\Type_0$ or $A:\Prop$ is
+derivable, and \emph{big} otherwise.
+
+\begin{lemma}[big types are rigid]\label{lem:rigid}
+In $\CIC_2^-$ a big type is, as a raw term, $\Type_0$ or one of
+$\Pi x{:}A.B$, $\Sigma x{:}A.B$, $A/R$ with a big component. Bigness is
+invariant under substitution and conversion, and two convertible big
+types have the same head former and convertible components.
+\end{lemma}
+\begin{proof}
+A big type that is not a former and not $\Type_0$ would be a variable,
+an application, a projection, or an eliminator term $u$ with
+$\Gamma\vdash u:\Type_1$. Each of these receives its type from a type
+that is itself a term: the type of a variable from the context, the
+type of an application from the codomain of a product, the type of an
+eliminator from its motive. But $\Type_1$ is not a term, so it is not
+the type of a variable, a codomain, or a motive. Computation acts inside
+the components of a former and never at its head, which gives the rest,
+given the standard metatheory of the intensional theory (confluence and
+subject reduction), which we assume.
+\end{proof}
+
+\begin{definition}[kinds]\label{def:kinds}
+\emph{Kinds} are $\kappa::=o\mid\kappa\to\kappa\mid\kappa\times\kappa$. The kind
+$k(A)$ of a type is $o$ if $A$ is small or $A=\Type_0$; otherwise
+$k(\Pi x{:}A.B):=k(A)\to k(B)$, $k(\Sigma x{:}A.B):=k(A)\times k(B)$, and
+$k(A/R):=k(A)$. By Lemma~\ref{lem:rigid} this is well defined,
+$k(B[u/x])=k(B)$, and convertible types have the same kind; so a term
+has a kind, the kind of its type.
+\end{definition}
+
+In this section the code of a big type carries its kind,
+$\code\Pi^\kappa(c,G)$ and so on, which the evaluation can supply because
+terms are sorted; an oracle is a family $(\X_\kappa)_\kappa$ of sets, the
+decoding of a code of kind $\kappa$ admits the functions in $\X_\kappa$, and
+a small code has kind $o$. In a generation tree the term $t_x$ of a
+defined variable $x$ is required to have the kind of $x$. This is
+bookkeeping: it ensures that an element of the model is generated at
+the kind at which it is used.
+
+\subsection{Profiles and the bounding relation}
+
+Fix a regular uncountable cardinal $\Theta$.
+
+\begin{definition}[profiles]\label{def:profiles}
+$D_o:=\{\beta:1\le\beta\le\Theta\}$, ordered as ordinals, with $\Theta$
+as top element, read as ``no bound''; $D_{\kappa\to\kappa'}$ is the set of
+monotone functions from $D_\kappa$ to $D_{\kappa'}$, ordered pointwise; and
+$D_{\kappa\times\kappa'}:=D_\kappa\times D_{\kappa'}$. Each $D_\kappa$ is a complete
+lattice. A profile is \emph{proper} if it is below $\Theta$ at kind $o$,
+maps proper profiles to proper profiles at $\kappa\to\kappa'$, and has
+proper components at $\kappa\times\kappa'$. For $\gamma<\Theta$ the
+\emph{constant} $\hat\gamma_\kappa$ is $\gamma$ at kind $o$, the constant
+function with value $\hat\gamma_{\kappa'}$ at $\kappa\to\kappa'$, and the pair
+of constants at $\kappa\times\kappa'$; it is proper.
+\end{definition}
+
+\begin{definition}[pure codes, the bounding relation]\label{def:lhd}
+Fix a cut $\alpha$. A code is \emph{pure} if the universe constant does
+not occur in it: the constants other than $\code{\U_0}$ are pure,
+$\code Q(c,G)$ is pure if $c$ and all values of $G$ are, and $\code/(c,r)$
+is pure if $c$ is. For a set $e$ and $p\in D_\kappa$ define $e\lhd_\kappa p$ by
+recursion on $\kappa$ and, at kind $o$, on membership:
+\begin{itemize}
+\item at every kind, a class is bounded by $p$ iff some member of it is;
+\item $e\lhd_o\beta$, for $e$ not a class, iff $e$ is a number or $\star$;
+  or $e$ is a pure code whose rank is finite, or at least $\alpha$, or
+  below $\beta$; or $e$ is a pair both of whose components are
+  $\lhd_o\beta$; or $e$ is a function all of whose values are
+  $\lhd_o\beta$;
+\item $e\lhd_{\kappa\to\kappa'}p$, for $e$ not a class, iff $e$ is not a code
+  of infinite rank and, for every $a\in\dom e$ and every $q\in D_\kappa$,
+  if $a\lhd_\kappa q$ then $e(a)\lhd_{\kappa'}p(q)$; the second condition
+  holds vacuously if $e$ is not a function;
+\item $e\lhd_{\kappa\times\kappa'}(p,p')$, for $e$ not a class, iff $e$ is
+  not a code of infinite rank and either $e$ is not a pair or
+  $e=\langle a,b\rangle$ with $a\lhd_\kappa p$ and $b\lhd_{\kappa'}p'$.
+\end{itemize}
+A set is \emph{flat} if it is $\lhd_o\Theta$. We extend the decoding by
+$\El^\X(e):=\emptyset$ when $e$ is not a code.
+\end{definition}
+
+The relation depends on the cut, through the clause at $o$, and on
+nothing else: not on the oracle, and not on a code. Profiles do not
+mention the cut at all.
+
+\begin{lemma}\label{lem:lhdbasic}
+(1) If $e\lhd_\kappa p\le p'$ then $e\lhd_\kappa p'$. (2) $\emptyset$ is
+bounded by every profile at every kind. (3) If $c$ is a pure code then
+every element of $\El^\X(c)$, for any oracle, is $\lhd_o1$. (4) If
+$e\lhd_o\beta$ and $e$ is a function then $e(a)\lhd_o\beta$ for every
+$a\in\dom e$. (5) Suprema: if $e_n\lhd_\kappa p_n$ for all $n$ then each
+$e_n\lhd_\kappa\bigsqcup_np_n$. (6) Proper profiles are closed under
+application, pairing, projection, finite joins, and suprema of
+countable families.
+\end{lemma}
+\begin{proof}
+(1) By induction on $\kappa$ and on membership. (2) $\emptyset$ is the
+pure code $\bot$, of finite rank, and it is neither a pair nor a function
+with an argument. (3) By induction on $c$: the elements of a pure code
+are numbers, $\star$, truth values, which are pure codes of finite rank,
+and pairs, functions, and classes built from elements of pure codes,
+the fibres of a pure code being pure. (4) By the clause at $o$. (5) By (1). (6) At kind
+$o$ the supremum of countably many ordinals below $\Theta$ is below
+$\Theta$ because $\Theta$ is regular and uncountable; at the other kinds
+suprema and joins are pointwise and componentwise, so the claim follows
+by induction on the kind.
+\end{proof}
+
+\subsection{Pure profiles of terms}
+
+\begin{definition}\label{def:P}
+For a term $t$ with $\Gamma\vdash t:T$ and an assignment $\pi$ of a
+profile $\pi(x)\in D_{k(\Gamma(x))}$ to each variable, define
+$P_t(\pi)\in D_{k(T)}$ by recursion on $t$. Write $p\cdot q$ for $p(q)$
+when the product type of the function is big, and for $p$ when it is
+small (a small product has kind $o$, and by
+Lemma~\ref{lem:lhdbasic}(4) a bound for a function of kind $o$ bounds
+its values).
+\begin{itemize}
+\item $P_x(\pi):=\pi(x)$. Every proof, every proposition, and each of
+  $\Prop$, $\N$, $\mathbf n$, numerals, and $\mathbf k_{\mathbf n}$ has
+  profile $1$.
+\item $P_{f\,u}(\pi):=P_f(\pi)\cdot P_u(\pi)$.
+\item $P_{\lambda x{:}A.b}(\pi)$ is the function
+  $q\mapsto P_b(\pi[x{:=}q])$ on $D_{k(A)}$ if the product is big, and
+  $P_b(\pi[x{:=}1])$ if it is small.
+\item Pairs and projections are componentwise at a big sum; at a small
+  sum the profile of a pair is the maximum of the profiles of its
+  components and the profile of a projection is that of its argument.
+\item For a small type former, with $\beta:=P_A(\pi)$ and
+  $\beta':=P_B(\pi[x{:=}1])$, the profile of $\Pi x{:}A.B$ and of
+  $\Sigma x{:}A.B$ is $\min(\Theta,\max(\beta\cdot\omega,\beta')+\omega)$,
+  and the profile of $A/R$ is $\min(\Theta,\beta\cdot\omega+\omega)$.
+\item $P_{[a]_R}(\pi):=P_a(\pi)$, and
+  $P_{\mathsf{lift}_Cf\,h}(\pi)$ is $q\mapsto P_f(\pi)\cdot q$, or
+  $P_f(\pi)$ at a small product.
+\item $P_{\ind^{\mathbf n}_C\vec c}(\pi)$ is the constant function with
+  value $\bigsqcup_jP_{c_j}(\pi)$, or that value itself at a small
+  product. The branches have the same kind, the kind of $C$.
+\item $P_{\ind^\N_Cc\,g}(\pi)$ is the constant function with value
+  $\bigsqcup_n\mu_n$, or that value, where $\mu_0:=P_c(\pi)$ and
+  $\mu_{n+1}:=(P_g(\pi)\cdot1)\cdot\mu_n$.
+\item $P_{\ind^=_Cd}(\pi)$ is the function constantly $P_d(\pi)$ in both
+  arguments, or $P_d(\pi)$.
+\end{itemize}
+A big type is not a term of any type and has no profile.
+\end{definition}
+
+By induction on $t$, $P_t(\pi)$ is monotone in $\pi$, which is what
+makes the abstraction clause land in $D_{k(A)\to k(B)}$.
+
+\begin{lemma}[fundamental lemma]\label{lem:fund}
+Let $\Gamma\vdash t:T$ in $\CIC_2^-$. For every cut $\alpha$, every oracle
+$\X$, every environment $\rho$, and every $\pi$ with
+$\rho(x)\lhd_{k(\Gamma(x))}\pi(x)$ for all $x$:
+$\sem t^\X\rho\lhd_{k(T)}P_t(\pi)$.
+\end{lemma}
+\begin{proof}
+By induction on $t$. The environment need not be typed.
+\emph{Variables} by hypothesis. \emph{Proofs, propositions, constants:}
+the values are $\star$, truth values, or pure codes of finite rank, all
+$\lhd_o1$. \emph{Application.} If the product is big, the value is
+$F(A)$ with $F\lhd P_f$ and $A\lhd P_u$ by induction, so
+$F(A)\lhd P_f(P_u)$ by the clause for functions, or it is $\emptyset$. If
+the product is small, the value is a value of $F\lhd_oP_f$ or is
+$\emptyset$, and Lemma~\ref{lem:lhdbasic}(4),(2) apply.
+\emph{Abstraction at a big product.} The value is the function
+$a\mapsto\sem b^\X\rho[x{:=}a]$; if $a\lhd q$ then
+$\rho[x{:=}a]\lhd\pi[x{:=}q]$, so the induction hypothesis for $b$ gives
+$\sem b^\X\rho[x{:=}a]\lhd P_b(\pi[x{:=}q])$.
+\emph{Abstraction at a small product.} Then $A$ is small, so by
+induction $c:=\sem A^\X\rho\lhd_oP_A(\pi)$; so if $c$ is a code it is
+pure, and by Lemma~\ref{lem:lhdbasic}(3) every $a\in\El^\X(c)$ is
+$\lhd_o1$, while if $c$ is not a code there is no such $a$. So every value
+$\sem b^\X\rho[x{:=}a]$ is $\lhd_oP_b(\pi[x{:=}1])$, and the function is
+flat and bounded by it.
+\emph{Pairs and projections:} componentwise, a projection of a non-pair
+being $\emptyset$.
+\emph{Small type formers.} The value is $\code Q(c,G)$ with
+$c\lhd_o\beta$, so $c$ is pure; every $a\in\El^\X(c)$ is $\lhd_o1$, so each
+fibre, which is $\sem B^\X\rho[x{:=}a]$ or $\bot$, is
+$\lhd_o\beta'$ by induction, in particular pure. So the code is pure. If
+its rank is infinite and below $\alpha$ then so are the ranks of $c$ and
+of the fibres that have infinite rank, which are therefore below $\beta$
+and $\beta'$; the elements of $\El^\X(c)$ have rank below
+$\rk(c)\cdot\omega$; so the rank of the code is below
+$\max(\beta\cdot\omega,\beta')+\omega$, which is the clause at $o$ for a
+pure code. If $c$ is not a code the family is empty and the bound holds
+the more.
+For a quotient the relation is a function on $\El^\X(c)$ into functions
+into truth values, of rank below $\rk(c)\cdot\omega+\omega$.
+\emph{Classes:} $\sem{[a]_R}$ has the member $\sem a$. For
+$\mathsf{lift}_Cf\,h$ at a class $q\lhd p$, some member $a_0$ has
+$a_0\lhd p$, and the value is $F(a_0)$, the common value, or $\emptyset$.
+\emph{$\ind^{\mathbf n}$:} the value at $k$ is the value of $c_k$, bounded
+by the join by Lemma~\ref{lem:lhdbasic}(1).
+\emph{$\ind^\N$:} by induction on $n$ the value $v_n$ at $n$ is
+$\lhd\mu_n$, since $v_{n+1}=\sem g(n)(v_n)$, $n\lhd_o1$, and
+$\sem g\lhd P_g$; then Lemma~\ref{lem:lhdbasic}(5). If the argument is not
+a number the value is $\emptyset$.
+\emph{$\ind^=$:} the value at $x$ and $\star$ is $\sem d$ or undefined.
+\emph{Conversion:} convertible types have the same kind, so the
+statement for $t:A$ is the statement for $t:B$.
+\end{proof}
+
+\begin{lemma}[properness]\label{lem:proper}
+If every $\pi(x)$ is proper then $P_t(\pi)$ is proper.
+\end{lemma}
+\begin{proof}
+By induction on $t$, using Lemma~\ref{lem:lhdbasic}(6) and that
+$\Theta$, being an uncountable cardinal, is closed under
+$\beta\mapsto\beta\cdot\omega+\omega$. For an abstraction, if $q$ is proper
+then so is $\pi[x{:=}q]$.
+\end{proof}
+
+\subsection{The rank lemma and the closed ordinal}
+
+Closedness is as in Definition~\ref{def:closedord} with $N=0$ and no
+higher extents, a free variable $x{:}A$ being required to satisfy
+$\rho(x)\lhd_{k(A)}\hat\gamma_{k(A)}$. This is implied by $N$-content below
+$\gamma$ for an element of the decoding of the code of $A$, by induction
+on the structure of a big type, the base cases being a small type, whose
+code is pure by Lemma~\ref{lem:fund} applied along the context so that
+its elements are $\lhd_o1$, and $\Type_0$, whose elements are pure codes
+of rank below $\gamma$. In the step for a product the environment is
+extended by an element of the decoding of the domain, which is bounded
+by the top profile of its kind, by the same induction with $\Theta$ in
+place of $\gamma$; Lemma~\ref{lem:fund} does not need its profiles to be
+proper.
+
+\begin{theorem}[rank lemma for $\CIC_2^-$]\label{thm:rankcic2}
+$(\ZFC)$ Let $(\Gamma,t,\theta)$ be a triple of $\CIC_2^-$ and $\gamma$ an
+ordinal, and put $\Theta:=\max(|\gamma|,\omega)^+$. There is an ordinal
+$G_{t,\theta}(\gamma)<\Theta$ such that for every cut $\alpha$, every oracle,
+and every $\gamma$-generated environment $\rho$ for $(\Gamma,\theta)$: if
+$\sem t^\X\rho$ is a code of rank below $\alpha$ and at least $\omega$, then
+its rank is below $G_{t,\theta}(\gamma)$.
+\end{theorem}
+\begin{proof}
+$\Theta$ is a successor cardinal, hence regular, and $\gamma<\Theta$. By
+recursion on $\theta$ define $\pi_\theta$: a free variable $x{:}A$ gets
+$\hat\gamma_{k(A)}$, and a variable with the triple
+$(\Gamma_x,t_x,\theta_x)$ gets $P_{t_x}(\pi_{\theta_x})$, a profile of the
+kind of $x$ by the requirement on generation trees. By
+Lemma~\ref{lem:proper} every $\pi_\theta(x)$ is proper, and by
+Lemma~\ref{lem:fund}, applied at each node with that node's oracle,
+every $\gamma$-generated $\rho$ has $\rho(x)\lhd\pi_\theta(x)$; this uses
+that the relation does not depend on the oracle. So
+$\sem t^\X\rho\lhd P_t(\pi_\theta)$, which is proper. If $t$ has kind $o$,
+put $G_{t,\theta}(\gamma):=P_t(\pi_\theta)<\Theta$; a value that is a code
+of rank in $[\omega,\alpha)$ has rank below it by the clause at $o$. If
+$t$ has another kind then its value is not a code of infinite rank, by
+the clauses at $\kappa\to\kappa'$ and $\kappa\times\kappa'$, and any ordinal
+serves.
+\end{proof}
+
+\begin{corollary}\label{cor:omega1}
+$(\ZFC)$ For $\CIC_2^-$, every uncountable cardinal is $0$-closed; in
+particular $\lambda_0\le\omega_1$ exists.
+\end{corollary}
+\begin{proof}
+Let $\lambda$ be an uncountable cardinal and $\gamma<\lambda$. Then
+$\max(|\gamma|,\omega)^+\le\lambda$, so
+$\delta:=G_{t,\theta}(\gamma)<\lambda$ bounds the values of $t$ that are
+codes of rank below $\lambda$ in the structure cut at $\lambda$; and
+$\beta\cdot\omega<\lambda$ for $\beta<\lambda$.
+\end{proof}
+
+So the definable types of $\CIC_2^-$ have countable rank, uniformly in
+countable parameters, which is as it should be for a theory whose only
+recursion is on $\N$. With Theorem~\ref{thm:main}, specialised to one
+cut and kind-indexed oracles, this gives a model of $\CIC_2^-+\EM$ in
+$L$, hence $\ZF\vdash\Con(\CIC_2^-+\EM)$, subject to the rule-by-rule check
+of Lemma~\ref{lem:sound}. That consistency statement is not new; what
+the case establishes is that the definitions of
+Sections~\ref{sec:sem}--\ref{sec:model} are satisfiable and that the
+rank lemma can be proved by majorization when the two obstacles below
+are absent.
+
+\paragraph{What the general case adds.}
+\emph{$W$ and $\Acc$} replace the supremum over $\N$ by iterations of
+Hartogs length, which no single regular $\Theta$ below an inaccessible
+absorbs, since the length depends on a bound that is itself below
+$\Theta$; the iteration has to be performed in the universe, by
+Replacement, and the properness predicate replaced by a statement about
+families coherent in $\Theta$; and the inspection argument of
+Section~\ref{sec:ranklemma} is needed to bound the length.
+\emph{More universes} bring type variables of sort $\Type_{N+1}$ and
+types of that sort computed by recursion, so that the kind of a term is
+no longer fixed by its syntax: Lemma~\ref{lem:rigid} fails, and the
+profile of a polymorphic term is a family indexed by kinds. The
+universes being predicative, we expect kinds themselves to be
+stratified by level, a kind of level $j$ being a set-sized object built
+from the kinds of lower levels; this has not been worked out.
+
 \section{Examples}\label{sec:examples}
 
 \begin{example}[a climbing function]\label{ex:climb}
@@ -945,7 +1269,14 @@ proof and with adversarial oracles against closedness; this produced
 the clause that the types of a universe are hereditarily admitted
 (without it a tree over a type with an ungenerated family need not be
 generated) and nothing else.
-\emph{Open:} Conjecture~\ref{conj:rank}, on which the theorem depends.
+\emph{Proved in a special case:} the rank lemma for $\CIC_2$ without $W$
+and $\Acc$ (Theorem~\ref{thm:rankcic2}), with $\omega_1$ as the extent of
+$\Type_0$ (Corollary~\ref{cor:omega1}); its proof assumes the standard
+metatheory of the intensional theory, in Lemma~\ref{lem:rigid}.
+\emph{Open:} Conjecture~\ref{conj:rank} in general, on which the theorem
+depends; the two things the general case adds are listed at the end of
+Section~\ref{sec:proved}, and the next case to try is $\CIC_2$ with $W$ and
+$\Acc$, which has the first and not the second.
 \emph{Not attempted:} general inductive families; the refinement to
 finitely many universes, $\ZFh_{n+1}\vdash\Con(\CIC_{n+2}+\EM)$, which
 would close the hierarchy of \cite{paper2}.
