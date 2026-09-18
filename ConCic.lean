@@ -3,3 +3,6 @@ import ConCic.Mat
 import ConCic.Repl
 import ConCic.Rule
 import ConCic.NatInstance
+import ConCic.Pair
+import ConCic.Ord
+import ConCic.VLevel
