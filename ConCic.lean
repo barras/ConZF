@@ -8,4 +8,7 @@ import ConCic.Ord
 import ConCic.VLevel
 import ConCic.Worldly
 import ConCic.Fml
+import ConCic.Proof
+import ConCic.ZF
+import ConCic.ZFRead
 import ConCic.FirstOrder
