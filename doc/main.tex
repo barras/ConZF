@@ -108,11 +108,37 @@ with $\varphi(a,y_a)$, and a functional relation in $\Prop$ does not
 provide one, because propositions do not eliminate into types. A choice
 or description operator closes the gap, and with it the type theory
 with $n+2$ universes interprets $\ZFC$ with $n$ inaccessible cardinals
-\cite{werner97,barras10,carneiro19}. Without it, the gap between a
+\cite{werner97,barras10,carneiro19,kirstsmolka18,kirstsmolka19}. Without it, the gap between a
 functional relation and a function looks like exactly the gap between
 Zermelo set theory and $\ZF$, and the standard set-theoretic model, in
 which the universes are $V_\kappa$ for inaccessible $\kappa$, does not tell
 whether the inaccessibles are needed.
+
+\paragraph{Unique choice.}
+The gap is the principle of unique choice: a proof of
+$\forall x{\in}s\,\exists!y.\ \varphi(x,y)$ should yield a function, and
+whether it does depends on how propositions are read. In Martin-L\"of
+type theory, where propositions are types, the existential is a
+$\Sigma$-type, a proof of $\forall x\,\exists y\,\varphi$ already is a function,
+and Aczel's model validates Replacement and even Strong Collection
+\cite{aczel78}; but there is no impredicative universe, and the
+strength of these type theories is far below that of $\ZF$
+\cite{griffor94}. In homotopy type theory the propositions are the types
+with at most one element, and unique choice is provable, because the
+type of witnesses of a unique existence is itself a proposition. The
+cumulative hierarchy there satisfies Replacement, and with excluded
+middle it is a model of $\ZF$: the proof of \cite[Theorem~10.5.11]{hottbook}
+uses choice only to obtain excluded middle (see also \cite{gylterud18}
+for the same type built from $W$-types and univalence). In the Calculus
+of Inductive Constructions, propositions form an impredicative universe
+that does not eliminate into types, and Rocq and Lean provide unique
+choice only as an axiom, of description or of choice; this is what the
+models cited above assume. Without it the strength can be low: Martin-L\"of
+type theory with one universe, Aczel's type of sets, and an impredicative,
+proof-irrelevant type of propositions has the strength of Zermelo set
+theory together with the existence of $V_\tau$ for every $\tau$ below the
+Bachmann--Howard ordinal \cite{rathjen12}. That type theory has neither
+excluded middle nor propositions that eliminate into types.
 
 \paragraph{The result.}
 They are needed, in the sense that the type theory with two universes
@@ -645,6 +671,9 @@ Read bisimulation and membership with $\neg\neg\exists$ in place of $\exists$ at
 every level of the trees:
 \[x\approx y:\iff\forall i\,\neg\neg\exists j.\ x_i\approx y_j\ \wedge\ \forall j\,\neg\neg\exists i.\ x_i\approx y_j,
 \qquad x\in y:\iff\neg\neg\exists j.\ x\approx y_j.\]
+This is the device of the negative interpretations of $\ZF$ in
+intuitionistic set theory \cite{friedman73,powell75}, applied to the
+trees.
 Every statement built from these by $\forall$, $\to$, $\wedge$ and $\neg$ is then
 \emph{stable}, that is, it follows from its double negation, and a stable
 goal may be proved classically: a case distinction on any proposition,
@@ -781,7 +810,8 @@ $\ZFC$ to the literature. Intuitionistic set theory comes in two forms,
 which differ in how Replacement is stated. $\mathrm{IZF}$ has the schema of
 Collection: if $\forall x{\in}a\,\exists y\,\varphi(x,y)$, some set contains a witness for
 each $x\in a$. $\mathrm{IZF}_R$ has the schema of Replacement, for functional
-$\varphi$ only. Classically the two are equivalent, and Friedman's translation
+$\varphi$ only. Classically the two are equivalent; intuitionistically
+$\mathrm{IZF}_R$ does not prove Collection \cite{friedmanscedrov85}. Friedman's translation
 \cite{friedman73} gives $\Con(\mathrm{IZF})\to\Con(\ZF)$ for the form with
 Collection. This does not help with the two obstacles above: both already
 arise in proving Replacement for a functional relation, so we do not know
@@ -792,7 +822,12 @@ determined by the node, and for a functional relation the target is the
 rank of the value. For a relation that is not functional the only
 canonical choice would be the least rank of a witness, which is again a
 minimization. $\Con(\ZF)$ would then need a reduction of $\ZF$ to
-$\mathrm{IZF}_R$, which, as far as we know, is not known.
+$\mathrm{IZF}_R$. Whether $\mathrm{IZF}_R$ and $\mathrm{IZF}$ have the same strength is a
+longstanding open problem, and it has been conjectured that $\mathrm{IZF}$
+proves the consistency of $\mathrm{IZF}_R$ \cite{rathjen05,moczydlowski08}. If
+so, then by the second incompleteness theorem $\mathrm{IZF}$ does not prove
+$\Con(\mathrm{IZF}_R)\to\Con(\ZF)$, and the reduction would have to use more
+than $\mathrm{IZF}$.
 
 \begin{question}
 Does the type theory with no axioms prove $\neg\neg\forall x{:}\V.\ \Acc_\in x$ for the
@@ -802,7 +837,7 @@ stable membership? Does it prove $\Con(\ZF)$?
 \section{Discussion}\label{sec:discussion}
 
 \paragraph{What the first alternative says.}
-In the standard model of the type theory, where $\Type_0$ is
+In the standard model of the type theory \cite{werner97,leewerner11}, where $\Type_0$ is
 $V_\kappa$ for an inaccessible $\kappa$ and propositions are truth values,
 $\V$ is $V_\kappa$ and the first alternative of
 Theorem~\ref{thm:main} holds, as does the second. The first alternative
@@ -822,7 +857,7 @@ paths of $\V$ with a relation that mentions a parameter from $\V_1$,
 shows that $\kappa_0$ is a regular cardinal of $\V_1$, hence inaccessible
 there, and so on up the hierarchy, which would give $\ZF$ with $n$
 inaccessible cardinals from $n+2$ universes, matching the strength known
-with choice \cite{werner97,carneiro19}. This is not checked.
+with choice \cite{werner97,carneiro19,kirstsmolka19}. This is not checked.
 
 \begin{question}
 Is the type theory with $\omega$ universes and excluded middle, without
