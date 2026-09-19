@@ -270,6 +270,13 @@ $\in$-induction holds for every predicate on $\V$, whether or not it
 respects $\approx$. We never quotient: a \emph{set} is an element of $\V$,
 and the statements below are about $\approx$.
 
+Think of $\mathsf{sup}\,A\,f$ as a well-founded tree whose root has one
+subtree $f\,a$ for each $a:A$. Two trees are bisimilar if they differ
+only in the order and multiplicity of subtrees, hereditarily, and a set
+in the usual sense is a tree up to bisimilarity. The index type $\bar x$
+is part of the data of $x$: a set is presented as an enumeration of its
+elements, indexed by a small type.
+
 \paragraph{Operations.}
 All of the following are terms, with the expected membership
 conditions. The empty set; $\{A_i\mid i:\iota\}$ for a family indexed
@@ -282,6 +289,11 @@ $\bar x\to\Prop$, which is small because $\Prop$ is impredicative;
 $\omega$; and, for a proposition $P$ and $t:P\to\V$, the \emph{guard}
 \[\guard tP:=\textstyle\bigcup_{h:P}t\,h,\qquad
 z\in\guard tP\iff\exists h{:}P.\ z\in t\,h.\]
+The guard is a set-valued `if $P$ then $t$ else $\emptyset$' whose condition is
+never evaluated: when $P$ is false the union is over an empty index
+type. It is the one way in which a proposition enters a set without
+being decided, and it is used throughout.
+
 So $\V$ satisfies Zermelo set theory with Foundation, with Separation
 for all propositional predicates. With excluded middle, ordinals
 (transitive sets of transitive sets) are linearly ordered by $\in$. The
@@ -290,10 +302,63 @@ ordinal, and $\rk\eta\approx\eta$ for an ordinal $\eta$. The levels are given by
 the term $V_x:=\bigcup_i\mathcal P(V_{x_i})$, defined for every set
 $x$, with $y\in V_x$ iff $\rk y\in\rk x$. Note that $\rk$ and $V$ are
 functions because they are defined by recursion on \emph{data}. What
-$\V$ lacks is any way to obtain a set from a description of it.
+$\V$ lacks is any way to obtain a set from a description of it. A
+function into $\V$ must build the index type and the enumeration of its
+result, and a proof that exactly one set $y$ satisfies $\varphi(x,y)$ contains
+no such enumeration, since propositions do not eliminate into types.
+This is why Replacement fails to be evident, and the next section is
+about the one exception we have.
 
 \section{The materializing recursion}\label{sec:mat}
 
+This section and the next two carry out the plan of the introduction.
+Here a well-founded specification of an ordinal is turned into a term;
+Section~\ref{sec:repl} uses this to prove Replacement from a supply of
+specifications; and Section~\ref{sec:rule} produces the specifications.
+
+\paragraph{The idea.}
+Suppose an ordinal $\eta$ is given only by a proposition, and we want a
+term of type $\V$ that is bisimilar to it. An ordinal is the set of the
+smaller ordinals, but it is equally the union of the successors
+$\xi\cup\{\xi\}$ over any set of ordinals $\xi$ below $\eta$ that is cofinal in
+$\eta$, or that contains the predecessor if $\eta$ is a successor. So $\eta$
+could be computed by recursion, if a node standing for $\eta$ could name
+some children whose values are cofinal below $\eta$, compute those values
+recursively, and return the union of their successors. The values need
+not be all of $\eta$'s elements, only enough of them. The difficulty is
+the naming: the recursion calls itself on the children, so they must be
+data, and the recursion must produce the names without knowing $\eta$.
+
+Take a natural number $n$ first. The node makes one call, at a child
+named $\la$, and returns the successor of the value. Whether the child
+should exist, that is, whether $n>0$, is a proposition that the
+recursion cannot decide. So the shape of the tree is given by a relation
+$R$ on nodes, an arbitrary proposition, and the call at a child $c$ of $p$
+is guarded by $R\,c\,p$. If the guard fails the value is $\emptyset$, and
+otherwise it is the successor of the value at the child. For $\omega$ one
+call is not enough, and the node also calls children $\lb\,w$ for all
+$w\in V_\omega$, a set given by a term (below, it is $D(\emptyset)$); the child $\lb\,m$ for $m\in\omega$ has the
+value $m$, and the union of the successors is $\omega$. For an arbitrary
+limit $\eta$ no fixed supply of names works, since a cofinal family must
+be indexed by a set that grows with $\eta$. The node therefore first calls
+the child $\la$ and uses its value $G$, an ordinal below $\eta$ but possibly
+large, to compute a supply $D(G)$ of names, and then calls a child $\lb\,w$
+for every $w\in D(G)$. It is like a program that first computes a bound
+by a recursive call and then allocates an array of that size, filling
+each entry by another recursive call. The relation $R$ says which of
+these children exist, and so which of the names are used.
+
+A third kind of label, $\lc\,x$ for $x$ in a set $U$ fixed in advance, lets
+a node branch over a set that it does not compute. It is used only at
+the root, in the proof of Replacement, where $U$ is the domain of the
+relation and the root has one child for each of its elements.
+
+A node is named by its path from the root, a list of labels. The
+recursion is on accessibility for $R$ on paths, so it may run through a
+tree of any height; the targets, the ordinals the nodes stand for, are
+not data and play no role in the computation.
+
+\paragraph{The recursion.}
 Fix a term $D:\V\to\V$ and a set $U:\V$. In the application $D(G)$
 is $V_{\rk G+\omega}$ and $U$ is the domain of a functional relation.
 
@@ -324,6 +389,18 @@ guarded by the proposition that the child is below $p$, which the step
 cannot prove and does not need to decide. The value is the union of the
 successors of the values of the calls whose guard holds.
 
+\paragraph{Specifications.}
+The recursion computes something for every $R$, and to say what, we
+describe the intended value of each node by a proposition. A
+\emph{target assignment} says which set each path is meant to compute. It
+plays the role of the specification of a recursive program, and
+coherence is the verification condition saying that one step meets the
+specification if the recursive calls do. A path with no target is a
+node that should not exist, and the shape of the tree is read off from
+the assignment: a child exists iff it has a target. Targets are given
+by a relation, not a function, because they are specified by
+propositions.
+
 \begin{definition}[\lean{Coherent}]\label{def:coherent}
 A \emph{target assignment} is a relation $\tau$ between paths and sets.
 We say that $p$ \emph{has the target} $t$ if $\tau\,p\,t$. Its relation is
@@ -345,9 +422,16 @@ The assignment is \emph{coherent} if
 \end{enumerate}
 \end{definition}
 
-A coherent assignment is a proposition about a relation. No part of it
-is data, and it may be defined using any quantifiers. Condition (3) does
-not require the parent of a path with a target to have one.
+In words: (1) the target of a path is determined up to $\approx$; (2)
+labels that are equal as sets name the same node; (3) targets decrease
+along the tree, which, like a decreasing measure for a recursive
+program, will give accessibility by $\in$-induction; and (4) if every
+child returns its target, the step returns the target of the parent. In
+(4), $G$ is what the first call returns and the available labels are
+those at which the step calls. A coherent assignment is a proposition
+about a relation. No part of it is data, and it may be defined using any
+quantifiers. Condition (3) does not require the parent of a path with a
+target to have one.
 
 \begin{lemma}[materialization; \lean{materialize}]\label{lem:mat}
 If $\tau$ is coherent and $p$ has the target $t$, then $p$ is
@@ -373,6 +457,25 @@ the children $\lb\,w$ range over $D(G)$, which may be much larger than
 anything seen so far, and so on below them.
 
 \section{Replacement from uniform assignments}\label{sec:repl}
+
+Let $\varphi$ be functional on a set $s$, and suppose that for each $x\in s$ the
+rank $\eta_x$ of the value at $x$ has a coherent assignment specifying it. We
+want a set containing all the $\eta_x$. Build one tree: the root has a
+child $\lc\,x$ for each $x\in s$, and below that child is the tree
+specifying $\eta_x$. The root itself gets no target, because its target
+would be the supremum of the $\eta_x$, whose existence is what we are
+proving. It does not need one. Accessibility of a node only asks for
+accessibility of its children, so the root is accessible, the recursion
+returns a term there, and unfolding one step shows that the term is the
+supremum. The specification is needed below the root but not at it.
+
+One point needs care. The combined tree must be described by a single
+proposition, which says of a path through $\lc\,x$ that $x\in s$, that $\eta$ is
+the rank of the value at $x$, and that the rest of the path has a given
+target under the assignment for $\eta$. So the assignments must be given
+for all $\eta$ at once, as one relation $T_\eta$ with $\eta$ as a parameter: we
+cannot pick an assignment for each $x$, since that would be a choice
+over $s$. This is the role of the family $T$ in the theorem.
 
 \begin{theorem}[\lean{replacement}]\label{thm:repl}
 Let $C$ be a class of sets and $T_\eta$ a target assignment for each set
@@ -401,6 +504,12 @@ $\{y\in\theta\mid\exists x\in s.\ \varphi(x,y)\}$.
 \end{proof}
 
 The assignments will come from a rule that acts at one node at a time.
+A rule says, given the target $\eta$ of a node, which labels have children
+and what their targets are; unfolding it from the root gives an
+assignment, uniformly in $\eta$. Think of it as a strategy for descending
+from an ordinal: at each node, name some smaller ordinals that are
+cofinal below it, using names the step can produce from the first
+value.
 
 \begin{lemma}[\lean{Rule.coherent}]\label{lem:rule}
 Let $r(\eta,l,\xi)$ be a relation, the \emph{rule}, which determines $\xi$ up
@@ -426,9 +535,35 @@ $\zeta+1$ one child with target $\zeta$ suffices, and at $\omega$ the children c
 be indexed by the natural numbers. At any other limit $\eta$ the children
 must have targets cofinal in $\eta$, their labels must come from $D(G)$,
 and $G$, being the target of a child, is below $\eta$. So the rule must
-send sets of rank below $\eta$ cofinally into $\eta$, definably in $\eta$. It
-cannot select one cofinal map, since $\ZF$ has no definable choice of a
-cofinal map into a singular ordinal. The solution is not to select.
+send sets of rank below $\eta$ cofinally into $\eta$, definably in $\eta$. We
+know of no definable way to select one cofinal map. The evident way uses
+a definable well-order of the universe, and $\ZF$ does not provide one:
+it is consistent, even with the axiom of choice, that there is no
+definable well-order of the reals \cite{feferman65}. (A first version of
+the construction worked inside G\"odel's $L$, where there is such a
+well-order, selected the least cofinal map, and obtained a model of
+$\ZFC$ inside $L$.) The solution is not to select, and the rule below
+needs neither $L$ nor choice.
+
+Instead the node at $\eta$ takes \emph{every} cofinal map of a certain
+kind, one that can be named by data of rank below $\eta$; whichever map one
+would have liked to choose, it is among them. A map is named by a set
+$q$, a code, together with its domain $s$. The codes are interpreted by a
+single relation $I$ fixed in advance: $I(\eta,q,x,y)$ says that the
+function named by $q$, evaluated over $V_\eta$, sends $x$ to $y$. It is an
+evaluator whose programs are sets. The rule works for any $I$, and in
+Section~\ref{sec:zf} it is first-order satisfaction in $V_\eta$, with $q$
+coding a formula and its parameters. That choice makes the failure of
+the rule useful: if no function named by a code of rank below $\eta$ is
+unbounded in $\eta$, then $V_\eta$ satisfies Replacement for every formula.
+
+The first call supplies the names. The label $\lb\,w$ at $\eta$ is a triple
+$\langle q,s,x\rangle$: a code, a domain, and a point of the domain, with the
+rank of the value at $x$ as its target. The first value $G$ must be large
+enough that $D(G)=V_{\rk G+\omega}$ contains these triples, and, being a
+target, it must be determined by $\eta$. The least ordinal $\nu$ such that
+some code and domain of rank below $\nu$ give an unbounded map has both
+properties.
 
 \begin{definition}[\lean{Unb}, \lean{Reach}, \lean{G$\nu$}]
 Fix a relation $I(\eta,q,x,y)$ respecting $\approx$, read as ``$y$ is the value
@@ -461,6 +596,22 @@ cases and no others.
   at $x$.
 \end{enumerate}
 \end{definition}
+
+\paragraph{Example.}
+Take $\eta=\omega+\omega$. It is not a successor and not $\omega$. The formula
+$\psi(x,y)$ saying that $x\in\omega$ and $y=\omega+x$ defines over $V_\eta$ a function
+on $\omega$ with values cofinal in $\eta$. Its code $q$ has finite rank and
+$\omega$ has rank $\omega$, so $\eta$ is reached from $\omega+1$; it is reached from no
+smaller ordinal, since a function on a set of finite rank has finitely
+many values. So the root has the child $\la$ with target $\omega+1$, and a
+child $\lb\,\langle q',s',x\rangle$ for every unbounded pair $(q',s')$ and $x\in s'$. The
+step calls those named in $D(\omega+1)$, among them $\lb\,\langle q,\omega,n\rangle$ with
+target $\omega+n$. Below a node with target $\omega+n$ a chain of children $\la$
+descends to $\omega$, whose children $\lb\,w$, for $w$ of finite rank, have the
+finite targets $\rk w$. The
+recursion never sees $\eta$. It computes $\omega+1$ at the child $\la$ of the
+root, then $V_{\omega+1+\omega}$, then calls every child named by an element of
+it, and the tree tells it which of those calls succeed.
 
 \begin{lemma}[\lean{worldly\_rule}]\label{lem:worldlyrule}
 Assume excluded middle. Let $C$ be the class of ordinals $\eta$ such that
