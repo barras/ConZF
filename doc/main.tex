@@ -1,12 +1,26 @@
 \documentclass[10pt]{article}
 
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 \usepackage[english]{babel}
-\usepackage[margin=1in]{geometry}
-\usepackage{amsmath,amsthm,amssymb,stmaryrd}
-\usepackage{hyperref,enumitem,xcolor}
-
-\hypersetup{colorlinks,linkcolor={red!50!black},citecolor={blue!50!black},urlcolor={blue!80!black}}
+\usepackage[a4paper,text={15cm,23cm},centering]{geometry}
+\usepackage{amsmath,amsthm}
+% Libertinus for text, matching newtx math, Inconsolata for code.
+\usepackage{libertinus}
+\usepackage[libertine]{newtxmath}
+\usepackage[varqu,varl,scaled=0.95]{zi4}
+\usepackage{stmaryrd}
+\usepackage[protrusion=true,expansion=true]{microtype}
+\usepackage{enumitem,xcolor}
+% Sans-serif headings.
+\usepackage[explicit]{titlesec}
+\titleformat{\section}{\normalfont\sffamily\large\bfseries}{\thesection}{0.8em}{#1}
+\titleformat{name=\section,numberless}{\normalfont\sffamily\large\bfseries}{}{0em}{#1}
+\titleformat{\paragraph}[runin]{\normalfont\sffamily\bfseries}{}{0em}{#1}
+\titlespacing*{\section}{0pt}{2.2ex plus .6ex minus .2ex}{1.1ex plus .2ex}
+\titlespacing*{\paragraph}{0pt}{1.4ex plus .4ex minus .2ex}{0.6em}
+\definecolor{linkblue}{rgb}{0.10,0.25,0.55}
+\usepackage[colorlinks,linkcolor=linkblue,citecolor=linkblue,urlcolor=linkblue]{hyperref}
 
 % Plain amsthm: thmtools 0.76 fails with the 2026-06-01 LaTeX kernel on shared counters.
 \newtheorem{theorem}{Theorem}[section]
@@ -25,6 +39,7 @@
 \newcommand{\Type}{\mathsf{Type}}
 \newcommand{\ZF}{\mathrm{ZF}}
 \newcommand{\ZFC}{\mathrm{ZFC}}
+\newcommand{\CIC}{\mathrm{CIC}}
 \newcommand{\EM}{\mathrm{EM}}
 \newcommand{\Con}{\mathrm{Con}}
 \newcommand{\rk}{\operatorname{rank}}
@@ -38,11 +53,10 @@
 
 \begin{document}
 
-\title{Accessibility proves Replacement:\\
-  \large the consistency of $\ZF$ in type theory with excluded middle and no choice}
+\title{\sffamily\bfseries CIC + EM $\boldsymbol{\vdash}$ Con(ZF):\\[0.3ex]
+  \normalfont\sffamily\large the consistency of ZF in type theory with excluded middle and no choice}
 \author{Mario Carneiro}
-% Drafted with Claude; adjust authorship/acknowledgement as you see fit.
-\date{Draft, \today}
+\date{\today}
 \maketitle
 
 \begin{abstract}
@@ -135,7 +149,7 @@ constructor $(\forall y.\ R\,y\,x\to\Acc_R\,y)\to\Acc_R\,x$, and its eliminator
 defines a function on the accessible elements of $X$ with values in any
 type, by recursion on $R$. This is what makes well-founded recursion
 available, and it is known to extract information from propositions:
-the standard library of Coq obtains a witness of $\exists n.\,P\,n$, for
+the standard library of Rocq obtains a witness of $\exists n.\,P\,n$, for
 decidable $P$ on $\N$, by recursion on a proof of an inductive
 proposition of the same kind \cite{constructiveepsilon}. That is unbounded search, and it needs the
 decidability of $P$ to know when to stop.
@@ -839,9 +853,37 @@ $\Type_0$?
 \paragraph{Other systems.}
 The argument uses nothing specific to Lean: an impredicative $\Prop$,
 inductive types, and large elimination for accessibility are also
-present in Coq and its successor Rocq, where the sets-as-trees have been
+present in Rocq, where the sets-as-trees have been
 studied extensively \cite{werner97,barras10}. We expect the development
 to port directly, with excluded middle as the only assumption.
+
+\paragraph{Acknowledgements.}
+The author thanks Lo\"{\i}c Pujet for many discussions on the
+consistency strength of $\CIC$ and its fragments, which prompted this
+work.
+
+\paragraph{AI disclosure.}
+This work was carried out in collaboration with Anthropic's Claude
+models (Claude Fable~5.1 and Claude Opus~5), used through Claude Code.
+The research direction, the questions pursued, and the decisions about
+what to prove and how to state it were the author's; several of the
+constructions were proposed by the model in the course of the work,
+among them the materializing recursion of Section~\ref{sec:mat} and the
+definability rule of Section~\ref{sec:rule}, while others came from the
+author, among them the single model of Section~\ref{sec:zf} and the
+reduction of the remaining hypothesis to the accessibility of membership
+in Section~\ref{sec:em}. The Lean development was written largely by
+the model, with revisions by the author, and the text of this paper was
+drafted by the model and revised by the author.
+
+The main result does not rest on the model's reasoning: it is checked
+by Lean, with the axioms used reported by the kernel. Several earlier
+arguments produced during the work turned out to be wrong, and one gap
+in a pen-and-paper proof was found only by formalizing it. The claims
+of Sections~\ref{sec:em} and~\ref{sec:discussion} that are not
+formalized, and the statements about the literature, have not been
+checked in the same way; they are marked as expectations where we have
+not verified them.
 
 \bibliographystyle{plain}
 \bibliography{references}
