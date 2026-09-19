@@ -66,7 +66,10 @@ rule that produces such a tree for every ordinal, unless some $V_\rho$ is
 already a model of $\ZF$; the rule does not choose a cofinal map into a
 limit ordinal but takes all definable ones at once. In the first case
 the sets-as-trees satisfy Replacement for arbitrary propositional
-relations. Either way $\ZF$ has a model.
+relations. Either way $\ZF$ has a model. Finally, the double negation of
+excluded middle suffices, and what remains of it is exactly that
+membership is not not well-founded in the stable reading of sets; this
+in turn implies the double negation of Markov's principle.
 \end{abstract}
 
 \section{Introduction}
@@ -196,6 +199,7 @@ theorem PSet.con_ZF (em : forall p : Prop, p \/ Not p) : Con ZF
 and Lean reports that it depends on no axioms. Everything in
 Sections~\ref{sec:sets} to~\ref{sec:zf} is formalized; the text follows
 the formal development and names the corresponding declarations.
+Section~\ref{sec:em} reports on removing excluded middle.
 
 \section{Sets as trees}\label{sec:sets}
 
@@ -579,7 +583,7 @@ of dependency:
 \lean{ZF}, \lean{ZFRead} & 275 & the axioms, models, readback of the axioms\\
 \lean{FirstOrder} & 263 & $I$, Lemma~\ref{lem:vrho}, Theorem~\ref{thm:main}\\
 \lean{Uniform} & 131 & the single model $H$\\
-\lean{Stable}, \lean{Negative} & 123 & see the paragraph on excluded middle in Section~\ref{sec:discussion}
+\lean{Stable}, \lean{Negative} & 123 & $\neg\neg\EM$ suffices, Section~\ref{sec:em}
 \end{tabular}
 \end{center}
 Excluded middle is never an axiom. It is a hypothesis
@@ -604,6 +608,182 @@ The universe level of $\V$ is a parameter throughout, and the main
 theorem is proved at level $0$, where $\V:\Type_1$. The recursion $F$ is
 an application of \lean{Acc.rec} with carrier the type of paths and
 motive the constant $\V$, both in $\Type_1$.
+
+\section{How much excluded middle is needed}\label{sec:em}
+
+Excluded middle is the only hypothesis of Theorem~\ref{thm:main}. We
+report what we know about removing it. The results in this section that
+are marked as formalized are proved in Lean with no axioms; some of them
+are on the branch \lean{no-em} of the repository, which carries out the
+whole construction over the stable relations described below, and one
+is due to Cameron Zwarich \cite{zwarich26}.
+
+\paragraph{Double negation suffices.}
+$\Con(\ZF)$ is a negation, so it follows from $\neg\neg\EM$, the double
+negation of excluded middle. This is equivalent to the double negation
+shift $(\forall x.\,\neg\neg A\,x)\to\neg\neg\forall x.\,A\,x$ for predicates on
+arbitrary types (\lean{con\_ZF\_of\_not\_not\_em}, \lean{con\_ZF\_of\_dns}).
+The question is therefore whether the type theory proves $\Con(\ZF)$
+with no hypothesis at all.
+
+\paragraph{The stable reading of sets.}
+Read bisimulation and membership with $\neg\neg\exists$ in place of $\exists$ at
+every level of the trees:
+\[x\approx y:\iff\forall i\,\neg\neg\exists j.\ x_i\approx y_j\ \wedge\ \forall j\,\neg\neg\exists i.\ x_i\approx y_j,
+\qquad x\in y:\iff\neg\neg\exists j.\ x\approx y_j.\]
+Every statement built from these by $\forall$, $\to$, $\wedge$ and $\neg$ is then
+\emph{stable}, that is, it follows from its double negation, and a stable
+goal may be proved classically: a case distinction on any proposition,
+and the use of a doubly negated hypothesis as if it held, are available
+without excluded middle. Extensionality holds, and $\in$-induction holds
+for stable predicates. On the branch \lean{no-em} the whole construction
+is redone in this reading, and every use of excluded middle except one
+disappears.
+\begin{itemize}
+\item The theory of ordinals goes through, with trichotomy in the form
+  $\neg\neg(a\in b\vee a\approx b\vee b\in a)$, and so do rank, the levels $V_x$
+  and their characterization by rank.
+\item Satisfaction of formulas built from $\bot$, $\to$ and $\forall$ is stable,
+  so double negation elimination is sound and the derived connectives
+  have their classical reading.
+\item The definability rule needs no case distinction between zero,
+  successor and limit ordinals. An ordinal is \emph{good} if it is
+  reachable as soon as it has an element. The label set is
+  $D(G)=V_{\max(\rk G,\omega)+\omega}$, which contains $G$ and $\omega$ and is closed
+  under pairs, and ``reached from $\nu$'' asks that the code and the domain
+  of the function be elements of $D(\nu)$, so that no rank arithmetic is
+  needed. That successors and $\omega$ are reachable is then a fact about
+  first-order definability (a constant function, the identity on $\omega$),
+  not a case of the rule.
+\item There is a single model, the class $H$ of the sets of hereditarily
+  good rank, as in Section~\ref{sec:zf}. In the Replacement step, that the
+  supremum $\theta$ of the ranks of the values is good is still proved by
+  contradiction: otherwise $H$ would be $V_\theta$, and the function itself
+  would reach $\theta$. Since being good is stable, this costs nothing here.
+\end{itemize}
+The materialization lemma and Theorem~\ref{thm:repl} were constructive to
+begin with.
+
+\paragraph{What is left: accessibility of membership.}
+Accessibility is not a stable proposition, and it is needed as such,
+because the bounding set is the value of the recursion at the root and
+the recursion consumes an accessibility proof. In the stable reading
+the proof of Lemma~\ref{lem:mat} gives the value of the recursion for
+any accessibility proof, but no longer the accessibility itself. What
+remains is isolated as follows. Say that a target assignment has the
+\emph{descent condition} if the target of a child is an element of the
+target of its parent.
+\begin{enumerate}
+\item The type of paths is needed as the carrier of the recursion,
+  because a step must produce its children as terms and the targets are
+  not terms; but it is not needed for the well-foundedness. If $\tau$ has
+  the descent condition and $p$ has the target $t$, then $p$ is accessible
+  as soon as $t$ is accessible for $\in$ (\lean{acc\_of\_desc}).
+\item Let \lean{AccHyp} say that the root of every target assignment with
+  the descent condition is not not accessible. Then
+  \lean{con\_ZF (hacc :\ AccHyp) :\ Con ZF}, with no axioms.
+\item \lean{AccHyp} is equivalent to the statement that membership is not
+  not well-founded, $\neg\neg\forall x{:}\V.\ \Acc_\in x$ (\lean{accHyp\_iff\_mem\_wf}):
+  for the converse, apply it to the assignment whose paths are the
+  descending $\in$-chains of sets.
+\end{enumerate}
+So, over the type theory with no axioms,
+\[\neg\neg\EM\ \Longrightarrow\ \neg\neg\forall x{:}\V.\ \Acc_\in x\ \Longrightarrow\ \Con(\ZF),\]
+where $\in$ is the stable membership, and the middle statement is
+$\in$-induction for predicates that need not be stable. Structural
+induction on trees gives accessibility of every $x_j$, and $\Acc$ respects
+$\approx$; but $y\in x$ only says that it is not the case that no $j$ has
+$y\approx x_j$, so the step gives $\neg\neg\Acc_\in y$ and not $\Acc_\in y$.
+
+\paragraph{Markov's principle.}
+Cameron Zwarich observed \cite{zwarich26} that accessibility of
+membership has logical strength of its own: if $\omega$ is accessible for
+the stable membership, Markov's principle holds,
+\[\bigl(\forall n.\,P\,n\vee\neg P\,n\bigr)\to\neg\neg\exists n.\,P\,n\to\exists n.\,P\,n,\]
+with the witness even in $\Type$ when $P$ has a decision procedure. The
+argument is the mechanism of this paper in miniature. For $k\in\N$ let
+\[s_k:=\textstyle\bigcup_{d\in\N}\guard{d}{\text{$d$ is the least $e$ with $P\,(k+e)$}},\]
+a term, which is bisimilar to the remaining length of the search when it
+exists. Given $\neg\neg\exists n.\,P\,n$, the set $s_0$ is an element of $\omega$, and if
+$P\,k$ fails then $s_{k+1}\in s_k$. A recursion on the accessibility of
+$s_0$ that decides $P\,k$ at each step then finds the witness. The guard
+lets a term denote a number that is only classically determined, and
+honest accessibility runs an unbounded search along it. Consequently
+\lean{AccHyp} implies the double negation of Markov's principle for all
+decidable predicates on $\N$ at once, and the double negation shift for
+families of decidable searches indexed by any type.
+
+This locates the hypothesis between two known principles:
+\[\neg\neg\EM\ \Longrightarrow\ \lean{AccHyp}\ \Longrightarrow\ \neg\neg\,\mathrm{MP},\]
+where $\mathrm{MP}$ is Markov's principle for all decidable predicates. Markov's
+principle is not provable in Martin-L\"of type theory
+\cite{coquandmannaa16}, and we expect, without having checked it, that
+the same holds for Lean's core; in that case the honest statement
+$\forall x.\,\Acc_\in x$ is not provable. Whether the doubly negated form, or
+$\Con(\ZF)$ itself, is provable with no hypothesis is open. A proof of the
+latter would have to avoid accessibility of membership, or use a
+different source of large elimination.
+
+\paragraph{Positive membership.}
+With the membership of Section~\ref{sec:sets}, with a positive existential, $\in$ is well-founded outright by structural induction, and the
+descent condition gives accessibility of the root directly. The uses of
+excluded middle are then elsewhere, and two of them are essential to the
+construction as it stands.
+\begin{itemize}
+\item The target of the child $\la$ is the \emph{least} ordinal from
+  which the node's target is reached, a minimization over an undecidable
+  property. Its role is to provide data from which the labels of the
+  other children are enumerated, and its target must be an element of
+  the node's target, determined by the node's target alone. The
+  supremum of all such ordinals is the node's target itself, and a
+  relation with several targets per path breaks the accessibility
+  argument, since the target of a child descends from a different
+  target of the parent than the one the induction is about. Taking an
+  honest subset instead of a member leads to chains whose accessibility
+  is again an unbounded search. We expect that the minimization can be
+  avoided by growing the pool of labels in $\omega$ rounds, closing under
+  the ordinals definable from the current pool, but we have not checked
+  this.
+\item That the supremum $\theta$ of the ranks of the values is good is
+  proved by contradiction. The function at hand is definable over the
+  model, while reachability asks for one definable over $V_\theta$; they
+  agree when the model is $V_\theta$, which is the case distinction. Making
+  reachability refer to the model itself is circular, and satisfaction
+  in a class is not monotone in the class, so there is no fixed point to
+  take. A positive inductive definition of the model gives several
+  targets per path, and then the tree is not even classically
+  well-founded: the ordinal $m$ is the supremum of the constant function
+  with value $m-1$ on a one-element domain, so a single label admits every
+  finite ordinal as a target. The classical proof avoids a reflection
+  argument here, and reflection is what Replacement provides. For formulas
+  whose quantifiers are bounded (with the power set as a primitive),
+  whose meaning does not depend on the model, we expect the
+  corresponding instances of Replacement to have a positive proof.
+\end{itemize}
+One could hope to build, with positive membership, a model of an
+intuitionistic set theory, and to obtain $\Con(\ZF)$ from the known
+reduction of $\ZF$ to it, just as we defer the construction of $L$ for
+$\ZFC$ to the literature. Intuitionistic set theory comes in two forms,
+which differ in how Replacement is stated. $\mathrm{IZF}$ has the schema of
+Collection: if $\forall x{\in}a\,\exists y\,\varphi(x,y)$, some set contains a witness for
+each $x\in a$. $\mathrm{IZF}_R$ has the schema of Replacement, for functional
+$\varphi$ only. Classically the two are equivalent, and Friedman's translation
+\cite{friedman73} gives $\Con(\mathrm{IZF})\to\Con(\ZF)$ for the form with
+Collection. This does not help with the two obstacles above: both already
+arise in proving Replacement for a functional relation, so we do not know
+how to build a model even of $\mathrm{IZF}_R$ with positive membership. And
+even if they were overcome, the materializing recursion could only
+produce $\mathrm{IZF}_R$, not $\mathrm{IZF}$. It needs the target of each child to be
+determined by the node, and for a functional relation the target is the
+rank of the value. For a relation that is not functional the only
+canonical choice would be the least rank of a witness, which is again a
+minimization. $\Con(\ZF)$ would then need a reduction of $\ZF$ to
+$\mathrm{IZF}_R$, which, as far as we know, is not known.
+
+\begin{question}
+Does the type theory with no axioms prove $\neg\neg\forall x{:}\V.\ \Acc_\in x$ for the
+stable membership? Does it prove $\Con(\ZF)$?
+\end{question}
 
 \section{Discussion}\label{sec:discussion}
 
@@ -655,46 +835,6 @@ Does $\ZF$ prove the consistency of the type theory with excluded
 middle, without choice, in which $\Acc$ is restricted to carriers in
 $\Type_0$?
 \end{question}
-
-\paragraph{Excluded middle.}
-Since $\Con(\ZF)$ is a negation, it follows from the double negation of
-excluded middle, which is equivalent to the double negation shift
-$(\forall x.\,\neg\neg A\,x)\to\neg\neg\forall x.\,A\,x$ for predicates on arbitrary types
-(\lean{con\_ZF\_of\_dns}). Whether the type theory proves $\Con(\ZF)$ with
-no hypothesis is open, and we can say where the difficulty lies. Most
-uses of excluded middle can be removed by a negative translation: read
-bisimulation and membership with $\neg\neg\exists$ in place of $\exists$ at every
-level of the trees (\lean{NEquiv}, \lean{NMem}); then every statement
-about sets is stable under double negation, so it may be proved
-classically, the semantics of formulas built from $\bot$, $\to$ and $\forall$
-validates double negation elimination, and the case distinction of
-Theorem~\ref{thm:dich} is only needed doubly negated. This includes
-the theory of ordinals. The materialization lemma and
-Theorem~\ref{thm:repl} are constructive as they stand.
-
-The one statement that is not stable is accessibility. It is needed as
-such, or at least doubly negated at the root, because the set that
-bounds the ranks is the value of the recursion at the root. In
-Lemma~\ref{lem:mat} accessibility is proved by $\in$-induction on the
-target, from condition (3) of Definition~\ref{def:coherent} read with an
-actual index: the target of a child is bisimilar to \emph{this} element
-of the target of its parent. The targets produced by the rule are
-specified by propositions (a least ordinal, the rank of the value of a
-definable function), and after the translation a child's target is only
-known not to fail to be an element. Induction along the translated
-membership holds for stable predicates (\lean{nmem\_induction}) and not
-for accessibility: passing from ``every child is not not accessible'' to
-``not not every child is accessible'' is an instance of the double
-negation shift. This is not an artefact. For the search relation of a
-decidable predicate $P$ on $\N$, the root is accessible iff $\exists k.\,P\,k$
-(\lean{exists\_of\_acc\_search}), so the principle that a relation which
-is well-founded for stable predicates is accessible contains Markov's
-principle, and its doubly negated form contains the double negation
-shift for $\forall n\,\exists k.\,P\,n\,k$. We do not know whether the particular
-instance needed here is provable. A proof of $\Con(\ZF)$ without any
-hypothesis would seem to need either a way to make the descent of
-targets honest, which a specification by propositions resists, or a
-different source of large elimination.
 
 \paragraph{Other systems.}
 The argument uses nothing specific to Lean: an impredicative $\Prop$,
