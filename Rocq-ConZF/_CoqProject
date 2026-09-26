@@ -11,5 +11,6 @@ NatInstance.v
 Fml.v
 ZF.v
 FirstOrder.v
+Uniform.v
 #HoZF.v
 #FmlSet.v

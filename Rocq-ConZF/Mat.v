@@ -20,7 +20,8 @@ Inductive Label_Equiv : Label -> Label -> Prop :=
 
 (*- A path, deepest label first. The carrier of the recursion; it lives in `Type (u+1)`,
 the same universe as `PSet`. *)
-Abbreviation Path := (list Label).
+Notation Path := (list Label).
+(*Abbreviation Path := (list Label).*)
 
 Section S.
 Variable (D : PSet -> PSet) (U : PSet).
@@ -98,69 +99,92 @@ Lemma mem_step_iff {τ : Path -> PSet -> Prop} (hτ : Coherent τ) {p : Path}
     (hrec : forall c h t, τ c t -> rec c h ≈ t) (x : PSet) :
     x ∈ step (Rel τ) p rec <->
       exists l t', Avail (stepG (Rel τ) p rec) l /\ τ (l :: p) t' /\ x ∈ succ t'.
-Admitted.
-(*
-  := by
-  have hcall : forall l, x ∈ call (Rel τ) p rec l ↔ ∃ t', τ (l :: p) t' ∧ x ∈ succ t' := by
-    intro l
-    refine mem_guard.trans ⟨?_, ?_⟩
-    · rintro ⟨h, hx⟩
-      have ⟨_, _, t', ht'⟩ := h
-      exact ⟨t', ht', (mem_succ_congr (hrec _ h _ ht')).1 hx⟩
-    · rintro ⟨t', ht', hx⟩
-      have h : Rel τ (l :: p) p := ⟨l, rfl, t', ht'⟩
-      exact ⟨h, (mem_succ_congr (hrec _ h _ ht')).2 hx⟩
-  refine mem_union.trans <|
-    (or_congr_right <| mem_union.trans <| or_congr mem_iUnion mem_iUnion).trans ⟨?_, ?_⟩
-  · rintro (h | ⟨i, h⟩ | ⟨j, h⟩)
-    · have ⟨t', h1, h2⟩ := (hcall _).1 h
-      exact ⟨_, t', .inl rfl, h1, h2⟩
-    · have ⟨t', h1, h2⟩ := (hcall _).1 h
-      exact ⟨_, t', .inr (.inl ⟨_, func_mem _ i, .b (Equiv.refl _)⟩), h1, h2⟩
-    · have ⟨t', h1, h2⟩ := (hcall _).1 h
-      exact ⟨_, t', .inr (.inr ⟨_, func_mem _ j, .c (Equiv.refl _)⟩), h1, h2⟩
-  · rintro ⟨l, t', hl | ⟨w, ⟨i, e⟩, hl⟩ | ⟨y, ⟨j, e⟩, hl⟩, h1, h2⟩
-    · subst hl
-      exact .inl ((hcall _).2 ⟨t', h1, h2⟩)
-    · refine .inr (.inl ⟨i, (hcall _).2 ⟨t', ?_, h2⟩⟩)
-      cases hl with | b hl => exact hτ.lab (.b (hl.trans e)) h1
-    · refine .inr (.inr ⟨j, (hcall _).2 ⟨t', ?_, h2⟩⟩)
-      cases hl with | c hl => exact hτ.lab (.c (hl.trans e)) h1*)
+assert(hcall : forall l, x ∈ call (Rel τ) p rec l <-> exists t', τ (l :: p) t' /\ x ∈ succ t').
+{intros l.
+ unfold call; rewrite mem_guard.
+ split.
+ *intros (h, hx).
+  destruct (h) as (?&?& t'& ht').
+  exists t'; split; [trivial|].
+  revert hx; apply mem_succ_congr.
+  apply Equiv_symm; apply hrec; trivial.
+ *intros (t' & ht' & hx).
+  assert (h : Rel τ (l :: p) p) by (exists l; eauto).
+  exists h.
+  revert hx; apply mem_succ_congr.
+  apply hrec; trivial. }
+unfold step; rewrite mem_union.
+rewrite mem_union.
+rewrite !mem_iUnion.
+split.
+*intros [h | [(i, h)|(j, h)]]; apply hcall in h; destruct h as (t'& h1& h2).
+ +exists a; exists t'; split;[|split]; trivial.
+  left; trivial.
+ +eexists; exists t'; split;[right;left|split]; try eassumption.
+  eexists; split; [|constructor;apply Equiv_refl].
+  apply func_mem.
+ +eexists; exists t'; split;[right;right|split]; try eassumption.
+  eexists; split; [|constructor;apply Equiv_refl].
+  apply func_mem.
+*intros (l & t' & [hl |[(w & (i, e)& hl) | (y& (j, e) & hl)]]& h1& h2).
+ +subst l; left; apply hcall; exists t'; auto.
+ +right; left; exists i; apply hcall.
+  exists t'; split; trivial.
+  revert h1; inversion_clear hl.
+  apply lab; constructor.
+  apply Equiv_trans with (2:=e); trivial.
+ +right; right;exists j; apply hcall.
+  exists t'; split; trivial.
+  revert h1; inversion_clear hl.
+  apply lab; constructor.
+  apply Equiv_trans with (2:=e); trivial.
+Qed.
 
 Lemma isG_stepG {τ : Path -> PSet -> Prop} {p : Path}
     {rec : forall (c : Path), Rel τ c p -> PSet}
     (hrec : forall c h t, τ c t -> rec c h ≈ t) :
   IsG τ p (stepG (Rel τ) p rec).
-Admitted.
-  (*:= by
-  refine fun x => mem_guard.trans ⟨?_, ?_⟩
-  · rintro ⟨h, hx⟩
-    have ⟨_, _, ζ, hζ⟩ := h
-    exact ⟨ζ, hζ, (mem_congr_right (hrec _ h _ hζ)).1 hx⟩
-  · rintro ⟨ζ, hζ, hx⟩
-    have h : Rel τ (.a :: p) p := ⟨_, rfl, ζ, hζ⟩
-    exact ⟨h, (mem_congr_right (hrec _ h _ hζ)).2 hx⟩*)
+intros x.
+unfold stepG; rewrite mem_guard.
+split.
+*intros (h, hx).
+ destruct (h) as (?&?& ζ& hζ).
+ exists ζ; split; [trivial|].
+ revert hx; apply mem_congr_right.
+ apply Equiv_symm; apply hrec; trivial.
+*intros (ζ& hζ& hx).
+ assert (h : Rel τ (a :: p) p) by (exists a; eauto).
+ exists h.
+ revert hx; apply mem_congr_right.
+ apply hrec; trivial.
+Qed.
 
 (*- **Materialization.** If `τ` is coherent and `p` has the target `t`, then `p` is accessible
 and the recursion returns `t`: a set specified by a proposition is the value of a term. *)
 Lemma materialize {τ : Path -> PSet -> Prop} (hτ : Coherent τ) :
     forall (t : PSet) (p : Path), τ p t ->
     Acc (Rel τ) p /\ forall acc', F (Rel τ) p acc' ≈ t.
-Admitted.
-(*  := by
-  intro t
-  induction t using mem_induction with | _ t ih => ?_
-  intro p hp
-  have children : forall c, Rel τ c p -> forall tc, τ c tc ->
-      Acc (Rel τ) c ∧ forall acc', F D U (Rel τ) c acc' ≈ tc := by
-    rintro c ⟨l, rfl, _⟩ tc htc
-    exact ih tc (hτ.desc htc hp) _ htc
-  have acc : Acc (Rel τ) p := ⟨_, fun c h => have ⟨_, _, tc, htc⟩ := h; (children c h tc htc).1⟩
-  refine ⟨acc, fun acc' => ext fun x => ?_⟩
-  rw [F_eq]
-  have hrec : forall c (h : Rel τ c p) tc, τ c tc -> F D U (Rel τ) c (acc'.inv h) ≈ tc :=
-    fun c h tc htc => (children c h tc htc).2 _
-  exact mem_step_iff hτ hrec _ |>.trans (hτ.sup hp (isG_stepG hrec) _).symm
-.
- *)
+induction t using @mem_induction.
+intros p hp.
+assert (children : forall c, Rel τ c p -> forall tc, τ c tc ->
+      Acc (Rel τ) c /\ forall acc', F (Rel τ) c acc' ≈ tc).
+{intros c (l & rfl & ?) tc htc.
+ subst c.
+ apply H; trivial.
+ apply desc with (1:=htc); trivial. }
+assert (acc : Acc (Rel τ) p).
+{constructor.
+ intros c h.
+ destruct (h) as (?&?& tc& htc).
+ eapply children with (2:=htc); trivial. }
+split; [trivial|].
+intros acc'; apply ext; intros x.
+rewrite F_eq.
+assert (hrec : forall c (h : Rel τ c p) tc, τ c tc -> F (Rel τ) c (Acc_inv acc' h) ≈ tc).
+{intros c h tc htc; apply children with (2:=htc); trivial. }
+rewrite mem_step_iff; trivial.
+symmetry; apply sup; trivial.
+apply isG_stepG; trivial.
+Qed.
+
 End S.

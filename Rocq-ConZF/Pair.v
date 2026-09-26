@@ -4,24 +4,27 @@ Require Export PSet.
 Definition upair (a b : PSet) : PSet := union (singleton a) (singleton b).
 
 Lemma mem_upair {a b x : PSet} : x ∈ upair a b <-> x ≈ a \/ x ≈ b.
-Admitted. (*  mem_union.trans (or_congr mem_singleton mem_singleton).*)
+unfold upair; rewrite mem_union, !mem_singleton; reflexivity.
+Qed.
 
 Lemma upair_congr {a a' b b' : PSet} (ha : a ≈ a') (hb : b ≈ b') : upair a b ≈ upair a' b'.
-Admitted.
-(*ext fun _ => mem_upair.trans <| .trans
-    (or_congr ⟨fun e => e.trans ha, fun e => e.trans ha.symm⟩
-      ⟨fun e => e.trans hb, fun e => e.trans hb.symm⟩) mem_upair.symm*)
+apply ext; intros z.
+rewrite !mem_upair.
+apply or_iff_morphism;
+  split; eauto using Equiv_trans, Equiv_symm.
+Qed.
 
 Lemma singleton_congr {a a' : PSet} (h : a ≈ a') : singleton a ≈ singleton a'.
-Admitted.
-(*ext fun _ => mem_singleton.trans <| .trans
-    ⟨fun e => e.trans h, fun e => e.trans h.symm⟩ mem_singleton.symm*)
+apply ext; intros z.
+rewrite !mem_singleton;
+  split; eauto using Equiv_trans, Equiv_symm.
+Qed.
 
 Definition pair (a b : PSet) : PSet := upair (singleton a) (upair a b).
 
 Lemma pair_congr {a a' b b' : PSet} (ha : a ≈ a') (hb : b ≈ b') : pair a b ≈ pair a' b'.
-Admitted.
-(*upair_congr (singleton_congr ha) (upair_congr ha hb)*)
+apply upair_congr; [apply singleton_congr|apply upair_congr]; trivial.
+Qed.
 
 Lemma self_mem_singleton (a : PSet) : a ∈ singleton a.
   apply mem_singleton; apply Equiv_refl.
@@ -29,36 +32,59 @@ Qed.
 
 (*- `{a} ≈ {c, d}` gives `a ≈ c`. *)
 Lemma singleton_eq_upair {a c d : PSet} (h : singleton a ≈ upair c d) : c ≈ a /\ d ≈ a.
-Admitted.
-  (*  ⟨mem_singleton.1 ((mem_congr_right h).2 (mem_upair.2 (.inl (Equiv.refl _)))),
-   mem_singleton.1 ((mem_congr_right h).2 (mem_upair.2 (.inr (Equiv.refl _))))⟩*)
+split.
+*apply mem_singleton.
+ apply mem_congr_right with (1:=h).
+ apply mem_upair; left; apply Equiv_refl.
+*apply mem_singleton.
+ apply mem_congr_right with (1:=h).
+ apply mem_upair; right; apply Equiv_refl.
+Qed.
 
 Lemma pair_inj {a b c d : PSet} (h : pair a b ≈ pair c d) : a ≈ c /\ b ≈ d.
-Admitted.
-(*  have h1 : singleton a ∈ pair c d := (mem_congr_right h).1 (mem_upair.2 (.inl (Equiv.refl _)))
-  have hac : a ≈ c := by
-    rcases mem_upair.1 h1 with e | e
-    · exact mem_singleton.1 ((mem_congr_right e).1 (self_mem_singleton a))
-    · exact (singleton_eq_upair e).1.symm
-  refine ⟨hac, ?_⟩
-  have h2 : upair a b ∈ pair c d := (mem_congr_right h).1 (mem_upair.2 (.inr (Equiv.refl _)))
-  have h3 : upair c d ∈ pair a b := (mem_congr_right h).2 (mem_upair.2 (.inr (Equiv.refl _)))
-  have hb : b ∈ upair a b := mem_upair.2 (.inr (Equiv.refl _))
-  have hd : d ∈ upair c d := mem_upair.2 (.inr (Equiv.refl _))
-  rcases mem_upair.1 h2 with e | e
-  · -- `{a, b} ≈ {c}`: then `b ≈ c ≈ a`, and `d` is `a` or `b`
-    have hbc : b ≈ c := mem_singleton.1 ((mem_congr_right e).1 hb)
-    rcases mem_upair.1 h3 with e' | e'
-    · exact hbc.trans (hac.symm.trans (mem_singleton.1 ((mem_congr_right e').1 hd)).symm)
-    · rcases mem_upair.1 ((mem_congr_right e').1 hd) with e'' | e''
-      · exact hbc.trans (hac.symm.trans e''.symm)
-      · exact e''.symm
-  · rcases mem_upair.1 ((mem_congr_right e).1 hb) with e' | e'
-    · -- `b ≈ c`: `d ∈ {a, b}` gives `d ≈ a ≈ c ≈ b` or `d ≈ b`
-      rcases mem_upair.1 ((mem_congr_right e).2 hd) with e'' | e''
-      · exact e'.trans (hac.symm.trans e''.symm)
-      · exact e''.symm
-    · exact e'*)
+assert (h1 : singleton a ∈ pair c d).
+{apply mem_congr_right with (1:=h).
+ apply mem_upair; left; apply Equiv_refl. }
+assert (hac : a ≈ c).
+{apply mem_upair in h1; destruct h1.
+ *apply mem_singleton.
+  apply mem_congr_right with (1:=H).
+  apply mem_singleton; apply Equiv_refl.
+ *apply singleton_eq_upair in H.
+  apply Equiv_symm; apply H. }
+split; [trivial|].
+assert (h2 : upair a b ∈ pair c d).
+{apply mem_congr_right  with (1:=h).
+ apply mem_upair; right; apply Equiv_refl. }
+assert (h3 : upair c d ∈ pair a b).
+{apply mem_congr_right  with (1:=h).
+ apply mem_upair; right; apply Equiv_refl. }
+assert (hb : b ∈ upair a b).
+{apply mem_upair; right; apply Equiv_refl. }
+assert (hd : d ∈ upair c d).
+{apply mem_upair; right; apply Equiv_refl. }
+apply mem_upair in h2; destruct h2 as [e|e].
+*(*-- `{a, b} ≈ {c}`: then `b ≈ c ≈ a`, and `d` is `a` or `b`*)
+  assert (hbc : b ≈ c).
+  {apply mem_singleton.
+   apply mem_congr_right with (1:=e); trivial. }
+  apply mem_upair in h3; destruct h3 as [e' | e'].
+  **apply Equiv_trans with (1:=hbc).
+    apply Equiv_trans with (1:=Equiv_symm hac).
+    apply Equiv_symm.
+    apply mem_singleton.
+    apply mem_congr_right with (1:=e'); trivial.
+  **apply mem_congr_right with (1:=e') in hd.
+    apply mem_upair in hd; destruct hd as [e''|e''];
+      eauto using Equiv_trans, Equiv_symm.
+*apply mem_congr_right with (1:=e) in hb.
+ apply mem_upair in hb; destruct hb as [e' | e'].
+ **(* -- `b ≈ c`: `d ∈ {a, b}` gives `d ≈ a ≈ c ≈ b` or `d ≈ b`*)
+   apply mem_congr_right with (1:=e) in hd.
+   apply mem_upair in hd; destruct hd as [e'' | e''];
+      eauto using Equiv_trans, Equiv_symm.
+ **trivial.
+Qed.
 
 (*- Triples, as nested pairs. *)
 Definition triple (a b c : PSet) : PSet := pair a (pair b c).

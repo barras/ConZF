@@ -1,4 +1,4 @@
-Require Import Rule VLevel.
+Require Import Rule VLevel NatInstance.
 (*!
 The definability rule (doc/main.tex, section 5).
 
@@ -51,10 +51,14 @@ Definition rule (η : PSet) (l: Label) : PSet -> Prop :=
   end.
   
 Lemma omega_not_succ {ζ : PSet} (h : omega ≈ succ ζ) : False.
-Admitted.
-(*  have ⟨n, e⟩ := mem_omega.1 ((mem_congr_right h).2 (mem_succ.2 (.inr (Equiv.refl ζ))))
-  have h1 : succ ζ ∈ omega := mem_omega.2 ⟨n+1, succ_congr e⟩
-  exact not_mem_self _ ((mem_congr_right h).1 h1)*)
+assert (h' : ζ ∈ omega).
+{apply mem_congr_right with (1:=h).
+ apply mem_succ; right; apply Equiv_refl. }
+destruct h' as (n,h'); simpl in h'.
+apply (not_mem_self (succ ζ)).
+apply mem_congr_right with (1:=h).
+exists (S n); apply succ_congr; trivial.
+Qed.
 
 (*! ### Invariance *)
 
@@ -138,47 +142,63 @@ Qed.
 
 Lemma rule_resp {η η' : PSet} {l l' : Label} {ξ ξ' : PSet}
     (eη : η ≈ η') (el : Label_Equiv l l') (eξ : ξ ≈ ξ') (h : rule η l ξ) : rule η' l' ξ'.
-Admitted.
-(*cases el with
-  | a =>
-    rcases h with h | ⟨h1, h2⟩ | ⟨h1, h2⟩
-    · exact .inl (eη.symm.trans (h.trans (succ_congr eξ)))
-    · exact .inr (.inl ⟨eη.symm.trans h1, eξ.symm.trans h2⟩)
-    · exact .inr (.inr ⟨h1.resp I_resp eη, eξ.symm.trans (h2.trans (Gν_resp I_resp eη))⟩)
-  | b ew =>
-    rcases h with ⟨h1, h2, h3⟩ | ⟨h1, q, s, x, y, h2, h3, h4, h5, h6⟩
-    · exact .inl ⟨eη.symm.trans h1, (mem_congr_left (rank_congr ew)).1 h2,
-        eξ.symm.trans (h3.trans (rank_congr ew))⟩
-    · exact .inr ⟨h1.resp I_resp eη, q, s, x, y, ew.symm.trans h2,
-        h3.resp I_resp eη (Equiv.refl _) (Equiv.refl _), h4,
-        I_resp eη (Equiv.refl _) (Equiv.refl _) (Equiv.refl _) h5, eξ.symm.trans h6⟩
-  | c => exact h.elim*)
+destruct el.
+*destruct h as [h|[(h1, h2) | (h1, h2)]].
+ +left.
+  apply succ_congr in eξ.
+  eauto using Equiv_trans, Equiv_symm.
+ +right; left.
+  apply Equiv_symm in eη, eξ.
+  split; eauto using Equiv_trans.
+ +right; right.
+  assert (eη' := eη); apply Gν_resp in eη'.
+  split; eauto using Equiv_trans, Equiv_symm.
+  revert h1; apply LimCase_resp; trivial.
+*destruct h as [(h1& h2& h3)| (h1& q& s& x& y& h2& h3& h4& h5& h6)].
+ +left.
+  apply rank_congr in H.
+  apply mem_congr_left with (1:=H) in h2.
+  split;eauto using Equiv_trans, Equiv_symm.
+ +right.
+  apply LimCase_resp with (1:=eη) in h1.
+  apply Unb_resp with (1:=eη) (2:=Equiv_refl _) (3:=Equiv_refl _) in h3.
+  apply I_resp with (1:=eη) (2:=Equiv_refl _) (3:=Equiv_refl _) (4:=Equiv_refl _) in h5.
+  split;[|exists q;exists s;exists x;exists y];
+    eauto 10 using Equiv_trans, Equiv_symm.
+*contradiction.
+Qed.
 
 Lemma rule_func {η : PSet} {l : Label} {ξ ξ' : PSet}
     (h : rule η l ξ) (h' : rule η l ξ') : ξ ≈ ξ'.
-Admitted.
-(*cases l with
-  | a =>
-    rcases h with h | ⟨h1, h2⟩ | ⟨h1, h2⟩ <;> rcases h' with h' | ⟨h1', h2'⟩ | ⟨h1', h2'⟩
-    · exact succ_inj (h.symm.trans h')
-    · exact (omega_not_succ (h1'.symm.trans h)).elim
-    · exact (h1'.1 ⟨_, h⟩).elim
-    · exact (omega_not_succ (h1.symm.trans h')).elim
-    · exact h2.trans h2'.symm
-    · exact (h1'.2.1 h1).elim
-    · exact (h1.1 ⟨_, h'⟩).elim
-    · exact (h1.2.1 h1').elim
-    · exact h2.trans h2'.symm
-  | b w =>
-    rcases h with ⟨h1, -, h3⟩ | ⟨h1, q, s, x, y, h2, h3, h4, h5, h6⟩ <;>
-      rcases h' with ⟨h1', -, h3'⟩ | ⟨h1', q', s', x', y', h2', -, -, h5', h6'⟩
-    · exact h3.trans h3'.symm
-    · exact (h1'.2.1 h1).elim
-    · exact (h1.2.1 h1').elim
-    · obtain ⟨eq, -, ex⟩ := triple_inj (h2.symm.trans h2')
-      have h5'' := I_resp (Equiv.refl _) eq.symm ex.symm (Equiv.refl _) h5'
-      exact h6.trans ((rank_congr (h3.1 x y y' h4 h5 h5'')).trans h6'.symm)
-  | c => exact h.elim*)
+destruct l as [|w|?].
+*destruct h as [h|[(h, h2)|(h, h2)]];
+   destruct h' as [h'|[(h'& h2')|(h', h2')]];
+   try assert(e := Equiv_trans (Equiv_symm h) h'). 
+ +apply succ_inj in e; trivial.
+ +apply Equiv_symm in e; apply omega_not_succ in e; contradiction.
+ +destruct h' as ([],_); red; eauto.
+ +apply omega_not_succ in e; contradiction.
+ +apply Equiv_trans with (1:=h2); apply Equiv_symm; trivial.  
+ +destruct h' as (_&[]&_); red; eauto.
+ +destruct h as ([],_); red; eauto.
+ +destruct h as (_&[]&_); red; eauto.
+ +apply Equiv_trans with (1:=h2); apply Equiv_symm; trivial.  
+*destruct h as [(h1& ?& h3) | (h1& q& s& x& y& h2& h3& h4& h5& h6)];
+   destruct h' as [(h1'& ?& h3') | (h1'& q'& s'& x'& y'& h2'& ?& ?& h5'& h6')].
+ +apply Equiv_trans with (1:=h3); apply Equiv_symm; trivial.  
+ +destruct h1' as (_&[]&_); red; eauto.
+ +destruct h1 as (_&[]&_); red; eauto.
+ +assert(e := Equiv_trans (Equiv_symm h2) h2'). 
+  apply triple_inj in e; destruct e as (eq& _& ex).
+  apply Equiv_symm in eq.
+  apply Equiv_symm in ex.
+  assert (h5'' := I_resp (Equiv_refl _) eq ex (Equiv_refl _) h5').
+  apply Equiv_trans with (1:=h6).
+  apply Equiv_trans with (2:=Equiv_symm h6').
+  apply rank_congr.
+  revert h5 h5''; apply h3; trivial.
+*contradiction.  
+Qed.
 
 (*! ### The class of the rule *)
 
@@ -192,29 +212,38 @@ Definition Cls (η : PSet) : Prop := IsOrd η /\ forall μ, (μ ∈ η \/ μ ≈
 
 (*omit I_resp in*)
 Lemma Cls_resp {η η' : PSet} (e : η ≈ η') (h : Cls η) : Cls η'.
-Proof using I.
-Admitted.
-(*⟨h.1.resp e, fun μ hμ => h.2 μ (hμ.elim (fun h => .inl ((mem_congr_right e).2 h))
-    (fun h => .inr (h.trans e.symm)))⟩*)
+Proof using.
+destruct h as (h1,h2); split;
+  [revert h1; apply IsOrd_resp; trivial|].
+intros; apply h2.
+destruct H; [left|right].
+*revert H; apply mem_congr_right; trivial.
+*apply Equiv_trans with (2:=Equiv_symm e); trivial.
+Qed.
 
 (*omit I_resp in*)
 Lemma Cls_mem {η ξ : PSet} (h : Cls η) (hξ : ξ ∈ η) : Cls ξ.
-Proof using I.  
-Admitted.
-(*⟨h.1.mem hξ, fun μ hμ => h.2 μ (.inl (hμ.elim (fun h' => h.1.trans ξ hξ μ h')
-    (fun e => (mem_congr_left e).2 hξ)))⟩*)
+Proof using.  
+destruct h as (h1,h2).
+split.
+*apply IsOrd_mem with (2:=hξ); trivial.
+*intros μ hμ; apply h2; left.
+ destruct hμ as [h3|h4];
+   [apply IsOrd_trans with (2:=h3); trivial
+   |apply mem_congr_left with (1:=h4); trivial].
+Qed.
 
 (*omit I_resp in*)
 Lemma succN_congr {G G' : PSet} (e : G ≈ G') : forall n, succN n G ≈ succN n G'.
-Admitted.
-(*| 0 => e
-  | n+1 => succ_congr (succN_congr e n)*)
+Proof using.
+induction n; simpl succN; auto using succ_congr.
+Qed.
 
 (*omit I_resp in*)
 Lemma succN_empty {G : PSet} (e : G ≈ empty) : forall n, succN n G ≈ ofNat n.
-Admitted.
-(*  | 0 => e
-  | n+1 => succ_congr (succN_empty e n)*)
+Proof using.
+induction n; simpl succN; simpl ofNat; auto using succ_congr.
+Qed.
 
 Section em.
 Hypothesis (em : forall p : Prop, p \/ ~p).
@@ -222,84 +251,143 @@ Hypothesis (em : forall p : Prop, p \/ ~p).
 (*- In the limit case, the least `ν` is an element of `η` from which `η` is reached. *)
 Lemma Gν_spec {η : PSet} (hη : IsOrd η) (h : LimCase η) :
   Gν η ∈ η /\ IsOrd (Gν η) /\ Reach η (Gν η).
-Admitted.
-(*  have up : forall {ν ν'}, ν' ∈ η -> ν ∈ ν' -> Reach I η ν -> Reach I η ν' :=
-    fun hν' hν ⟨q, s, hq, hs, hu⟩ =>
-      ⟨q, s, (hη.mem hν').trans _ hν _ hq, (hη.mem hν').trans _ hν _ hs, hu⟩
-  have hG : IsOrd (Gν I η) := by
-    refine ⟨fun μ hμ μ' hμ' => ?_, fun μ hμ => hη.mem_trans μ ((mem_Gν I_resp).1 hμ).1⟩
-    have ⟨hμη, hμr⟩ := (mem_Gν I_resp).1 hμ
-    have hμ'η := hη.trans μ hμη μ' hμ'
-    exact (mem_Gν I_resp).2 ⟨hμ'η, fun h' => hμr (up hμη hμ' h')⟩
-  have hmem : Gν I η ∈ η := by
-    rcases hG.subset em hη (fun z hz => ((mem_Gν I_resp).1 hz).1) with h' | e
-    · exact h'
-    · have ⟨_, _, ν, hν, hr⟩ := h
-      exact (((mem_Gν I_resp).1 ((mem_congr_right e).2 hν)).2 hr).elim
-  refine ⟨hmem, hG, (em _).resolve_right fun hn => not_mem_self _ ((mem_Gν I_resp).2 ⟨hmem, hn⟩)⟩*)
+assert (up : forall {ν ν'}, ν' ∈ η -> ν ∈ ν' -> Reach η ν -> Reach η ν').
+{intros ?? hν' hν (q& s& hq& hs& hu).
+ exists q; exists s; split; [|split]; trivial.
+ *apply IsOrd_mem in hν'; trivial.
+  apply (@IsOrd_trans _ _) with (2:=hq); trivial.
+ *apply IsOrd_mem in hν'; trivial.
+  apply (@IsOrd_trans _ _) with (2:=hs); trivial. }
+assert (hG : IsOrd (Gν η)).
+{split.
+ *intros μ hμ μ' hμ'.
+  apply mem_Gν in hμ.
+  destruct hμ as (hμη, hμr).
+  apply mem_Gν; split.
+  +apply (@IsOrd_trans _ _) with (2:=hμ'); trivial.
+  +intros h'; apply hμr.
+   revert h'; apply up; trivial.
+ *intros μ hμ.
+  apply IsOrd_mem_trans.
+  apply mem_Gν; trivial. }
+assert (hmem : Gν η ∈ η).
+{destruct (@IsOrd_subset em) with (1:=hG) (2:=hη) as [h'|e].
+ {intros z hz; apply mem_Gν in hz; apply hz. }
+ *trivial.
+ *destruct h as (_& _& ν& hν& hr).
+  apply mem_congr_right with (1:=e) in hν.
+  apply mem_Gν in hν.
+  destruct hν as (_,[]); trivial. }
+split; [|split]; trivial.
+edestruct em as [?|hn]; [eassumption|].
+edestruct not_mem_self.
+eapply mem_Gν; split; eassumption.
+Qed.
 
 Lemma rule_mem {η : PSet} {l : Label} {ξ : PSet} (hη : Cls η)
     (h : rule η l ξ) : ξ ∈ η /\ Cls ξ.
-Admitted.
-(*suffices ξ ∈ η from ⟨this, hη.mem this⟩
-  cases l with
-  | a =>
-    rcases h with h | ⟨h1, h2⟩ | ⟨h1, h2⟩
-    · exact (mem_congr_right h).2 (mem_succ.2 (.inr (Equiv.refl _)))
-    · exact (mem_congr_right h1).2 (mem_omega.2 ⟨0, h2⟩)
-    · exact (mem_congr_left h2).2 (Gν_spec I_resp em hη.1 h1).1
-  | b w =>
-    rcases h with ⟨h1, h2, h3⟩ | ⟨_, q, s, x, y, -, h3, h4, h5, h6⟩
-    · exact (mem_congr_right h1).2 ((mem_congr_left h3).2 h2)
-    · exact (mem_congr_left h6).2 (h3.2.1 x y h4 h5)
-  | c => exact h.elim*)
+assert (ξ ∈ η).
+{destruct l as [|w|].
+ *destruct h as [h |[ (h1, h2) | (h1, h2)]].
+  +apply mem_congr_right with (1:=h).
+   apply mem_succ; right; apply Equiv_refl.
+  +apply mem_congr_right with (1:=h1).
+   exists 0; trivial.
+  +apply mem_congr_left with (1:=h2).
+   apply Gν_spec with (2:=h1).
+   apply hη.
+ *destruct h as [(h1& h2& h3) | (?& q& s& x& y& _& h3& h4& h5& h6)].
+  +apply mem_congr_right with (1:=h1).
+   apply mem_congr_left with (1:=h3); trivial.
+  +apply mem_congr_left with (1:=h6).
+   apply h3 with (2:=h5); trivial.
+ *contradiction. }
+split; [trivial|].
+apply (Cls_mem hη H).
+Qed.
 
 Lemma rule_sup (U : PSet) {η G : PSet} (hη : Cls η)
     (hG : forall x, x ∈ G <-> exists ζ, rule η a ζ /\ x ∈ ζ) (x : PSet) :
   x ∈ η <-> exists l ξ, Avail D U G l /\ rule η l ξ /\ x ∈ succ ξ.
-Admitted.
-(*refine ⟨fun hx => ?_, fun ⟨l, ξ, _, hr, hx⟩ => ?_⟩
-  rotate_left
-  · have hξ := (rule_mem I_resp em hη hr).1
-    rcases mem_succ.1 hx with hx | e
-    · exact hη.1.trans ξ hξ x hx
-    · exact (mem_congr_left e).2 hξ
-  -- `G` is the target of the child `a`
-  have hGa : forall {ζ}, rule I η .a ζ -> G ≈ ζ := fun {ζ} hζ => ext fun z =>
-    (hG z).trans ⟨fun ⟨ζ', h1, h2⟩ => (mem_congr_right (rule_func I_resp h1 hζ)).1 h2,
-      fun h => ⟨ζ, hζ, h⟩⟩
-  rcases em (IsSucc η) with ⟨ζ, e⟩ | hs
-  · exact ⟨.a, ζ, .inl rfl, .inl e, (mem_congr_right e).1 hx⟩
-  rcases em (η ≈ omega) with hω | hω
-  · have ⟨n, e⟩ := mem_omega.1 ((mem_congr_right hω).1 hx)
-    have hGe : G ≈ empty := hGa (.inr (.inl ⟨hω, Equiv.refl _⟩))
-    have hr : rank (ofNat n) ≈ ofNat n := (isOrd_ofNat n).rank_equiv
-    have hw : ofNat n ∈ D G := mem_D_of_rank em (isOrd_empty.resp hGe.symm) (n+1)
-      ((mem_congr_right (succN_empty hGe (n+1))).2
-        ((mem_congr_left hr).2 (mem_succ.2 (.inr (Equiv.refl _)))))
-    exact ⟨.b (ofNat n), rank (ofNat n), .inr (.inl ⟨_, hw, Label.Equiv.refl _⟩),
-      .inl ⟨hω, (mem_congr_left hr).2 (mem_omega.2 ⟨n, Equiv.refl _⟩), Equiv.refl _⟩,
-      mem_succ.2 (.inr (e.trans hr.symm))⟩
-  have hL : LimCase I η := by
-    rcases hη.2 η (.inr (Equiv.refl _)) with h | h | h | h
-    · exact ((not_mem_empty x) ((mem_congr_right h).1 hx)).elim
-    · exact (hs h).elim
-    · exact (hω h).elim
-    · exact ⟨hs, hω, h⟩
-  obtain ⟨-, hGo, q, s, hq, hs', hu⟩ := Gν_spec I_resp em hη.1 hL
-  have hGe : G ≈ Gν I η := hGa (.inr (.inr ⟨hL, Equiv.refl _⟩))
-  have ⟨x', y, hx', hI, hxy⟩ := hu.2.2 x hx
-  have hw : triple q s x' ∈ D G :=
-    mem_D_of_rank em (hGo.resp hGe.symm) 4 <| (mem_congr_right (succN_congr hGe 4)).2 <|
-      rank_triple_mem em hGo hq hs' (hGo.trans _ hs' _ (rank_mem hx'))
-  exact ⟨.b (triple q s x'), rank y, .inr (.inl ⟨_, hw, Label.Equiv.refl _⟩),
-    .inr ⟨hL, q, s, x', y, Equiv.refl _, hu, hx', hI, Equiv.refl _⟩, hxy⟩*)
+split.
+2:{intros (l& ξ& ?& hr& hx).
+   assert (hξ := proj1(rule_mem hη hr)).
+   apply mem_succ in hx; destruct hx as [hx | e].
+   *destruct hη; eapply (IsOrd_trans _) with (2:=hx); trivial.
+   *apply mem_congr_left with (1:=e); trivial. }
+1:{ (* -- `G` is the target of the child `a`*)
+  intros hx.
+  assert (hGa : forall {ζ}, rule η a ζ -> G ≈ ζ).
+  {intros ζ hζ; apply ext; intros z.
+   rewrite hG; split.
+   *intros (ζ'& h1& h2).
+    revert h2; apply mem_congr_right.
+    revert hζ h1; apply rule_func.
+   *exists ζ; auto. }
+  destruct (em (IsSucc η)) as [(ζ, e) | hs];
+    [|destruct (em (η ≈ omega)) as [hω | hω]].
+  *exists a; exists ζ; split; [|split].
+   +left; trivial.
+   +left; trivial.
+   +revert hx; apply mem_congr_right; apply Equiv_symm; trivial.
+  *apply mem_congr_right with (1:=hω) in hx.
+   rewrite mem_omega in hx.
+   destruct hx as (n, e).
+   assert (hGe : G ≈ empty).
+   {apply hGa; right; left; split; [trivial|apply Equiv_refl]. }
+   assert (hr : rank (ofNat n) ≈ ofNat n).
+   {apply IsOrd_rank_equiv.
+    apply isOrd_ofNat. }
+   assert (hw : ofNat n ∈ D G).
+   {eapply (mem_D_of_rank em) with (n:=S n).
+    *apply @IsOrd_resp with (2:=isOrd_empty).
+     apply Equiv_symm; trivial.
+    *apply mem_congr_left with (1:=hr).
+     simpl succN; apply mem_succ; right.
+     apply Equiv_symm; apply succN_empty; trivial. }
+   exists (b (ofNat n)); exists (rank (ofNat n)).
+   split; [|split].
+   +right; left; eexists; split; [eassumption|constructor;apply Equiv_refl].
+   +left; split; [|split]; [trivial| |apply Equiv_refl].
+    apply mem_congr_left with (1:=hr).
+    rewrite mem_omega; exists n; apply Equiv_refl.
+   +apply mem_succ; right.
+    apply Equiv_trans with (1:=e); apply Equiv_symm; trivial.
+  *assert (hL : LimCase η).
+   {destruct (proj2 hη η) as [h|[h|[h|h]]]; [right; apply Equiv_refl|..].
+    +apply mem_congr_right with (1:=h) in hx.
+     apply not_mem_empty in hx; contradiction.
+    +contradiction.
+    +contradiction.
+    +split;[|split]; trivial. }
+   destruct @Gν_spec with (1:=proj1 hη)(2:=hL)
+     as (_& hGo& q& s& hq& hs'& hu).
+   assert (hGe : G ≈ Gν η).
+   {apply hGa; right; right; split; [trivial|apply Equiv_refl]. }
+   destruct (proj2 (proj2 hu) _ hx) as (x'& y& hx'& hI& hxy).
+   assert (hw : triple q s x' ∈ D G).
+   {apply (mem_D_of_rank em) with (n:=4);
+       [revert hGo; apply IsOrd_resp; apply Equiv_symm; trivial|].
+    eapply mem_congr_right; [eapply succN_congr;apply hGe|].
+    apply (rank_triple_mem em); trivial.
+    apply rank_mem in hx'.
+    eapply (IsOrd_trans _) with (2:=hx'); trivial. }
+   exists (b (triple q s x')); exists (rank y); split; [|split]; trivial.
+   +right; left; eexists; split; [eassumption|constructor;apply Equiv_refl].
+   +right; split; [trivial|].
+    exists q; exists s; exists x'; exists y; split;[|split;[|split;[|split]]];
+      trivial; apply Equiv_refl. }
+Qed.
 
 (*- The definability rule meets the one-node conditions, for the class `Cls I`. *)
 Lemma worldly_rule (U : PSet) : Rule D U rule Cls.
-Admitted.
-(*⟨rule_func I_resp, rule_resp I_resp, Cls.resp, rule_mem I_resp em,
-   fun hη hG x => rule_sup I_resp em U hη hG x⟩*)
+split.
+*exact @rule_func.
+*exact @rule_resp.
+*exact @Cls_resp.
+*exact @rule_mem.
+*exact (@rule_sup U).
+Qed.
 
 End em.
 

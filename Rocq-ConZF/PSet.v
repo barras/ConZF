@@ -123,6 +123,13 @@ destruct (proj1 (mem_congr_right hy) hz) as (i,e).
 apply (H0 i); trivial.
 Qed.
 
+Lemma mem_asymm : forall (x : PSet) {y}, y ∈ x -> ~ x ∈ y.
+intros x.
+induction x using @mem_induction.
+intros y hy hx.
+red in H; apply H with y x; trivial.
+Qed.
+
 (*! ### Operations *)
 
 Definition empty : PSet := mk False (fun i => match i with end).

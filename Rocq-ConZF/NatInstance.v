@@ -8,22 +8,19 @@ the image being a subset of `ω`; the point is that `Coherent` is not vacuous an
 clauses `desc`, `sup`, `IsG` are exercised with a nonempty `G`.
 *)
 
-Lemma mem_asymm : forall (x : PSet) {y}, y ∈ x -> ~ x ∈ y.
-Admitted.
-(*intro x
-  induction x using mem_induction with | _ x ih => ?_
-  intro y hy hx
-  exact ih y hy hx hy*)
-
 Lemma succ_inj {t t' : PSet} (h : succ t ≈ succ t') : t ≈ t'.
-Admitted.
-(*have h1 : t ∈ succ t' := (mem_congr_right h).1 (mem_succ.2 (.inr (Equiv.refl _)))
-  have h2 : t' ∈ succ t := (mem_congr_right h).2 (mem_succ.2 (.inr (Equiv.refl _)))
-  rcases mem_succ.1 h1 with h1 | h1
-  · rcases mem_succ.1 h2 with h2 | h2
-    · exact (mem_asymm _ h1 h2).elim
-    · exact h2.symm
-  · exact h1*)
+assert (h1 : t ∈ succ t').
+{apply mem_congr_right with (1:=h).
+ rewrite mem_succ; right; apply Equiv_refl. }
+assert (h2 : t' ∈ succ t).
+{apply mem_congr_right with (1:=h).
+ rewrite mem_succ; right; apply Equiv_refl. }
+apply mem_succ in h1; destruct h1 as [h1 | h1];
+  [apply mem_succ in h2; destruct h2 as [h2 | h2]|];
+    auto using Equiv_symm.
+destruct (mem_asymm _ h1 h2).
+Qed.
+
 (*
 inductive IsNat : PSet -> Prop
   | zero {t} : t ≈ empty -> IsNat t

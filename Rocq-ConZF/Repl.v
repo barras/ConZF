@@ -51,37 +51,49 @@ Qed.
 (*include hT φ_resp φ_C*)
 
 Instance glue_coherent : Coherent D s Glue.
-Admitted.
-(*split.
-*intros ? t t' (r& x& η& rfl& hx& hη& h) e.
+split.
+*(*resp*)
+ intros ? t t' (r& x& η& rfl& hx& hη& h) e.
  exists r; exists x; exists η; split; [|split;[|split]]; trivial.
- revert h; apply hTresp.
- resp.
-   , rfl, hx, hη, (hT η (φ_C hx hη)).1.resp h e⟩
-  func := by
-    rintro _ t t' ⟨r, x, η, rfl, hx, hη, h⟩ h'
-    exact (hT η (φ_C hx hη)).1.func h ((glue_iff (T := T) (φ := φ) hTresp φ_func hx hη).1 h')
-  lab := by
-    rintro l l' p t e ⟨r, x, η, eq, hx, hη, h⟩
-    cases r with
-    | nil =>
-      cases eq
-      cases e with | c e =>
-      exact ⟨[], _, η, rfl, (mem_congr_left e).1 hx, φ_resp e (Equiv.refl _) hη, h⟩
-    | cons l0 r =>
-      cases eq
-      exact ⟨l' :: r, x, η, rfl, hx, hη, (hT η (φ_C hx hη)).1.lab e h⟩
-  desc := by
-    rintro l _ t t' h ⟨r, x, η, rfl, hx, hη, h'⟩
-    exact (hT η (φ_C hx hη)).1.desc
-      ((glue_iff (T := T) (φ := φ) (r := l :: r) hTresp φ_func hx hη).1 h) h'
-  sup := by
-    rintro _ t G ⟨r, x, η, rfl, hx, hη, h⟩ hG y
-    have hG' : IsG (T η) r G := fun z => (hG z).trans <| exists_congr fun ζ =>
-      and_congr (glue_iff (T := T) (φ := φ) (r := .a :: r) hTresp φ_func hx hη) Iff.rfl
-    refine (hT η (φ_C hx hη)).1.sup h hG' y |>.trans ?_
-    exact exists_congr fun l => exists_congr fun t' => and_congr Iff.rfl <|
-      and_congr (glue_iff (T := T) (φ := φ) (r := l :: r) hTresp φ_func hx hη).symm Iff.rfl*)
+ revert h e; apply (@resp D s).
+ apply hT; apply φ_C with (2:=hη); trivial.
+*(*func*)
+ intros ? t t' (r & x& η& rfl& hx& hη& h) h'.
+ subst p.
+ eapply func with (2:=h); [apply hT;apply φ_C with (2:=hη); trivial|].
+ rewrite glue_iff with (2:=hη) in h'; trivial.
+*(*lab*)
+ intros l l' p t e (r& x& η& eq& hx& hη& h).
+ destruct r as [|l0 r].
+ +injection eq; clear eq; intros; subst l p.
+  inversion_clear e.
+  exists nil; exists x'; exists η; split;[|split;[|split]]; trivial.
+  ++revert hx; apply mem_congr_left; apply Equiv_symm; trivial.
+  ++revert hη; apply φ_resp; [trivial|apply Equiv_refl].
+ +injection eq; clear eq; intros; subst l0 p.
+  exists (l' :: r); exists x; exists η; split;[|split;[|split]]; trivial.
+  revert h; eapply lab; [apply hT;apply φ_C with (2:=hη); trivial|];trivial.
+*(*desc*)
+ intros l ? t t' h (r& x& η& rfl& hx& hη& h').
+ subst p.
+ eapply @glue_iff with (r:=l::r) (2:=hη) in h; trivial.
+ eapply desc with (2:=h); [apply hT;apply φ_C with (2:=hη); trivial|];trivial.
+*(*sup*)
+ intros ? t G (r& x& η& rfl& hx& hη& h) hG y.
+ subst p.
+ assert (hG' : IsG (T η) r G).
+ {intros z.
+  rewrite (hG z).
+  apply ex_morph; intros ζ.
+  apply and_iff_morphism; [|reflexivity].
+  apply @glue_iff with (r := a :: r) (2:=hη); trivial. }
+ rewrite sup with (3:=hG'); [|apply hT;apply φ_C with (2:=hη)|];trivial.
+ apply ex_morph; intros l.
+ apply ex_morph; intros t'.
+ apply and_iff_morphism; [reflexivity|].
+ apply and_iff_morphism; [|reflexivity].
+ symmetry; eapply @glue_iff with (r := l :: r); trivial.
+Qed.
 
 (*- The union of the successors of the values of `φ` on `s` exists. The witness is the value
 of the recursion at the root. *)
