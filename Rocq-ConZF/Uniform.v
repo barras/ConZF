@@ -1,4 +1,4 @@
-Require Import PSet Pair Ord VLevel Worldly Fml FirstOrder ZF.
+Require Import PSet Pair Ord VLevel Worldly Fml Proof FirstOrder ZF.
 (*!
 One model, with no case distinction in its definition: the class `HG` of the sets whose rank is
 *hereditarily good*, that is, every ordinal up to the rank is `0`, a successor, `ω`, or reachable

@@ -9,6 +9,7 @@ VLevel.v
 Worldly.v
 NatInstance.v
 Fml.v
+Proof.v
 ZF.v
 FirstOrder.v
 Uniform.v

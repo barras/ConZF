@@ -213,6 +213,7 @@ simpl; split; intros.
 Qed.
 
 End em.
+Global Opaque and or ex.
 
 (*! ### Codes *)
 

@@ -1,4 +1,4 @@
-Require Import PSet Fml ZF VLevel Pair Ord Worldly.
+Require Import PSet Fml ZF VLevel Pair Ord Worldly Proof.
 (*!
 The first-order instance of the dichotomy. `ISat η q x y`: `q` codes a formula `φ`, a number
 `k` and a `k`-tuple of parameters, the free variables of `φ` are below `k+2`, and

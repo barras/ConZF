@@ -1,6 +1,4 @@
-Require Import Fml PSet Pair VLevel.
-Definition Valid M f := forall e, Sat M f e.
-Parameter Con : (Fml -> Prop) -> Prop.
+Require Import Fml PSet Pair VLevel Proof.
 (*!
 `ZF` as a first-order theory: extensionality, foundation, pairing, union, power set, infinity,
 and the schemas of separation and replacement. Free variables of an axiom are parameters. The
@@ -99,82 +97,129 @@ Class ZFModel (M : PSet -> Prop) : Prop := {
 (*- Every nonempty subset of a set has an `∈`-minimal element. *)
 Lemma exists_minimal (em : forall p : Prop, p \/ ~p) (x : PSet) :
   forall z, z ∈ x -> exists y, y ∈ x /\ forall w, w ∈ y -> ~ w ∈ x.
-Admitted.
-(*  intro z
-  induction z using mem_induction with | _ z ih => ?_
-  intro hz
-  rcases em (exists w, w ∈ z /\ w ∈ x) with ⟨w, hw, hwx⟩ | h
-  · exact ih w hw hwx
-  · exact ⟨z, hz, fun w hw hwx => h ⟨w, hw, hwx⟩⟩*)
+induction z using @mem_induction; rename H into ih.
+intros hz.
+destruct (em (exists w, w ∈ z /\ w ∈ x))
+  as [(w& hw& hwx) | h]; [eauto|].
+exists z; split; trivial.
+intros w hw hwx; apply h; eauto.
+Qed.
 
 Section ZFModel.
 Context {M : PSet -> Prop} (hM : ZFModel M) (em : forall p : Prop, p \/ ~p).
 
 Lemma valid : forall φ, ZF φ -> Valid M φ.
-Admitted.
-(*intro φ h e he
-  cases h with
-  | ext =>
-    intro h
-    exact ext fun z =>
-      ⟨fun hz => ((sat_iff em).1 (h z (hM.trans (he 0) hz))).1 hz,
-       fun hz => ((sat_iff em).1 (h z (hM.trans (he 1) hz))).2 hz⟩
-  | found =>
-    intro h
-    have ⟨z, _, hz⟩ := (sat_ex em).1 h
-    have ⟨y, hy, hmin⟩ := exists_minimal em (e 0) z hz
-    exact (sat_ex em).2 ⟨y, hM.trans (he 0) hy,
-      (sat_and em).2 ⟨hy, fun w _ hw hwx => hmin w hw hwx⟩⟩
-  | pair =>
-    exact (sat_ex em).2 ⟨PSet.upair (e 0) (e 1), hM.upair (he 0) (he 1),
-      (sat_and em).2 ⟨mem_upair.2 (.inl (Equiv.refl _)), mem_upair.2 (.inr (Equiv.refl _))⟩⟩
-  | union =>
-    exact (sat_ex em).2 ⟨PSet.sUnion (e 0), hM.sUnion (he 0),
-      fun y _ z _ hz hy => mem_sUnion.2 ⟨y, hy, hz⟩⟩
-  | power =>
-    exact (sat_ex em).2 ⟨PSet.powerset (e 0), hM.powerset (he 0),
-      fun y hy h => mem_powerset.2 fun z hz => h z (hM.trans hy hz) hz⟩
-  | inf =>
-    refine (sat_ex em).2 ⟨PSet.omega, hM.omega, (sat_and em).2 ⟨?_, fun y _ hy => ?_⟩⟩
-    · exact (sat_ex em).2 ⟨PSet.empty, hM.empty,
-        (sat_and em).2 ⟨mem_omega.2 ⟨0, Equiv.refl _⟩, fun z _ hz => not_mem_empty z hz⟩⟩
-    · have ⟨n, e'⟩ := mem_omega.1 hy
-      refine (sat_ex em).2 ⟨ofNat (n+1), hM.trans hM.omega (mem_omega.2 ⟨n+1, Equiv.refl _⟩),
-        (sat_and em).2 ⟨mem_omega.2 ⟨n+1, Equiv.refl _⟩, fun z _ => (sat_iff em).2 ?_⟩⟩
-      refine mem_succ.trans <| .trans ?_ (sat_or em).symm
-      exact or_congr (mem_congr_right e').symm ⟨fun h => h.trans e'.symm, fun h => h.trans e'⟩
-  | sep ψ =>
-    let P : PSet -> Prop := fun z => Sat M ψ (Env.cons z e)
-    have hP : forall z z' : PSet, z ≈ z' -> P z -> P z' := fun _ _ ez h =>
-      Sat.resp ψ (Env.cons_resp ez fun _ => Equiv.refl _) h
-    refine (sat_ex em).2 ⟨PSet.sep P (e 0), hM.sep P (he 0), fun z _ => (sat_iff em).2 ?_⟩
-    have hPz : P z <-> Sat M (rename Ax_sepR ψ) (Env.cons z (Env.cons (PSet.sep P (e 0)) e)) :=
-      .trans (Sat.resp_iff (fun _ => Iff.rfl) ψ fun i => by cases i <;> exact Equiv.refl _)
-        (sat_rename ψ Ax_sepR _).symm
-    refine (mem_sep hP).trans ⟨fun ⟨a, b⟩ => (sat_and em).2 ⟨a, hPz.1 b⟩, fun h => ?_⟩
-    have ⟨a, b⟩ := (sat_and em).1 h
-    exact ⟨a, hPz.2 b⟩
-  | repl ψ =>
-    intro hf
-    have R2 : forall {x y y'}, Sat M ψ (Env.cons x (Env.cons y' e)) ->
-        Sat M (rename Ax_r2 ψ) (Env.cons y' (Env.cons y (Env.cons x e))) := fun h =>
-      (sat_rename ψ Ax_r2 _).2
-        (Sat.resp ψ (fun i => by rcases i with _ | _ | _ <;> exact Equiv.refl _) h)
-    have R1' : forall {x y y'}, Sat M ψ (Env.cons x (Env.cons y e)) ->
-        Sat M (rename Ax_r1 ψ) (Env.cons y' (Env.cons y (Env.cons x e))) := fun h =>
-      (sat_rename ψ Ax_r1 _).2
-        (Sat.resp ψ (fun i => by rcases i with _ | _ | _ <;> exact Equiv.refl _) h)
-    have ⟨b, hb, hb'⟩ := hM.repl ψ e he (e 0) (he 0) fun x y y' hx hy hy' h1 h2 =>
-      hf x (hM.trans (he 0) hx) hx y hy y' hy' (R1' (y' := y') h1) (R2 (y := y) h2)
-    refine (sat_ex em).2 ⟨b, hb, fun y hy h => ?_⟩
-    have ⟨x, _, hx⟩ := (sat_ex em).1 h
-    have ⟨hxa, hs⟩ := (sat_and em).1 hx
-    exact hb' x y hxa hy (Sat.resp ψ (fun i => by rcases i with _ | _ | _ <;> exact Equiv.refl _)
-      ((sat_rename ψ Ax_r3 _).1 hs))
- *)
+intros φ h e he.
+destruct h; simpl.
+*intros h; apply ext; intros z.
+ specialize h with z.
+ rewrite (sat_iff em) in h; simpl in h.
+ assert (aux: forall i, z ∈ e i -> M z).
+ {intros i hz; apply M_trans with (1:=he i); trivial. }
+ split; intros hz; generalize hz; apply h; eauto.
+*intros h.
+ rewrite (sat_ex em) in h.
+ destruct h as (z & ?& hz).
+ destruct (exists_minimal em (e 0) z hz) as (y& hy& hmin).
+ apply (sat_ex em); exists y; split;
+   [apply M_trans with (1:=he 0); trivial|].
+ rewrite (sat_and em); split; [trivial|].
+ simpl; intros w ? hw hwx; eapply hmin; eauto.
+*unfold Ax_pair; rewrite (sat_ex em).
+ exists (upair (e 0) (e 1)); split;
+   [apply M_upair; trivial|].
+ rewrite (sat_and em); simpl.
+ split; apply mem_upair; [left|right]; apply Equiv_refl.
+*unfold Ax_union; rewrite (sat_ex em).
+ exists (sUnion (e 0)); split;
+   [apply M_sUnion; trivial|].
+ simpl; intros y ? z ? hz hy.
+ apply mem_sUnion; exists y; auto.
+*unfold Ax_power; rewrite (sat_ex em).
+ exists (powerset (e 0)); split;
+   [apply M_powerset; trivial|].
+ simpl; intros y hy h.
+ apply mem_powerset; intros; apply h; trivial.
+ apply M_trans with (1:=hy); trivial.
+*unfold Ax_inf; rewrite (sat_ex em).
+ exists omega; split;
+   [apply M_omega; trivial|].
+ rewrite (sat_and em), (sat_ex em); simpl.
+ split.
+ **exists empty; split; [apply M_empty|].
+   rewrite (sat_and em); simpl.
+   split; [apply mem_omega; exists 0; apply Equiv_refl|].
+   intros z ? hz.
+   apply not_mem_empty in hz; contradiction.
+ **intros x ? hx.
+   rewrite mem_omega in hx; destruct hx as (n,e').
+   assert (e'' := succ_congr e').
+   rewrite (sat_ex em).
+   exists (succ x).   
+   split.
+   {apply M_trans with (1:=M_omega).
+    rewrite mem_omega; exists (S n); trivial. }
+   {rewrite (sat_and em); simpl.
+    split; [rewrite mem_omega; exists (S n); trivial|].
+    intros z ?.
+    rewrite (sat_iff em), (sat_or em); simpl.
+    apply mem_succ. }
+*unfold Ax_sep; rewrite (sat_ex em); simpl.
+ pose (P (*: PSet -> Prop*) := fun z => Sat M ψ (Env_cons z e)).
+ assert (hP : forall z z', z ≈ z' -> P z -> P z').
+ {intros ?? ez; apply Sat_resp; apply Env_cons_resp;
+     [trivial|intros; apply Equiv_refl]. }
+ exists (sep P (e 0)); split;
+   [apply M_sep; trivial|].
+ intros z ?.
+ rewrite (sat_iff em), (sat_and em); simpl.
+ rewrite mem_sep; [|trivial].
+ apply and_iff_morphism; [reflexivity|].
+ rewrite sat_rename.
+ unfold P.
+ apply Sat_resp_iff; [reflexivity|].
+ unfold sepR.
+ destruct i as [|i]; simpl; apply Equiv_refl.
+*intros hf.
+ assert (R2 : forall {x y y'},
+            Sat M ψ (Env_cons x (Env_cons y' e)) ->
+            Sat M (rename r2 ψ) (Env_cons y' (Env_cons y (Env_cons x e)))).
+ {intros ???.
+  rewrite sat_rename.  
+  apply Sat_resp.
+  unfold r2.
+  destruct i as [|[|i]]; apply Equiv_refl. }
+ assert (R1' : forall {x y y'},
+            Sat M ψ (Env_cons x (Env_cons y e)) ->
+            Sat M (rename r1 ψ) (Env_cons y' (Env_cons y (Env_cons x e)))).
+ {intros ???.
+  rewrite sat_rename.  
+  apply Sat_resp.
+  unfold r1.
+  destruct i as [|[|i]]; apply Equiv_refl. }
+ destruct M_repl with ψ e (e 0) as (b& hb& hb'); auto.
+ {intros x y y' hx hy hy' h1 h2.
+  apply R1' with (y':=y') in h1.
+  apply R2 with (y:=y) in h2.
+  revert h1 h2; apply hf; auto.
+  apply M_trans with (1:=he 0); trivial. }
+ rewrite (sat_ex em); simpl.
+ exists b; split; trivial.
+ intros y hy h.
+ rewrite (sat_ex em) in h.
+ destruct h as (x& ?& hx).
+ rewrite (sat_and em) in hx; simpl in hx.
+ destruct hx as (hxa, hs).
+ apply hb' with x; trivial.
+ rewrite sat_rename in hs.
+ revert hs; apply Sat_resp.
+ unfold r3.
+ destruct i as [|[|i]]; apply Equiv_refl.
+Qed.
 
 Lemma con : Con ZF.
-Admitted.
-  (* Con.of_model em (hM.valid em) PSet.empty hM.empty. *)
+apply (@Con_of_model em) with (M:=M) (x:=empty);
+  [exact valid|apply M_empty].
+Qed.
 
 End ZFModel.
