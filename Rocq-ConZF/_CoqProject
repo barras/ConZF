@@ -1,4 +1,5 @@
 -R . ConZF
+Sublogic.v
 PSet.v
 Mat.v
 Repl.v
