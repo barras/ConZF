@@ -25,7 +25,8 @@ apply H; trivial.
 Qed.
 
 Require Import Sublogic.
-Declare Module L : ConsistentSublogic.
+(*Declare Module L : ConsistentSublogic.*)
+Module L := ClassicSublogic.
 Module LT := BuildConsistentSublogic L.
 Export L LT.
 Hint Resolve TrI : core.

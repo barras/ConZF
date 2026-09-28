@@ -35,6 +35,10 @@ Definition IsSucc (η : PSet) : Prop := #exists ζ, η ≈ succ ζ.
 
 (*- The case of the rule that uses definable functions. *)
 Definition LimCase (η : PSet) : Prop := ~ IsSucc η /\ ~ η ≈ omega /\ #exists ν, ν ∈ η /\ Reach η ν.
+Lemma isL_LimCase η : isL(LimCase η).
+unfold LimCase; prove_isL.
+Qed.
+Hint Resolve isL_LimCase : core.
 
 (*- The least `ν` from which `η` is reached, as the set of the `ν ∈ η` from which it is not. *)
 Definition Gν (η : PSet) : PSet := sep (fun ν => ~ Reach η ν) η.
@@ -113,7 +117,6 @@ apply Equiv_trans with (1:=Equiv_symm e); trivial.
 Qed.
                       
 Lemma LimCase_resp {η η' : PSet} (e : η ≈ η') (h : LimCase η) : LimCase η'.
-unfold LimCase,not in *.
 destruct h as (h1 & h2 & h); Tdestruct h as (ν & hν & h3).
 split; [|split;[|Texists ν; split]].
 *intro; apply h1.
