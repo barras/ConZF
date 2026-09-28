@@ -21,15 +21,20 @@ Context (I : PSet -> PSet -> PSet -> PSet -> Prop).
 Definition Unb (η q s : PSet) : Prop :=
   (forall x y y', x ∈ s -> I η q x y -> I η q x y' -> y ≈ y') /\
   (forall x y, x ∈ s -> I η q x y -> rank y ∈ η) /\
-  (forall ζ, ζ ∈ η -> exists x y, x ∈ s /\ I η q x y /\ ζ ∈ succ (rank y)).
+  (forall ζ, ζ ∈ η -> #exists x y, x ∈ s /\ I η q x y /\ ζ ∈ succ (rank y)).
 
 (*- `η` is reached from parameters of rank below `ν`. *)
-Definition Reach (η ν : PSet) : Prop := exists q s, rank q ∈ ν /\ rank s ∈ ν /\ Unb η q s.
+Definition Reach (η ν : PSet) : Prop := #exists q s, rank q ∈ ν /\ rank s ∈ ν /\ Unb η q s.
 
-Definition IsSucc (η : PSet) : Prop := exists ζ, η ≈ succ ζ.
+Lemma isL_Reach η ν : isL(Reach η ν).
+unfold Reach; auto.
+Qed.
+Hint Resolve isL_Reach : core.
+
+Definition IsSucc (η : PSet) : Prop := #exists ζ, η ≈ succ ζ.
 
 (*- The case of the rule that uses definable functions. *)
-Definition LimCase (η : PSet) : Prop := ~ IsSucc η /\ ~ η ≈ omega /\ exists ν, ν ∈ η /\ Reach η ν.
+Definition LimCase (η : PSet) : Prop := ~ IsSucc η /\ ~ η ≈ omega /\ #exists ν, ν ∈ η /\ Reach η ν.
 
 (*- The least `ν` from which `η` is reached, as the set of the `ν ∈ η` from which it is not. *)
 Definition Gν (η : PSet) : PSet := sep (fun ν => ~ Reach η ν) η.
@@ -53,11 +58,11 @@ Definition rule (η : PSet) (l: Label) : PSet -> Prop :=
 Lemma omega_not_succ {ζ : PSet} (h : omega ≈ succ ζ) : False.
 assert (h' : ζ ∈ omega).
 {apply mem_congr_right with (1:=h).
- apply mem_succ; right; apply Equiv_refl. }
-destruct h' as (n,h'); simpl in h'.
+ apply mem_succ; Tright; apply Equiv_refl. }
+Tdestruct h' as (n,h'); simpl in h'.
 apply (not_mem_self (succ ζ)).
 apply mem_congr_right with (1:=h).
-exists (S n); apply succ_congr; trivial.
+Texists (S n); apply succ_congr; trivial.
 Qed.
 
 (*! ### Invariance *)
@@ -84,16 +89,16 @@ split;[|split].
 *intros ζ hζ.
  apply (mem_congr_right eη) in hζ.
  destruct h as (_,(_,h)).
- destruct h with (1:=hζ) as (x & y & hx & h1 & h2).
- exists x; exists y; split; [|split]; trivial.
+ Tdestruct (h _ hζ) as (x & y & hx & h1 & h2).
+ Texists x; exists y; split; [|split]; trivial.
  +apply mem_congr_right with (1:=es); trivial.
  +revert h1; apply I_resp; trivial; apply Equiv_refl.
 Qed.
 
 Lemma Reach_resp {η η' ν ν' : PSet} (eη : η ≈ η') (eν : ν ≈ ν') (h : Reach η ν) :
     Reach η' ν'.
-destruct h as (q & s & hq & hs & h).
-exists q; exists s; split; [|split].
+red; Tdestruct h as (q & s & hq & hs & h).
+Texists q; exists s; split; [|split].
 *apply mem_congr_right with (1:=eν); trivial.
 *apply mem_congr_right with (1:=eν); trivial.
 *revert h; apply Unb_resp; trivial; apply Equiv_refl.
@@ -102,14 +107,15 @@ Qed.
 (*omit I_resp in*)
 Lemma IsSucc_resp {η η' : PSet} (e : η ≈ η') (h : IsSucc η) : IsSucc η'.
 Proof using I.
-destruct h as (ζ, h).
-exists ζ.
+red; Tdestruct h as (ζ, h).
+Texists ζ.
 apply Equiv_trans with (1:=Equiv_symm e); trivial.
 Qed.
                       
 Lemma LimCase_resp {η η' : PSet} (e : η ≈ η') (h : LimCase η) : LimCase η'.
-destruct h as (h1 & h2 & ν & hν & h3).
-split; [|split;[|exists ν; split]].
+unfold LimCase,not in *.
+destruct h as (h1 & h2 & h); Tdestruct h as (ν & hν & h3).
+split; [|split;[|Texists ν; split]].
 *intro; apply h1.
  revert H; apply @IsSucc_resp; apply Equiv_symm; trivial.
 *intro; apply h2.
@@ -120,7 +126,7 @@ split; [|split;[|exists ν; split]].
 Qed.
 
 Lemma mem_Gν {η z : PSet} : z ∈ Gν η <-> z ∈ η /\ ~ Reach η z.
-unfold Gν; rewrite mem_sep; [reflexivity|].
+unfold Gν,not; rewrite mem_sep; [reflexivity|auto|].
 intros ?? e h h'; apply h.
 revert h'; apply Reach_resp; [apply Equiv_refl|apply Equiv_symm; trivial].
 Qed.
@@ -134,8 +140,10 @@ rewrite !@mem_sep.
  apply not_iff_morphism.
  split; apply Reach_resp; try apply Equiv_refl; trivial.
  apply Equiv_symm; trivial.
+*prove_isL.
 *intros ?? e' nr r; apply nr.
  revert r; apply Reach_resp; [apply Equiv_refl|apply Equiv_symm;trivial].
+*prove_isL.
 *intros ?? e' nr r; apply nr.
  revert r; apply Reach_resp; [apply Equiv_refl|apply Equiv_symm;trivial].
 Qed.
@@ -204,11 +212,25 @@ Qed.
 
 (*variable (I) in*)
 Definition Good (η : PSet) : Prop :=
-  η ≈ empty \/ IsSucc η \/ η ≈ omega \/ exists ν, ν ∈ η /\ Reach η ν.
+  #(η ≈ empty \/ IsSucc η \/ η ≈ omega \/ exists ν, ν ∈ η /\ Reach η ν).
+
+Lemma isL_Good η : isL(Good η).
+  unfold Good; auto.
+Qed.
+Hint Resolve isL_Good : core.
 
 (*variable (I) in*)
 (*- Ordinals all of whose predecessors, and itself, are handled by one of the cases. *)
 Definition Cls (η : PSet) : Prop := IsOrd η /\ forall μ, (μ ∈ η \/ μ ≈ η) -> Good μ.
+Lemma isL_IsOrd x : isL(IsOrd x).
+intros h; split; intros; apply isL_Trans; Tdestruct h; auto.
+Qed.
+Hint Resolve isL_IsOrd : core.
+
+Lemma isL_Cls η : isL(Cls η).
+unfold Cls; prove_isL.
+Qed.
+Hint Resolve isL_Cls : core.
 
 (*omit I_resp in*)
 Lemma Cls_resp {η η' : PSet} (e : η ≈ η') (h : Cls η) : Cls η'.
@@ -246,14 +268,14 @@ induction n; simpl succN; simpl ofNat; auto using succ_congr.
 Qed.
 
 Section em.
-Hypothesis (em : forall p : Prop, p \/ ~p).
+Hypothesis (em : forall p : Prop, #(p \/ ~p)).
 
 (*- In the limit case, the least `ν` is an element of `η` from which `η` is reached. *)
 Lemma Gν_spec {η : PSet} (hη : IsOrd η) (h : LimCase η) :
   Gν η ∈ η /\ IsOrd (Gν η) /\ Reach η (Gν η).
 assert (up : forall {ν ν'}, ν' ∈ η -> ν ∈ ν' -> Reach η ν -> Reach η ν').
-{intros ?? hν' hν (q& s& hq& hs& hu).
- exists q; exists s; split; [|split]; trivial.
+{intros ?? hν' hν; Tintros (q& s& hq& hs& hu).
+ Texists q; exists s; split; [|split]; trivial.
  *apply IsOrd_mem in hν'; trivial.
   apply (@IsOrd_trans _ _) with (2:=hq); trivial.
  *apply IsOrd_mem in hν'; trivial.
@@ -271,15 +293,15 @@ assert (hG : IsOrd (Gν η)).
   apply IsOrd_mem_trans.
   apply mem_Gν; trivial. }
 assert (hmem : Gν η ∈ η).
-{destruct (@IsOrd_subset em) with (1:=hG) (2:=hη) as [h'|e].
- {intros z hz; apply mem_Gν in hz; apply hz. }
+{Tdestruct (@IsOrd_subset em _ _ hG hη) as [h'|e].
+ 3:{intros z hz; apply mem_Gν in hz; apply hz. }
  *trivial.
- *destruct h as (_& _& ν& hν& hr).
+ *destruct h as (_& _& h); Tdestruct h as (ν& hν& hr).
   apply mem_congr_right with (1:=e) in hν.
   apply mem_Gν in hν.
   destruct hν as (_,[]); trivial. }
 split; [|split]; trivial.
-edestruct em as [?|hn]; [eassumption|].
+Tdestruct em as [?|hn]; [eassumption|].
 edestruct not_mem_self.
 eapply mem_Gν; split; eassumption.
 Qed.
@@ -290,9 +312,9 @@ assert (ξ ∈ η).
 {destruct l as [|w|].
  *destruct h as [h |[ (h1, h2) | (h1, h2)]].
   +apply mem_congr_right with (1:=h).
-   apply mem_succ; right; apply Equiv_refl.
+   apply mem_succ; Tright; apply Equiv_refl.
   +apply mem_congr_right with (1:=h1).
-   exists 0; trivial.
+   Texists 0; trivial.
   +apply mem_congr_left with (1:=h2).
    apply Gν_spec with (2:=h1).
    apply hη.
@@ -307,12 +329,12 @@ apply (Cls_mem hη H).
 Qed.
 
 Lemma rule_sup (U : PSet) {η G : PSet} (hη : Cls η)
-    (hG : forall x, x ∈ G <-> exists ζ, rule η a ζ /\ x ∈ ζ) (x : PSet) :
-  x ∈ η <-> exists l ξ, Avail D U G l /\ rule η l ξ /\ x ∈ succ ξ.
+    (hG : forall x, x ∈ G <-> #exists ζ, rule η a ζ /\ x ∈ ζ) (x : PSet) :
+  x ∈ η <-> #exists l ξ, Avail D U G l /\ rule η l ξ /\ x ∈ succ ξ.
 split.
-2:{intros (l& ξ& ?& hr& hx).
+2:{Tintros (l& ξ& ?& hr& hx).
    assert (hξ := proj1(rule_mem hη hr)).
-   apply mem_succ in hx; destruct hx as [hx | e].
+   apply mem_succ in hx; Tdestruct hx as [hx | e].
    *destruct hη; eapply (IsOrd_trans _) with (2:=hx); trivial.
    *apply mem_congr_left with (1:=e); trivial. }
 1:{ (* -- `G` is the target of the child `a`*)
@@ -320,19 +342,19 @@ split.
   assert (hGa : forall {ζ}, rule η a ζ -> G ≈ ζ).
   {intros ζ hζ; apply ext; intros z.
    rewrite hG; split.
-   *intros (ζ'& h1& h2).
+   *Tintros (ζ'& h1& h2).
     revert h2; apply mem_congr_right.
     revert hζ h1; apply rule_func.
-   *exists ζ; auto. }
-  destruct (em (IsSucc η)) as [(ζ, e) | hs];
-    [|destruct (em (η ≈ omega)) as [hω | hω]].
-  *exists a; exists ζ; split; [|split].
+   *intro; Texists ζ; auto. }
+  Tdestruct (em (IsSucc η)) as [h | hs];
+    [Tdestruct h as (ζ, e)|Tdestruct (em (η ≈ omega)) as [hω | hω]].
+  *Texists a; exists ζ; split; [|split].
    +left; trivial.
    +left; trivial.
    +revert hx; apply mem_congr_right; apply Equiv_symm; trivial.
   *apply mem_congr_right with (1:=hω) in hx.
    rewrite mem_omega in hx.
-   destruct hx as (n, e).
+   Tdestruct hx as (n, e).
    assert (hGe : G ≈ empty).
    {apply hGa; right; left; split; [trivial|apply Equiv_refl]. }
    assert (hr : rank (ofNat n) ≈ ofNat n).
@@ -343,28 +365,30 @@ split.
     *apply @IsOrd_resp with (2:=isOrd_empty).
      apply Equiv_symm; trivial.
     *apply mem_congr_left with (1:=hr).
-     simpl succN; apply mem_succ; right.
+     simpl succN; apply mem_succ; Tright.
      apply Equiv_symm; apply succN_empty; trivial. }
-   exists (b (ofNat n)); exists (rank (ofNat n)).
+   Texists (b (ofNat n)); exists (rank (ofNat n)).
    split; [|split].
    +right; left; eexists; split; [eassumption|constructor;apply Equiv_refl].
    +left; split; [|split]; [trivial| |apply Equiv_refl].
     apply mem_congr_left with (1:=hr).
-    rewrite mem_omega; exists n; apply Equiv_refl.
-   +apply mem_succ; right.
+    rewrite mem_omega; Texists n; apply Equiv_refl.
+   +apply mem_succ; Tright.
     apply Equiv_trans with (1:=e); apply Equiv_symm; trivial.
   *assert (hL : LimCase η).
-   {destruct (proj2 hη η) as [h|[h|[h|h]]]; [right; apply Equiv_refl|..].
+   {red.
+    Tdestruct (proj2 hη η) as [h|[h|[h|h]]].
+    5:{right; apply Equiv_refl. }
     +apply mem_congr_right with (1:=h) in hx.
      apply not_mem_empty in hx; contradiction.
     +contradiction.
     +contradiction.
-    +split;[|split]; trivial. }
-   destruct @Gν_spec with (1:=proj1 hη)(2:=hL)
-     as (_& hGo& q& s& hq& hs'& hu).
+    +split;[|split]; auto. }
+   destruct (@Gν_spec) with (1:=proj1 hη) (2:=hL) as (_& hGo& h);
+     Tdestruct h as (q& s& hq& hs'& hu).
    assert (hGe : G ≈ Gν η).
    {apply hGa; right; right; split; [trivial|apply Equiv_refl]. }
-   destruct (proj2 (proj2 hu) _ hx) as (x'& y& hx'& hI& hxy).
+   Tdestruct (proj2 (proj2 hu) _ hx) as (x'& y& hx'& hI& hxy).
    assert (hw : triple q s x' ∈ D G).
    {apply (mem_D_of_rank em) with (n:=4);
        [revert hGo; apply IsOrd_resp; apply Equiv_symm; trivial|].
@@ -372,7 +396,7 @@ split.
     apply (rank_triple_mem em); trivial.
     apply rank_mem in hx'.
     eapply (IsOrd_trans _) with (2:=hx'); trivial. }
-   exists (b (triple q s x')); exists (rank y); split; [|split]; trivial.
+   Texists (b (triple q s x')); exists (rank y); split; [|split]; trivial.
    +right; left; eexists; split; [eassumption|constructor;apply Equiv_refl].
    +right; split; [trivial|].
     exists q; exists s; exists x'; exists y; split;[|split;[|split;[|split]]];
@@ -399,24 +423,24 @@ variable (I) in*)
 definable one), or there is an ordinal that is not `0`, not a successor, not `ω`, and into which
 no `I`-definable function from parameters of smaller rank is cofinal. For first-order `I` the
 latter is a worldly cardinal, and `V_ρ ⊨ ZF`. *)
-Lemma dichotomy (em : forall p : Prop, p \/ ~p) :
-    (forall (s : PSet) (φ : PSet -> PSet -> Prop),
+Lemma dichotomy (em : forall p : Prop, #(p \/ ~p)) :
+  #((forall (s : PSet) (φ : PSet -> PSet -> Prop),
       (forall {x x' y y'}, x ≈ x' -> y ≈ y' -> φ x y -> φ x' y') ->
       (forall {x y y'}, x ∈ s -> φ x y -> φ x y' -> y ≈ y') ->
-      exists img : PSet, forall y, y ∈ img <-> exists x, x ∈ s /\ φ x y) \/
-    exists ρ : PSet, IsOrd ρ /\ ~ ρ ≈ empty /\ ~ IsSucc ρ /\ ~ ρ ≈ omega /\
-                       forall ν, ν ∈ ρ -> ~ Reach ρ ν.
-destruct (em (exists ρ, IsOrd ρ /\ ~ Good ρ)) as [(ρ & hρ & hg) | hall ];
-  [right|left].
+      #exists img : PSet, forall y, y ∈ img <-> #exists x, x ∈ s /\ φ x y) \/
+    (exists ρ : PSet, IsOrd ρ /\ ~ ρ ≈ empty /\ ~ IsSucc ρ /\ ~ ρ ≈ omega /\
+                        forall ν, ν ∈ ρ -> ~ Reach ρ ν)).
+Tdestruct (em (exists ρ, IsOrd ρ /\ ~ Good ρ)) as [(ρ & hρ & hg) | hall ];
+  [Tright|Tleft].
 *exists ρ; split; [trivial|split;[|split;[|split]]].
- +intros h; apply hg; left; trivial.
- +intros h; apply hg; right; left; trivial.
- +intros h; apply hg; right; right; left; trivial.
- +intros ν hν h; apply hg; do 3 right; exists ν; auto.
+ +intros h; apply hg; Tleft; trivial.
+ +intros h; apply hg; Tright; left; trivial.
+ +intros h; apply hg; Tright; right; left; trivial.
+ +intros ν hν h; apply hg; Tright; do 2 right; exists ν; auto.
 *intros s φ φ_resp φ_func.
  assert (good : forall η, IsOrd η -> Good η).
  {intros η hη.
-  edestruct em as [h|h];[eassumption|].
+  Tdestruct em as [h|h];[eassumption|].
   destruct hall; eauto. }
  assert (cls : forall η, IsOrd η -> Cls η).
  {intros η hη; split; [trivial|].
@@ -425,43 +449,50 @@ destruct (em (exists ρ, IsOrd ρ /\ ~ Good ρ)) as [(ρ & hρ & hg) | hall ];
     [eapply IsOrd_mem with (1:=hη)
     |revert hη;apply IsOrd_resp; apply Equiv_symm]; trivial. }
  (*-- the ranks of the values*)
- pose (ψ (*: PSet -> PSet -> Prop*) := fun x η => exists y, φ x y /\ η ≈ rank y).
- edestruct @Rule.replacement with (1:=worldly_rule em s) (s:=s) (φ:=ψ) as (R, hR);
-   trivial.
- {intros ???? ex eη (y & h1 & h2); exists y; split.
+ pose (ψ (*: PSet -> PSet -> Prop*) := fun x η => #exists y, φ x y /\ η ≈ rank y).
+ assert (ψok : forall x y, isL(ψ x y)) by (unfold ψ; prove_isL).
+ Tdestruct (@Rule.replacement _ _ _ _ (worldly_rule em s) _ (reflexivity _) ψ)
+   as (R,hR).
+ {pose (p (*: PSet -> Prop*) := fun y => #exists x, x ∈ s /\ φ x y).
+  Texists  (sep p (Vl R)); intros y.
+  assert (pok : forall x, isL(p x)) by (unfold p; prove_isL).
+  rewrite mem_sep; [|trivial|].
+  2:{intros z z' e; Tintros (x & hx & h).
+     Texists x; split; [trivial|].
+     revert h; apply φ_resp; [apply Equiv_refl|trivial]. }
+  split; [destruct 1; trivial|].
+  intros h; split; [|trivial].
+  Tdestruct h as (x & hx & hφ).
+  assert (hr : rank y ∈ R).
+  {apply hR.
+   Texists x; split; [trivial|].
+   Texists y; split; [trivial|].
+   apply Equiv_refl. }
+  apply (mem_Vl em).
+  eapply mem_congr_left; [|eapply rank_mem; eassumption].
+  apply Equiv_symm; apply IsOrd_rank_equiv.
+  apply  (isOrd_rank y). }
+ {intros ???? ex eη; Tintros (z & h1 & h2); Texists z; split.
   *revert h1; apply φ_resp; [trivial|apply Equiv_refl].
   *apply Equiv_trans with (2:=h2).
    apply Equiv_symm; trivial. }
- {intros ??? hx (y & h1 & h2) (y' & h1' & h2').
+ {intros ??? hx.
+  Tintros (z & h1 & h2); Tintros (z' & h1' & h2').
   apply Equiv_trans with (1:=h2).
   apply Equiv_trans with (2:=Equiv_symm h2').
   apply rank_congr.
   revert h1 h1'; apply φ_func; trivial. }
- {intros ??? (y & ? & h2).
+ {intros ???; Tintros (z & ? & h2).
   apply cls.
   apply Equiv_symm in h2.
   apply IsOrd_resp with (1:=h2).
   apply isOrd_rank. }
- pose (p (*: PSet -> Prop*) := fun y => exists x, x ∈ s /\ φ x y).
- exists  (sep p (Vl R)); intros y.
- rewrite mem_sep.
- 2:{intros z z' e (x & hx & h).
-    exists x; split; [trivial|].
-    revert h; apply φ_resp; [apply Equiv_refl|trivial]. }
- split; [destruct 1; trivial|].
- intros h; split; [|trivial].
- destruct h as (x & hx & hφ).
-   assert (hr : rank y ∈ R).
- {apply hR.
-  exists x; split; [trivial|].
-  exists y; split; [trivial|].
-  apply Equiv_refl. }
- apply (mem_Vl em).
- eapply mem_congr_left; [|eapply rank_mem; eassumption].
- apply Equiv_symm; apply IsOrd_rank_equiv.
- apply  (isOrd_rank y).
 Qed.
 
 End S.
+Hint Resolve isL_IsOrd : core.
+Hint Resolve isL_Reach : core.
+Hint Resolve isL_Good : core.
+Hint Resolve isL_Cls : core.
 
 Print Assumptions dichotomy.

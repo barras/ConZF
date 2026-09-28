@@ -139,7 +139,7 @@ Qed.
 
 Lemma mem_asymm : forall (x : PSet) {y}, y ∈ x -> ~ x ∈ y.
 intros x.
-elim x using @mem_induction; [unfold not; auto|].
+elim x using @mem_induction; [prove_isL|].
 clear x; intros x ih y hy hx.
 red in ih; apply ih with y x; trivial.
 Qed.

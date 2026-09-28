@@ -8,6 +8,11 @@ Import PSet.
 
 Definition Trans (t : PSet) : Prop := forall y, y ∈ t -> forall z, z ∈ y -> z ∈ t.
 
+Lemma isL_Trans t : isL(Trans t).
+  unfold Trans; auto.
+Qed.
+Hint Resolve isL_Trans : core.
+
 (*- Von Neumann ordinals: transitive sets of transitive sets (foundation is built in). *)
 Class IsOrd (t : PSet) : Prop := {
     IsOrd_trans : Trans t;
@@ -47,12 +52,12 @@ Instance IsOrd_succ {t : PSet} (h : IsOrd t) : IsOrd (succ t).
 destruct h as (h1,h2).
 split.
 *intros y hy z hz.
- apply mem_succ; left.
- apply mem_succ in hy; destruct hy.
+ apply mem_succ; Tleft.
+ apply mem_succ in hy; Tdestruct hy.
  +revert hz; apply h1; trivial.
  +apply mem_congr_right with (1:=H); trivial.
 *intros y hy.
- apply mem_succ in hy; destruct hy as [hy | e]; [auto|].
+ apply mem_succ in hy; Tdestruct hy as [hy | e]; [auto|].
  revert h1; apply Trans_resp.
 apply Equiv_symm; trivial.
 Qed.
@@ -60,11 +65,11 @@ Qed.
 Instance isOrd_iUnion {ι : Type} {A : ι -> PSet} (h : forall i, IsOrd (A i)) : IsOrd (iUnion A).
 split.
 *intros y hy z hz.
- rewrite mem_iUnion in hy; destruct hy as (i, hi).
- apply mem_iUnion; exists i.
+ rewrite mem_iUnion in hy; Tdestruct hy as (i, hi).
+ apply mem_iUnion; Texists i.
  revert hz; apply IsOrd_trans; trivial.
 *intros y hy.
- rewrite mem_iUnion in hy; destruct hy as (i, hi).
+ rewrite mem_iUnion in hy; Tdestruct hy as (i, hi).
  eapply IsOrd_mem_trans; eassumption.
 Qed.
 
@@ -74,35 +79,35 @@ apply (@mem_asymm a a); trivial.
 Qed.
 
 Section em.
-Hypothesis (em : forall p : Prop, p \/ ~p).
+Hypothesis (em : forall p : Prop, #(p \/ ~p)).
 
 (*- Ordinals are linearly ordered by `∈`. *)
-Lemma IsOrd_trichotomy : forall {a b : PSet}, IsOrd a -> IsOrd b -> a ∈ b \/ a ≈ b \/ b ∈ a.
+Lemma IsOrd_trichotomy : forall {a b : PSet}, IsOrd a -> IsOrd b -> #(a ∈ b \/ a ≈ b \/ b ∈ a).
 intros a.
-induction a using @mem_induction; rename H into iha.
+elim a using @mem_induction; [auto|clear a; intros a iha].
 intros b.
-induction b using @mem_induction; rename H into ihb.
+elim b using @mem_induction; [auto|clear b; intros b ihb].
 intros ha hb.
-destruct (em (a ∈ b)) as [h1 | h1].
-*left; trivial.
-*destruct (em (b ∈ a)) as [h2 | h2].
- **right; right; trivial.
- **right; left.
+Tdestruct (em (a ∈ b)) as [h1 | h1].
+*Tleft; trivial.
+*Tdestruct (em (b ∈ a)) as [h2 | h2].
+ **Tright; right; trivial.
+ **Tright; left.
    apply ext; intros z; split; intros hz.
-   +destruct iha with z b as [h|[h|h]];
-      trivial; [apply IsOrd_mem with (2:=hz); trivial| |].
+   +assert (zo : IsOrd z) by (apply IsOrd_mem with (2:=hz); trivial).
+    Tdestruct (iha _ hz b zo hb) as [h|[h|h]]; trivial.
     ++elim h2; apply mem_congr_left with (1:=h); trivial.
     ++elim h2; revert h; apply IsOrd_trans; trivial.
-   +destruct ihb with z as [h|[h|h]];
-      trivial; [apply IsOrd_mem with (2:=hz); trivial| |].
+   +assert (zo : IsOrd z) by (apply IsOrd_mem with (2:=hz); trivial).
+    Tdestruct (ihb z hz ha zo) as [h|[h|h]]; trivial.
     ++elim h1; revert h; apply IsOrd_trans; trivial.
     ++elim h1; apply mem_congr_left with (1:=h); trivial.
 Qed.
 
 (*- For ordinals, inclusion is `∈` or `≈`. *)
 Lemma IsOrd_subset {a b : PSet} (ha : IsOrd a) (hb : IsOrd b) (h : forall z, z ∈ a -> z ∈ b) :
-  a ∈ b \/ a ≈ b.
-destruct (IsOrd_trichotomy ha hb) as [h' |[ h' | h']]; auto.
+  #(a ∈ b \/ a ≈ b).
+Tdestruct (IsOrd_trichotomy ha hb) as [h' |[ h' | h']]; auto.
 destruct (not_mem_self b (h b h')).
 Qed.
 
@@ -113,7 +118,7 @@ End em.
 Fixpoint rank (x:PSet) : PSet :=
   iUnion (fun a:Idx x => succ (rank (Func x a))).
 
-Lemma mem_rank {x z : PSet} : z ∈ rank x <-> exists a, z ∈ succ (rank (Func x a)).
+Lemma mem_rank {x z : PSet} : z ∈ rank x <-> #exists a, z ∈ succ (rank (Func x a)).
 destruct x; exact mem_iUnion.
 Qed.
 
@@ -123,21 +128,21 @@ apply ext; intros z.
 rewrite !mem_rank.
 simpl.
 split.
-*intros (a,h); destruct (h1 a) as (b,e).
- exists b.
+*Tintros (a,h); Tdestruct (h1 a) as (b,e).
+ Texists b.
  revert h; apply (fun e=>proj1(mem_succ_congr e)).
  apply hrec; trivial.
-*intros (b,h); destruct (h2 b) as (a,e).
- exists a.
+*Tintros (b,h); Tdestruct (h2 b) as (a,e).
+ Texists a.
  revert h; apply (fun e=>proj2(mem_succ_congr e)).
  apply hrec; trivial.
 Qed.
 
 Lemma rank_mem {x y : PSet} (h : y ∈ x) : rank y ∈ rank x.
-destruct h as (a,e).
+Tdestruct h as (a,e).
 rewrite mem_rank.
-exists a.
-rewrite mem_succ; right.
+Texists a.
+rewrite mem_succ; Tright.
 apply rank_congr; trivial.
 Qed.
 

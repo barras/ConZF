@@ -10,33 +10,38 @@ needed to define the model or to state that it satisfies `ZF`.
 (*- The sets of hereditarily good rank. *)
 Definition HG (x : PSet) : Prop := Cls ISat (rank x).
 
+Lemma isL_HG x : isL(HG x).
+  unfold HG;prove_isL.
+Qed.
+Hint Resolve isL_HG : core.
+
 Lemma Cls_succ {I} {η : PSet} (h : Cls I η) : Cls I (succ η).
 destruct h as (ho,hc).
 split; [apply IsOrd_succ; trivial|].
 destruct 1 as [hm|e].
-*apply hc.
- apply mem_succ; trivial.
-*right; left; red; eauto.
+*apply mem_succ in hm.
+ Telim hm; auto.
+*Tright; left; red; eauto.
 Qed.
 
 Lemma cls_empty {I} : Cls I empty.
 split; [apply isOrd_empty|].
-destruct 1; [|left; trivial].
+destruct 1; [|Tleft; trivial].
 apply not_mem_empty in H; contradiction.
 Qed.
 
 Lemma cls_omega {I} : Cls I omega.
 split; [apply isOrd_omega|].
 destruct 1 as [h|e].
-*apply mem_omega in h; destruct h as (n,e).
- destruct n; [left; trivial|].
+*apply mem_omega in h; Tdestruct h as (n,e).
+ destruct n; [Tleft; trivial|].
 simpl in e.
- right; left; red; eauto.
-*right; right; left; trivial.
+ Tright; left; red; eauto.
+*Tright; right; left; trivial.
 Qed.
   
 Section S.
-Hypothesis (em : forall p : Prop, p \/ ~p).
+Hypothesis (em : forall p : Prop, #(p \/ ~p)).
 
 (*- A set whose elements have ranks below a hereditarily good `R` is in the model. *)
 Lemma HG_of_bound {y R : PSet} (hR : Cls ISat R) (h : forall z, z ∈ y -> rank z ∈ R) : HG y.
@@ -65,17 +70,17 @@ split.
  assert (key : forall {x y : PSet}, HG x -> (forall z, z ∈ rank y -> z ∈ rank x) -> HG (upair x y)).
  {clear -em.
   intros x y hx hsub; eapply HG_of_bound with (1:=Cls_succ hx).
-  intros z; rewrite mem_upair; destruct 1 as [e|e].
-  +apply mem_succ; right; apply rank_congr; trivial.
+  intros z; rewrite mem_upair; Tintros [e|e].
+  +apply mem_succ; Tright; apply rank_congr; trivial.
   +apply rank_congr in e.
    apply mem_congr_left with (1:=e).
    apply mem_succ.
    eapply IsOrd_subset with (1:=em) (2:=isOrd_rank _) (3:=isOrd_rank _).
    trivial. }
- destruct IsOrd_trichotomy with (1:=em)(2:=isOrd_rank x)(3:=isOrd_rank y)
+ Tdestruct (IsOrd_trichotomy em (isOrd_rank x) (isOrd_rank y))
    as [h|[h|h]].
  +apply @HG_resp with (upair y x).
-  {apply ext; intros z; do 2 rewrite mem_upair; apply or_comm. }
+  {apply ext; intros z; do 2 rewrite mem_upair; apply Tr_morph; apply or_comm. }
   apply key; trivial.
   intros z hz; eapply (@IsOrd_trans _ (isOrd_rank y) _); eauto.
  +apply key; trivial.
@@ -84,7 +89,7 @@ split.
   intros z hz; eapply (@IsOrd_trans _ (isOrd_rank x) _); eauto.
 *intros ? hx.
  apply HG_of_bound with (1:=hx).
- intros z; rewrite mem_sUnion; intros (w & hw & hzw).
+ intros z; rewrite mem_sUnion; Tintros (w & hw & hzw).
  eapply (@IsOrd_trans _ (isOrd_rank x) _); eapply rank_mem; eassumption.
 *intros ? hx.
  apply HG_of_bound with (1:=Cls_succ hx).
@@ -98,28 +103,28 @@ split.
  apply isOrd_omega.
 *intros P x hx.
  apply HG_of_bound with (1:=hx).
- intros ? ((i,?),e); simpl in e.
- apply rank_mem; exists i; trivial.
+ intros ?; Tintros ((i,?),e); simpl in e.
+ apply rank_mem; Texists i; trivial.
 * (*-- Replacement. First the ranks of the values are bounded, by the materializing recursion.*)
  intros ψ e he a ha hf.
  pose (φ := fun x η =>
               exists y, HG y /\ Sat HG ψ (Env_cons x (Env_cons y e)) /\
                           η ≈ rank y).
  assert (Rl := worldly_rule _ (@ISat_resp em) em a).
- destruct @Rule.replacement with (1:=Rl) (s:=a) (φ:=φ) as (R, hR); trivial.
- {intros ???? ex eη (y & h1 & h2 & h3).
+ Tdestruct (@Rule.replacement _ _ _ _ Rl _ (reflexivity _) φ) as (R, hR); trivial.
+ 2:{intros ???? ex eη (y & h1 & h2 & h3).
   exists y; split; [trivial|split].
   *apply @Sat_resp with (2:=h2).
    intros; apply Env_cons_resp; trivial.
    intros; apply Equiv_refl.
   *apply Equiv_trans with (2:=h3).
    apply Equiv_symm; trivial. }
- {intros ??? hx (y & h1 & h2 & h3) (y' & h1' & h2' & h3').
+ 2:{intros ??? hx (y & h1 & h2 & h3) (y' & h1' & h2' & h3').
   apply Equiv_trans with (1:=h3).
   apply Equiv_trans with (2:=Equiv_symm h3').
   apply rank_congr.
   apply hf with x; trivial. }
- {intros ?? ? (y & h1 & ? & h3).
+ 2:{intros ?? ? (y & h1 & ? & h3).
   eapply Cls_resp with (1:=Equiv_symm h3); trivial. }
  (*-- `θ` is the strict supremum of those ranks*)
  pose (θ := rank R).
@@ -129,41 +134,43 @@ split.
   apply mem_congr_left with (1:=IsOrd_rank_equiv(isOrd_rank y)).
   apply rank_mem.
   apply hR.
-  exists x; split; trivial.
+  Texists x; split; trivial.
   exists y; split; [|split]; trivial.
   apply Equiv_refl. }
  assert (below : forall μ, μ ∈ θ -> Cls ISat μ).
  {intros μ hμ.
-  apply mem_rank' in hμ; destruct hμ as (η & hη & hμ).
-  rewrite hR in hη; destruct hη as (?& ?& y& hy& ?& e').
+  apply mem_rank' in hμ; Tdestruct hμ as (η & hη & hμ).
+  rewrite hR in hη; Tdestruct hη as (?& ?& y& hy& ?& e').
   assert (hc : Cls ISat (rank η)).
   {revert hy; apply Cls_resp.
    apply rank_congr in e'.
    apply Equiv_trans with (2:=Equiv_symm e').
    apply Equiv_symm; apply IsOrd_rank_equiv.
    apply isOrd_rank. }
-  apply mem_succ in hμ; destruct hμ as [h|e''].
+  apply mem_succ in hμ; Tdestruct hμ as [h|e''].
   *apply Cls_mem with (2:=h); trivial.
   *revert hc; apply Cls_resp; apply Equiv_symm; trivial. }
  assert (inVl : forall {y}, rank y ∈ θ -> y ∈ Vl θ).
  {intros ?; rewrite (mem_Vl em).
   apply mem_congr_right.
   apply IsOrd_rank_equiv; trivial. }
- destruct (em (Good ISat θ)) as [hg | hg].
+ Tdestruct (em (Good ISat θ)) as [hg | hg].
  +(*-- `θ` is hereditarily good, and `V_θ` is in the model*)
   assert (hθ : Cls ISat θ).
   {split; [trivial|].
    intros μ [h|e']; [apply (below μ h); right; apply Equiv_refl|].
-   edestruct em as [?|hn]; [eassumption|].
-   destruct hg as [h | [(ζ, h) | [h | (ν& hν& h)]]].
-   *left; apply Equiv_trans with (1:=e')(2:=h).
-   *right; left; exists ζ; apply Equiv_trans with (1:=e')(2:=h).
-   *do 2 right; left; apply Equiv_trans with (1:=e')(2:=h).
-   *do 3 right; exists ν.
+   assert (em' := em).
+   Tdestruct em' as [?|hn]; [eassumption|].
+   Tdestruct hg as [h | [h | [h | (ν& hν& h)]]].
+   *Tleft; apply Equiv_trans with (1:=e')(2:=h).
+   *Tdestruct h as (ζ, h).
+    Tright; left; Texists ζ; apply Equiv_trans with (1:=e')(2:=h).
+   *Tright; right; left; apply Equiv_trans with (1:=e')(2:=h).
+   *Tright; do 2 right; exists ν.
     split; [apply mem_congr_right with (1:=e'); trivial|].
     revert h; apply Reach_resp with (1:=@ISat_resp em);
       [apply Equiv_symm; trivial|apply Equiv_refl]. }
-  exists (Vl θ); split.
+  Texists (Vl θ); split.
   ++apply HG_of_bound with (1:=hθ).
     intros z hz.
     rewrite (mem_Vl em) in hz.
@@ -172,17 +179,17 @@ split.
   ++intros x y hx hy h; apply inVl; eauto.
  +(*-- otherwise the model is `V_θ`, and `θ` is not reachable *)
   assert (h0 : ~ θ ≈ empty).
-  {intro h; apply hg; left; trivial. }
+  {intro h; apply hg; Tleft; trivial. }
   assert (hs : ~ IsSucc θ).
-  {intro h; apply hg; right; left; trivial. }
+  {intro h; apply hg; Tright; left; trivial. }
   assert (hω : ~ θ ≈ omega).
-  {intro h; apply hg; do 2 right; left; trivial. }
+  {intro h; apply hg; Tright;  right; left; trivial. }
   assert (hr : forall ν, ν ∈ θ -> ~ Reach ISat θ ν).
-  {intros ν hν h; apply hg; do 3 right; exists ν; auto. }
+  {intros ν hν h; apply hg; Tright; do 2 right; exists ν; auto. }
   assert (top : forall x, HG x <-> x ∈ Vl θ).
   {intros x; split.
    *intros hx; apply inVl.
-    destruct (IsOrd_trichotomy em (proj1 hx) hθo) as [h | [h | h]]; trivial.
+    Tdestruct (IsOrd_trichotomy em (proj1 hx) hθo) as [h | [h | h]]; trivial.
     +destruct hg; apply hx; right.
      apply Equiv_symm; trivial.
     +destruct hg; apply hx; left; trivial.
@@ -193,26 +200,26 @@ split.
   assert (sat : forall {E}, Sat HG ψ E <-> Sat (fun x=>x ∈ Vl θ) ψ E).
   {intros E; apply Sat_resp_iff with (1:=top); intros; apply Equiv_refl. }
   assert (Mrepl := @M_repl _ (Vl_model em hθo h0 hs hω hr)).
-  destruct Mrepl with (ψ:=ψ) (e:=e) (a:=a) as (b & hb & hb').
+  Tdestruct (fun hyp => Mrepl ψ e hyp a) as (b & hb & hb').
+  Texists b; split; [apply top; trivial|].
+  intros x y hx hy h.
+  apply sat in h.
+  apply hb' with x; trivial.
+  apply top; trivial.
   {intros i; apply top; auto. }
   {apply top; auto. }
   {intros x y y' hx hy hy' h1 h2.
    apply sat in h1; apply sat in h2.
    revert h1 h2.
    apply hf; trivial; apply top; trivial. }
-  exists b; split; [apply top; trivial|].
-  intros x y hx hy h.
-  apply sat in h.
-  apply hb' with x; trivial.
-  apply top; trivial.
-Qed.
-
-(*- The consistency of `ZF`, by the single model `HG`. *)
-Lemma con_ZF' : Con ZF.
-apply con with (2:=em) (1:=hg_model).
 Qed.
 
 End S.
+
+(*- The consistency of `ZF`, by the single model `HG`. *)
+Theorem con_ZF' (em : forall p : Prop, #(p \/ ~p)) : Con ZF.
+apply con with (2:=em) (1:=hg_model em).
+Qed.
 
 (*- info: 'PSet.con_ZF'' does not depend on any axioms *)
 Print Assumptions con_ZF'.

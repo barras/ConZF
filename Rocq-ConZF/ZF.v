@@ -91,22 +91,22 @@ Class ZFModel (M : PSet -> Prop) : Prop := {
   M_repl : forall (ψ : Fml) (e : nat -> PSet), (forall i, M (e i)) -> forall a, M a ->
     (forall x y y', x ∈ a -> M y -> M y' -> Sat M ψ (Env_cons x (Env_cons y e)) ->
       Sat M ψ (Env_cons x (Env_cons y' e)) -> y ≈ y') ->
-    exists b, M b /\ forall x y, x ∈ a -> M y -> Sat M ψ (Env_cons x (Env_cons y e)) -> y ∈ b
+    #exists b, M b /\ forall x y, x ∈ a -> M y -> Sat M ψ (Env_cons x (Env_cons y e)) -> y ∈ b
   }.
 
 (*- Every nonempty subset of a set has an `∈`-minimal element. *)
-Lemma exists_minimal (em : forall p : Prop, p \/ ~p) (x : PSet) :
-  forall z, z ∈ x -> exists y, y ∈ x /\ forall w, w ∈ y -> ~ w ∈ x.
-induction z using @mem_induction; rename H into ih.
+Lemma exists_minimal (em : forall p : Prop, #(p \/ ~p)) (x : PSet) :
+  forall z, z ∈ x -> #exists y, y ∈ x /\ forall w, w ∈ y -> ~ w ∈ x.
+intros z; elim z using @mem_induction; [prove_isL|clear z; intros z ih].
 intros hz.
-destruct (em (exists w, w ∈ z /\ w ∈ x))
+Tdestruct (em (exists w, w ∈ z /\ w ∈ x))
   as [(w& hw& hwx) | h]; [eauto|].
-exists z; split; trivial.
+Texists z; split; trivial.
 intros w hw hwx; apply h; eauto.
 Qed.
 
 Section ZFModel.
-Context {M : PSet -> Prop} (hM : ZFModel M) (em : forall p : Prop, p \/ ~p).
+Context {M : PSet -> Prop} (hM : ZFModel M) (em : forall p : Prop, #(p \/ ~p)).
 
 Lemma valid : forall φ, ZF φ -> Valid M φ.
 intros φ h e he.
@@ -119,61 +119,62 @@ destruct h; simpl.
  split; intros hz; generalize hz; apply h; eauto.
 *intros h.
  rewrite (sat_ex em) in h.
- destruct h as (z & ?& hz).
- destruct (exists_minimal em (e 0) z hz) as (y& hy& hmin).
- apply (sat_ex em); exists y; split;
+ Tdestruct h as (z & ?& hz).
+ Tdestruct (exists_minimal em (e 0) z hz) as (y& hy& hmin).
+ apply (sat_ex em); Texists y; split;
    [apply M_trans with (1:=he 0); trivial|].
  rewrite (sat_and em); split; [trivial|].
  simpl; intros w ? hw hwx; eapply hmin; eauto.
 *unfold Ax_pair; rewrite (sat_ex em).
- exists (upair (e 0) (e 1)); split;
+ Texists (upair (e 0) (e 1)); split;
    [apply M_upair; trivial|].
  rewrite (sat_and em); simpl.
- split; apply mem_upair; [left|right]; apply Equiv_refl.
+ split; apply mem_upair; [Tleft|Tright]; apply Equiv_refl.
 *unfold Ax_union; rewrite (sat_ex em).
- exists (sUnion (e 0)); split;
+ Texists (sUnion (e 0)); split;
    [apply M_sUnion; trivial|].
  simpl; intros y ? z ? hz hy.
- apply mem_sUnion; exists y; auto.
+ apply mem_sUnion; Texists y; auto.
 *unfold Ax_power; rewrite (sat_ex em).
- exists (powerset (e 0)); split;
+ Texists (powerset (e 0)); split;
    [apply M_powerset; trivial|].
  simpl; intros y hy h.
  apply mem_powerset; intros; apply h; trivial.
  apply M_trans with (1:=hy); trivial.
 *unfold Ax_inf; rewrite (sat_ex em).
- exists omega; split;
+ Texists omega; split;
    [apply M_omega; trivial|].
  rewrite (sat_and em), (sat_ex em); simpl.
  split.
- **exists empty; split; [apply M_empty|].
+ **Texists empty; split; [apply M_empty|].
    rewrite (sat_and em); simpl.
-   split; [apply mem_omega; exists 0; apply Equiv_refl|].
+   split; [apply mem_omega; Texists 0; apply Equiv_refl|].
    intros z ? hz.
    apply not_mem_empty in hz; contradiction.
  **intros x ? hx.
-   rewrite mem_omega in hx; destruct hx as (n,e').
+   rewrite mem_omega in hx; Tdestruct hx as (n,e').
    assert (e'' := succ_congr e').
    rewrite (sat_ex em).
-   exists (succ x).   
+   Texists (succ x).   
    split.
    {apply M_trans with (1:=M_omega).
-    rewrite mem_omega; exists (S n); trivial. }
+    rewrite mem_omega; Texists (S n); trivial. }
    {rewrite (sat_and em); simpl.
-    split; [rewrite mem_omega; exists (S n); trivial|].
+    split; [rewrite mem_omega; Texists (S n); trivial|].
     intros z ?.
     rewrite (sat_iff em), (sat_or em); simpl.
     apply mem_succ. }
 *unfold Ax_sep; rewrite (sat_ex em); simpl.
  pose (P (*: PSet -> Prop*) := fun z => Sat M ψ (Env_cons z e)).
+ assert (Pok : forall x, isL(P x)) by (unfold P; prove_isL).
  assert (hP : forall z z', z ≈ z' -> P z -> P z').
  {intros ?? ez; apply Sat_resp; apply Env_cons_resp;
      [trivial|intros; apply Equiv_refl]. }
- exists (sep P (e 0)); split;
+ Texists (sep P (e 0)); split;
    [apply M_sep; trivial|].
  intros z ?.
  rewrite (sat_iff em), (sat_and em); simpl.
- rewrite mem_sep; [|trivial].
+ rewrite mem_sep; [|prove_isL|trivial].
  apply and_iff_morphism; [reflexivity|].
  rewrite sat_rename.
  unfold P.
@@ -197,24 +198,24 @@ destruct h; simpl.
   apply Sat_resp.
   unfold r1.
   destruct i as [|[|i]]; apply Equiv_refl. }
- destruct M_repl with ψ e (e 0) as (b& hb& hb'); auto.
+ Tdestruct (M_repl ψ e he (e 0)) as (b& hb& hb'); auto.
+ {rewrite (sat_ex em); simpl.
+  Texists b; split; trivial.
+  intros y hy h.
+  rewrite (sat_ex em) in h.
+  Tdestruct h as (x& ?& hx).
+  rewrite (sat_and em) in hx; simpl in hx.
+  destruct hx as (hxa, hs).
+  apply hb' with x; trivial.
+  rewrite sat_rename in hs.
+  revert hs; apply Sat_resp.
+  unfold r3.
+  destruct i as [|[|i]]; apply Equiv_refl. }
  {intros x y y' hx hy hy' h1 h2.
   apply R1' with (y':=y') in h1.
   apply R2 with (y:=y) in h2.
   revert h1 h2; apply hf; auto.
   apply M_trans with (1:=he 0); trivial. }
- rewrite (sat_ex em); simpl.
- exists b; split; trivial.
- intros y hy h.
- rewrite (sat_ex em) in h.
- destruct h as (x& ?& hx).
- rewrite (sat_and em) in hx; simpl in hx.
- destruct hx as (hxa, hs).
- apply hb' with x; trivial.
- rewrite sat_rename in hs.
- revert hs; apply Sat_resp.
- unfold r3.
- destruct i as [|[|i]]; apply Equiv_refl.
 Qed.
 
 Lemma con : Con ZF.

@@ -22,11 +22,16 @@ intros [|i] ltk; auto with arith.
 Qed.
 
 Definition ISat (η q x y : PSet) : Prop :=
-  exists φ k e, q ≈ pair (enc φ) (pair (ofNat k) (tup k e)) /\ Bound (S(S k)) φ /\
+  #exists φ k e, q ≈ pair (enc φ) (pair (ofNat k) (tup k e)) /\ Bound (S(S k)) φ /\
     x ∈ Vl η /\ y ∈ Vl η /\ Sat (fun x=>x ∈ Vl η) φ (Env_cons x (Env_cons y e)).
 
+Lemma isL_ISat η q x y : isL(ISat η q x y).
+  unfold ISat; prove_isL.
+Qed.
+Hint Resolve isL_ISat : core.
+
 Section em.
-Hypothesis (em : forall p : Prop, p \/ ~p).
+Hypothesis (em : forall p : Prop, #(p \/ ~p)).
 
 Lemma Vl_congr {η η' : PSet} (e : η ≈ η') : Vl η ≈ Vl η'.
 apply ext; intros z.
@@ -37,10 +42,10 @@ Qed.
 
 Lemma ISat_resp {η η' q q' x x' y y' : PSet} (eη : η ≈ η') (eq : q ≈ q') (ex : x ≈ x')
     (ey : y ≈ y') (h : ISat η q x y) : ISat η' q' x' y'.
-destruct h as (φ& k& e& hq& hb& hx& hy& hs).
+Tdestruct h as (φ& k& e& hq& hb& hx& hy& hs).
 assert (eV := Vl_congr eη).
 apply Equiv_symm in eV.
-exists φ; exists k; exists e; split;[|split;[|split;[|split]]]; trivial.
+Texists φ; exists k; exists e; split;[|split;[|split;[|split]]]; trivial.
 *eauto using Equiv_trans, Equiv_symm.
 *apply mem_congr_left with (1:=ex). 
  revert hx; apply mem_congr_right; trivial. 
@@ -63,41 +68,41 @@ Qed.
 
 Lemma limit_succ_mem {ρ ζ : PSet} (hρ : IsOrd ρ) (hs : ~ IsSucc ρ) (hζ : ζ ∈ ρ) :
     succ ζ ∈ ρ.
-destruct (@IsOrd_subset em (succ ζ) ρ); trivial.
+Tdestruct (@IsOrd_subset em (succ ζ) ρ); trivial.
+*elim hs.
+ Texists ζ; apply Equiv_symm; trivial.
 *apply IsOrd_succ.
  apply IsOrd_mem with (2:=hζ); trivial.
 *intros.
- apply mem_succ in H; destruct H.
+ apply mem_succ in H; Tdestruct H.
  +apply (IsOrd_trans _) with (2:=H); trivial.
  +revert hζ; apply mem_congr_left; trivial.
-*elim hs.
- exists ζ; apply Equiv_symm; trivial.
 Qed.
 
 Lemma omega_mem {ρ : PSet} (hρ : IsOrd ρ) (h0 : ~ ρ ≈ empty) (hs : ~ IsSucc ρ)
     (hω : ~ ρ ≈ omega) : omega ∈ ρ.
-destruct (@IsOrd_trichotomy em) with (1:=isOrd_omega)(2:=hρ) as [h |[e | h]].
+Tdestruct (@IsOrd_trichotomy em _ _ isOrd_omega hρ) as [h |[e | h]].
 *trivial.
 *apply Equiv_symm in e; contradiction.
 *apply mem_omega in h.
- destruct h as ([|n],e).
+ Tdestruct h as ([|n],e).
  +contradiction.
- +elim hs; exists (ofNat n); trivial.
+ +elim hs; Texists (ofNat n); trivial.
 Qed.
 
 (*- Two elements of an ordinal are included in a third. *)
 Lemma exists_upper {ρ a b : PSet} (hρ : IsOrd ρ) (ha : a ∈ ρ) (hb : b ∈ ρ) :
-    exists R, R ∈ ρ /\ (forall z, z ∈ a -> z ∈ R) /\ (forall z, z ∈ b -> z ∈ R).
+    #exists R, R ∈ ρ /\ (forall z, z ∈ a -> z ∈ R) /\ (forall z, z ∈ b -> z ∈ R).
 (*  exists (iUnion (fun i:bool => if i then a else b)).*)
-destruct (@IsOrd_trichotomy em)
-  with (1:=IsOrd_mem _ ha) (2:=IsOrd_mem _ hb) as [h |[e | h]].
-*exists b; split; [|split]; auto.
+Tdestruct (@IsOrd_trichotomy em _ _ (IsOrd_mem _ ha) (IsOrd_mem _ hb))
+  as [h |[e | h]].
+*Texists b; split; [|split]; auto.
  intros.
  apply IsOrd_mem with (2:=hb) in hρ.
  apply (IsOrd_trans _) with (2:=H); trivial.
-*exists b; split; [|split]; auto.
+*Texists b; split; [|split]; auto.
  intros z; apply mem_congr_right with (1:=e).
-*exists a; split; [|split]; auto.
+*Texists a; split; [|split]; auto.
  intros.
  apply IsOrd_mem with (2:=ha) in hρ.
  apply (IsOrd_trans _) with (2:=H); trivial.
@@ -108,15 +113,15 @@ End em.
 Lemma ofNat_mono {x : PSet} : forall {m n : nat}, m <= n -> x ∈ ofNat m -> x ∈ ofNat n.
 induction 1; [trivial|intro h].
 apply IHle in h.
-simpl ofNat; apply mem_succ; left; trivial.
+simpl ofNat; apply mem_succ; Tleft; trivial.
 Qed.
 
 Lemma rank_ofNat_mem (n : nat) : rank (ofNat n) ∈ ofNat (S n).
 eapply mem_congr_left; [eapply IsOrd_rank_equiv; apply isOrd_ofNat|].
-simpl ofNat; apply mem_succ; right; apply Equiv_refl.
+simpl ofNat; apply mem_succ; Tright; apply Equiv_refl.
 Qed.
 
-Lemma rank_pair_ofNat (em : forall p : Prop, p \/ ~p) {a b : PSet} {m n : nat}
+Lemma rank_pair_ofNat (em : forall p : Prop, #(p \/ ~p)) {a b : PSet} {m n : nat}
     (ha : rank a ∈ ofNat m) (hb : rank b ∈ ofNat n) : rank (pair a b) ∈ ofNat (S (S (max m n))).
 simpl ofNat.
 eapply (rank_pair_mem em).
@@ -126,7 +131,7 @@ eapply (rank_pair_mem em).
 Qed.
 
 (** All formulae have a finite rank *)
-Lemma rank_enc_mem (em : forall p : Prop, p \/ ~p) : forall φ : Fml, exists n, rank (enc φ) ∈ ofNat n.
+Lemma rank_enc_mem (em : forall p : Prop, #(p \/ ~p)) : forall φ : Fml, exists n, rank (enc φ) ∈ ofNat n.
 induction φ.
 *eexists.
  eapply (rank_pair_ofNat em (rank_ofNat_mem _)).
@@ -162,7 +167,7 @@ Fixpoint tupN (n:nat) : nat :=
   | S k => S(S(tupN k))
   end.
 
-Lemma rank_tup_mem (em : forall p : Prop, p \/ ~p) {R : PSet} (hR : IsOrd R) :
+Lemma rank_tup_mem (em : forall p : Prop, #(p \/ ~p)) {R : PSet} (hR : IsOrd R) :
     forall {k : nat} {e : nat -> PSet}, (forall i, i < k -> rank (e i) ∈ R) ->
       rank (tup k e) ∈ succN (tupN k) R.
 induction k; simpl succN; simpl tupN; simpl tup.
@@ -179,7 +184,7 @@ Qed.
 (*! ### The second horn *)
 
 Section SecondHorn.
-Context (em : forall p : Prop, p \/ ~p) {ρ : PSet} (hρ : IsOrd ρ) (h0 : ~ ρ ≈ empty)
+Context (em : forall p : Prop, #(p \/ ~p)) {ρ : PSet} (hρ : IsOrd ρ) (h0 : ~ ρ ≈ empty)
   (hs : ~ IsSucc ρ) (hω : ~ ρ ≈ omega).
 
 
@@ -213,22 +218,22 @@ Qed.
 
 (*- Finitely many elements of `V_ρ` have ranks below some `R ∈ ρ`. *)
 Lemma exists_bound_tup : forall (k : nat) (e : nat -> PSet), (forall i, i < k -> e i ∈ Vl ρ) ->
-    exists R, R ∈ ρ /\ forall i, i < k -> rank (e i) ∈ R.
+    #exists R, R ∈ ρ /\ forall i, i < k -> rank (e i) ∈ R.
 induction k.
-*exists omega; split.
+*intros; Texists omega; split.
  +apply (omega_mem em); auto.
  +intros i lt0; inversion lt0.
 *intros e he.
- destruct IHk with (e:=fun i=>e(S i)) as (R& hR& h).
+ Tdestruct (IHk (fun i=>e(S i))) as (R& hR& h).
+ {assert (he0 : e 0 ∈ Vl ρ) by auto with arith.
+  apply rank_lt_of_mem in he0.
+  apply (limit_succ_mem em) in he0; trivial.
+  Tdestruct (@exists_upper em _ _ _ hρ hR he0) as (R'& hR'& h1& h2); trivial.
+  Texists R'; split; trivial.
+  intros [|i] ltk.
+  +apply h2; apply mem_succ; Tright; apply Equiv_refl.
+  +apply h1; auto with arith. }
  {intros; apply he; auto with arith. }
- assert (he0 : e 0 ∈ Vl ρ) by auto with arith.
- apply rank_lt_of_mem in he0.
- apply (limit_succ_mem em) in he0; trivial.
- destruct (@exists_upper em) with (2:=hR) (3:=he0) as (R'& hR'& h1& h2); trivial.
- exists R'; split; trivial.
- intros [|i] ltk.
- +apply h2; apply mem_succ; right; apply Equiv_refl.
- +apply h1; auto with arith.
 Qed.  
 
 Lemma Vl_model (hr : forall ν, ν ∈ ρ -> ~ Reach ISat ρ ν) : ZFModel (fun z => z ∈ Vl ρ).
@@ -244,20 +249,20 @@ split.
  intros ? h.
  apply not_mem_empty in h; contradiction.
 *intros ?? hx hy.
- destruct exists_upper with (1:=em) (2:=hρ)
-                            (3:=limit_succ_mem em hρ hs (rρ _ hx))
-                            (4:=limit_succ_mem em hρ hs (rρ _ hy))
+ Tdestruct (exists_upper em hρ
+              (limit_succ_mem em hρ hs (rρ _ hx))
+              (limit_succ_mem em hρ hs (rρ _ hy)))
    as (R & hR & h1 & h2).
  apply Vρ with (1:=hR).
- intros z hz; apply mem_upair in hz; destruct hz as [e|e]; [apply h1|apply h2].
- +eapply mem_congr_left; [|apply mem_succ;right;apply Equiv_refl].
+ intros z hz; apply mem_upair in hz; Tdestruct hz as [e|e]; [apply h1|apply h2].
+ +eapply mem_congr_left; [|apply mem_succ;Tright;apply Equiv_refl].
   apply rank_congr; trivial.
- +eapply mem_congr_left; [|apply mem_succ;right;apply Equiv_refl].
+ +eapply mem_congr_left; [|apply mem_succ;Tright;apply Equiv_refl].
   apply rank_congr; trivial.
 *intros ? hx.
  apply Vρ with (1:=rρ _ hx).
  intros z hz; apply mem_sUnion in hz.
- destruct hz as (w & hw & hzw).
+ Tdestruct hz as (w & hw & hzw).
  eapply (@IsOrd_trans _ (isOrd_rank x));
    [apply rank_mem with (1:=hw)|apply rank_mem with (1:=hzw)].
 *intros ? hx.
@@ -272,10 +277,10 @@ split.
  apply isOrd_omega.
 *intros ?? hx.
  apply Vρ with (1:=rρ _ hx).
- intros ? ((i,?),e).
+ intros ?; Tintros ((i,?),e).
  simpl in e.
  apply rank_mem.
- exists i; trivial.
+ Texists i; trivial.
 * (* Replacement *)
   intros ψ e he a ha hf.
   destruct (exists_bound ψ) as (m, hm).
@@ -283,11 +288,10 @@ split.
   {apply Bound_mono with (2:=hm); auto with arith. }
   pose (q := pair (enc ψ) (pair (ofNat m) (tup m e))).
   (*-- a bound `ν ∈ ρ` for the ranks of `q` and `a` *)
-  destruct exists_bound_tup with m e as (R0 & hR0 & hR0e); auto.
-  destruct exists_upper with (1:=em) (2:=hρ) (3:=hR0) (4:=hωρ)
+  Tdestruct (exists_bound_tup m e) as (R0 & hR0 & hR0e); auto.
+  Tdestruct (exists_upper em hρ hR0 hωρ)
     as (R1 & hR1 & hR0R1& hωR1).
-  destruct  exists_upper with (1:=em) (2:=hρ) (3:=hR1)
-                              (4:=limit_succ_mem em hρ hs (rρ _ ha))
+  Tdestruct  (exists_upper em hρ hR1 (limit_succ_mem em hρ hs (rρ _ ha)))
     as (R & hR & hR1R & haR).
   assert (hRo (*: IsOrd R*) := IsOrd_mem hρ hR).
   pose (T := succN (tupN m) R).
@@ -302,13 +306,13 @@ split.
   assert (hω' : forall {z}, z ∈ omega -> z ∈ T) by auto.
   assert (hq : rank q ∈ succN 4 T).
   {apply rank_pair_mem with (1:=em); auto using IsOrd_succ.
-   *apply mem_succ; left; apply mem_succ; left.
+   *apply mem_succ; Tleft; apply mem_succ; Tleft.
     apply hω'.
     eapply(@IsOrd_trans _ isOrd_omega) with (2:=hn).
-    exists n; apply Equiv_refl. 
+    Texists n; apply Equiv_refl. 
    *apply rank_pair_mem with (1:=em); auto using IsOrd_succ.
     **apply hω'.
-      eapply mem_congr_left; [|exists m; apply Equiv_refl].
+      eapply mem_congr_left; [|Texists m; apply Equiv_refl].
       apply IsOrd_rank_equiv.
       apply isOrd_ofNat.
     **apply rank_tup_mem with (1:=em); auto. }
@@ -321,17 +325,18 @@ split.
   {apply mem_succN.
    apply hRT.
    apply haR.
-   apply mem_succ; right; apply Equiv_refl. }
+   apply mem_succ; Tright; apply Equiv_refl. }
   assert (hqν : rank q ∈ ν) by (apply mem_succ; auto).
   (*-- the relation, and its instances of `ISat`*)
   pose (Rl := fun x y => Sat (fun x=>x ∈ Vl ρ) ψ (Env_cons x (Env_cons y e))).
+  assert (Rlok : forall x y, isL(Rl x y)) by (unfold Rl; prove_isL).
   assert (hI : forall {x y}, x ∈ a -> y ∈ Vl ρ -> Rl x y -> ISat ρ q x y).
   {intros ?? hx hy h.
-   exists ψ; exists m; exists e;
+   Texists ψ; exists m; exists e;
      split; [apply Equiv_refl|split;[|split;[|split]]]; trivial.
    eauto using Vl_trans. }
   assert (hI' : forall {x y}, ISat ρ q x y -> y ∈ Vl ρ /\ Rl x y).
-  {intros x y (φ & k & e' & eq & hb' & _ & hy & h).
+  {intros x y; Tintros (φ & k & e' & eq & hb' & _ & hy & h).
    apply pair_inj in eq; destruct eq as (e1,e2).
    apply enc_inj in e1; subst φ.
    apply pair_inj in e2; destruct e2 as (e3,e4).
@@ -341,11 +346,11 @@ split.
    destruct i as [|[|i]]; intros; try apply Equiv_refl.
    simpl.
    apply tup_inj with (1:=e4); eauto with arith. }
-  assert (notunb : ~ forall ζ, ζ ∈ ρ -> exists x y, x ∈ a /\ ISat ρ q x y /\ ζ ∈ succ (rank y)).
+  assert (notunb : ~ forall ζ, ζ ∈ ρ -> #exists x y, x ∈ a /\ ISat ρ q x y /\ ζ ∈ succ (rank y)).
   {intros h.
    apply hr with (1:=hν).
    (* Reach... *)   
-   exists q; exists a.
+   Texists q; exists a.
    split; [|split]; trivial.
    split; [|split].
    *intros x y y' hx h1 h2.
@@ -353,26 +358,26 @@ split.
     eauto.
    *intros ??? h1; apply rρ; apply (hI' _ _ h1).
    *exact h. }
-  assert (hbd : exists ζ, ζ ∈ ρ /\ ~ exists x y, x ∈ a /\ ISat ρ q x y /\ ζ ∈ succ (rank y)).
-  {edestruct em as [?|h]; [eassumption|].
+  assert (hbd : #exists ζ, ζ ∈ ρ /\ ~ exists x y, x ∈ a /\ ISat ρ q x y /\ ζ ∈ succ (rank y)).
+  {assert (aux:=em); Tdestruct aux as [?|h]; [eassumption|].
    destruct notunb; intros ζ hζ.
-   edestruct em as [|h']; [eassumption|].
+   Tdestruct em as [|h']; [apply TrI;eassumption|].
    destruct h; eauto. }
-  destruct hbd as (ζ & hζ & hbd).
+  Tdestruct hbd as (ζ & hζ & hbd).
   assert (hζo : IsOrd ζ). apply IsOrd_mem with (2:=hζ); trivial.
   assert (bound : forall {x y}, x ∈ a -> y ∈ Vl ρ -> Rl x y -> rank y ∈ ζ).
   {intros x y hx hy h.
-   destruct IsOrd_trichotomy with (1:=em) (2:=isOrd_rank y) (3:=hζo)
+   Tdestruct (IsOrd_trichotomy em (isOrd_rank y) hζo)
      as [h'|[e'|h']]; trivial.
    *destruct hbd.
     exists x; exists y.
     split; [|split]; auto.
-    apply mem_succ; right; apply Equiv_symm; trivial.
+    apply mem_succ; Tright; apply Equiv_symm; trivial.
    *destruct hbd.
     exists x; exists y.
     split; [|split]; auto.
-    apply mem_succ; left; trivial. }
-  exists (Vl ζ); split.
+    apply mem_succ; Tleft; trivial. }
+  Texists (Vl ζ); split.
   +apply Vρ with (1:=hζ).
    intros z hz; eapply mem_congr_right with (1:=IsOrd_rank_equiv hζo).
    apply (mem_Vl em); trivial.
@@ -389,27 +394,27 @@ End SecondHorn.
 Lemma V_model (hrepl : forall (s : PSet) (φ : PSet -> PSet -> Prop),
       (forall {x x' y y'}, x ≈ x' -> y ≈ y' -> φ x y -> φ x' y') ->
       (forall {x y y'}, x ∈ s -> φ x y -> φ x y' -> y ≈ y') ->
-      exists img : PSet, forall y, y ∈ img <-> exists x, x ∈ s /\ φ x y) :
+      #exists img : PSet, forall y, y ∈ img <-> #exists x, x ∈ s /\ φ x y) :
   ZFModel (fun _ : PSet => True).
 split; trivial.
 intros ψ e  _ a _ hf.
-destruct(hrepl a (fun x y => Sat (fun _ => True) ψ (Env_cons x (Env_cons y e))))
-  as (b, hb); [|eauto|].
+Tdestruct(hrepl a (fun x y => Sat (fun _ => True) ψ (Env_cons x (Env_cons y e))))
+  as (b, hb); [| | eauto].
+{Texists b; split; [trivial|].
+ intros.
+ apply hb.
+ Texists x; auto. }
 {intros ???? eqx eqy.
  apply Sat_resp.
  destruct i as [|[|i]]; simpl; trivial.
  apply Equiv_refl. }
-exists b; split; [trivial|].
-intros.
-apply hb.
-exists x; auto.
 Qed.
 
 (*- **Lean without choice, with excluded middle, proves the consistency of `ZF`.** The model
 is the sets-as-trees if they satisfy Replacement, and otherwise `V_ρ` for an ordinal `ρ` that
 is not reachable by the definability rule. *)
-Lemma con_ZF (em : forall p : Prop, p \/ ~p) : Con ZF.
-destruct dichotomy with (I:=ISat) (1:=@ISat_resp em) (2:=em)
+Lemma con_ZF (em : forall p : Prop, #(p \/ ~p)) : Con ZF.
+Tdestruct (@dichotomy ISat (@ISat_resp em) em)
   as [h | (p & hρ & h0 & hs & hω & hr)].
 *apply con with (2:=em) (1:=V_model h).
 *apply con with (2:=em) (1:=Vl_model em hρ h0 hs hω hr).

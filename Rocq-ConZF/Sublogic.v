@@ -83,7 +83,7 @@ Global Instance isL_morph : Proper (iff==>iff) isL.
 Admitted.
 
   (* monad bind *)
-  Parameter TrB : forall (P Q:Prop), Tr P -> (P -> Tr Q) -> Tr Q.
+  Parameter TrB : forall (P Q:Prop), (P -> Tr Q) -> Tr P -> Tr Q.
   Parameter Tr_ind : forall (P Q:Prop) {i:isL Q}, (P -> Q) -> Tr P -> Q.
 
   (** The set of L-propositions: introduction rules *)
@@ -100,7 +100,7 @@ Admitted.
   Parameter rFF : forall (Q:Prop), Tr False -> Tr Q.
   Parameter rFF': forall (Q:Prop), Tr False -> isL Q -> Q.
 
-  Definition Tnot (P:Prop) := P -> Tr False.
+ Definition Tnot (P:Prop) := P -> Tr False.
   Notation "#¬ P" := (Tnot P).
   #[global]Hint Unfold Tnot : core.
 
@@ -133,24 +133,37 @@ Ltac prove_isL :=
   | |- isL(iff _ _) => apply iff_isL; prove_isL
   | |- isL(_ -> _) => apply imp_isL; prove_isL
   | |- isL(forall x, _) => apply fa_isL; intro; prove_isL
-  | |- isL _ => auto 10; fail "Cannot prove isL side-condition"
+  | |- isL (~ _) => apply imp_isL; prove_isL
+  | |- isL ?P => auto 10; idtac "Cannot prove isL side-condition for " P;
+                 fail "prove_isL" 100
   | |- _ => fail "Tactic prove_isL does not apply to this goal"
   end.
+(*Hint Extern 1 (isL _) => prove_isL : core.*)
 
 Ltac Tabsurd := 
   lazymatch goal with
   | |- Tr _ => apply rFF
-  | |- _ => apply rFF';[|auto 10;fail"Cannot prove isL side-condition"]
+  | |- _ => apply rFF';[|prove_isL]
   end.
 Ltac Telim H :=
   lazymatch goal with
-  | |- Tr _ => apply TrB with (1:=H); try clear H
-  | |- _ => apply Tr_ind with (3:=H);[auto 10;fail"Cannot prove isL side-condition"|]; try clear H
+  | |- Tr _ => eapply TrB; [try clear H|apply H]
+  | |- _ => eapply Tr_ind;[| |apply H];[prove_isL|..]; try clear H
+  end.
+Tactic Notation "Telim_with" constr(H) bindings(b) :=
+(*Ltac Telim_with H b :=*)
+  lazymatch goal with
+  | |- Tr _ => eapply TrB; [try clear H|apply H with b]
+  | |- _ => eapply Tr_ind;[| |apply H with b];[prove_isL|..]; try clear H
   end.
 Tactic Notation "Tdestruct" constr(H) :=
-  Telim H; destruct 1.
+  Telim H; [destruct 1|..].
 Tactic Notation "Tdestruct" constr(H) "as" simple_intropattern(p) :=
-  Telim H; intros p.
+  Telim H; [intros p|..].
+Tactic Notation "Tdestruct" constr(H) "with" bindings(b) :=
+  Telim_with H b; [destruct 1|..].
+Tactic Notation "Tdestruct" constr(H) "with" bindings(b) "as" simple_intropattern(p) :=
+  Telim_with H b; [intros p|..].
 Tactic Notation "Tintros" simple_intropattern(p) :=
   intros T_hyp; Tdestruct T_hyp as p.
 
@@ -176,9 +189,9 @@ unfold isL; rewrite H; reflexivity.
 Qed.
 
   (* bind *)
-  Lemma TrB : forall (P Q:Prop), Tr P -> (P -> Tr Q) -> Tr Q.
+  Lemma TrB : forall (P Q:Prop), (P -> Tr Q) -> Tr P -> Tr Q.
 intros.
-apply TrP; revert H; apply TrMono; auto.
+apply TrP; revert H0; apply TrMono; auto.
 Qed.
 
   Lemma Tr_ind : forall (P Q:Prop) {i:isL Q}, (P -> Q) -> Tr P -> Q.
@@ -192,10 +205,14 @@ Qed.
  *)
 
 Lemma Tr_isL : forall P, isL (Tr P).
-Proof TrP.
+Proof.
+  exact TrP.
+Qed.
 
 Lemma T_isL : forall P:Prop, P -> isL P.
-Proof (fun _ p _ => p).
+Proof.
+exact (fun _ p _ => p).
+Qed.
 
 Lemma and_isL : forall P Q, isL P -> isL Q -> isL (P/\Q).
 compute; intros.
@@ -266,24 +283,36 @@ Ltac prove_isL :=
   | |- isL(iff _ _) => apply iff_isL; prove_isL
   | |- isL(forall x, _) => (apply imp_isL || (apply fa_isL; intro)); prove_isL
   | |- isL(Tnot _) => apply imp_isL; prove_isL
-  | |- isL _ => auto 10; fail "Cannot prove isL side-condition"
+  | |- isL (~ _) => apply imp_isL; prove_isL
+  | |- isL ?P => auto 10; idtac "Cannot prove isL side-condition for " P;
+                 fail "prove_isL" 100
   | |- _ => fail "Tactic prove_isL does not apply to this goal"
   end.
+(*Hint Extern 1 (isL _) => prove_isL : core.*)
 
 Ltac Tabsurd := 
   lazymatch goal with
   | |- Tr _ => apply rFF
-  | |- _ => apply rFF';[|auto 10;fail"Cannot prove isL side-condition"]
+  | |- _ => apply rFF';[|prove_isL]
   end.
 Ltac Telim H :=
   lazymatch goal with
-  | |- Tr _ => apply TrB with (1:=H); try clear H
-  | |- _ => apply Tr_ind with (3:=H);[auto 10;fail"Cannot prove isL side-condition"|]; try clear H
+  | |- Tr _ => eapply TrB; [try clear H|apply H]
+  | |- _ => refine (@Tr_ind _ _ _ _ _);[| |apply H];[prove_isL|..]; try clear H
+  end.
+Ltac Telim_with H b :=
+  lazymatch goal with
+  | |- Tr _ => eapply TrB; [try clear H|apply H with b]
+  | |- _ => refine (@Tr_ind _ _ _ _ _);[| |apply H with b];[prove_isL|..]; try clear H
   end.
 Tactic Notation "Tdestruct" constr(H) :=
-  Telim H; destruct 1.
+  Telim H; [destruct 1|..].
 Tactic Notation "Tdestruct" constr(H) "as" simple_intropattern(p) :=
-  Telim H; intros p.
+  Telim H; [intros p|..].
+Tactic Notation "Tdestruct" constr(H) "with" bindings(b) :=
+  Telim_with H b; [destruct 1|..].
+Tactic Notation "Tdestruct" constr(H) "with" bindings(b) "as" simple_intropattern(p) :=
+  Telim_with H b; [intros p|..].
 Tactic Notation "Tintros" simple_intropattern(p) :=
   intros T_hyp; Tdestruct T_hyp as p.
 
@@ -297,7 +326,9 @@ Module BuildConsistentSublogic (L:ConsistentSublogic).
   Include tmp.*)
 
 Lemma FF_isL : isL False.
-Proof L.TrCons.
+Proof.
+  exact L.TrCons.
+Qed.
 
 Global Hint Resolve FF_isL : core.
 
@@ -332,8 +363,10 @@ Module ClassicSublogicThms.
   Include BuildConsistentSublogic ClassicSublogic.
 
   Lemma nnpp (P:Prop) : ((P->False)->False) -> Tr P.
-Proof (fun h => h).
-
+  Proof.
+    exact (fun h => h).
+  Qed.
+  
   (** excluded-middle: note that P need not be classical, which makes the
      positive case stronger. *)
   Lemma classic : forall P, Tr(P \/ (Tr P -> False)).
@@ -367,7 +400,7 @@ Module Type Aprop. Parameter x:Prop. End Aprop.
 Module ASublogicThms (A:Aprop) <: SublogicTheory.
   Module Asl := InstSublogicFamily ASublogic A.
   Import Asl.
-  Notation A := A.x.
+  Abbreviation A := A.x.
   Include BuildLogic Asl.
 
 Lemma Aconsistency : isL False <-> ~A. 
@@ -447,7 +480,7 @@ End PeirceTrans.
 Module PeirceSublogicThms (A:Aprop) <: SublogicTheory.
   Module Psl := InstSublogicFamily PeirceTrans A.
   Import Psl.
-  Notation A := A.x.
+  Abbreviation A := A.x.
   Include BuildLogic Psl.
 
 Lemma Pconsistency : isL False.
@@ -618,7 +651,9 @@ Definition consistent := ~ FF.
 Hypothesis cons : consistent.
 
 Lemma False_isL : isL False.
-Proof cons.
+Proof.
+  exact cons.
+Qed.
 
 Lemma not_isL (P:Prop) : isL (~P).
 apply impl_isL; trivial.
@@ -716,7 +751,7 @@ Defined.
 Definition Not p := Imp p FF'.
  
 (** Inference rules *)
-Notation holds := tr.
+Abbreviation holds := tr.
 Lemma rTT : holds TT.
 exact I.
 Qed.
@@ -768,10 +803,14 @@ firstorder.
 firstorder.
 Defined.
 Lemma coq_isL (P:Prop) : isL coq_logic P.
-Proof (fun h=>h).
+Proof.
+  exact (fun h=>h).
+Qed.
 
 Lemma coq_cons : consistent coq_logic.
-Proof (fun h => h).
+Proof.
+  exact (fun h => h).
+Qed.
 End Coq.
 
 (** Classical logic *)
@@ -790,10 +829,14 @@ firstorder.
 Qed.
 
 Lemma cl_cons : consistent classic_logic.
-Proof (fun h => h(fun x => x)).
+Proof.
+  exact (fun h => h(fun x => x)).
+Qed.
 
 Lemma cl_isL P : (~~P->P) -> isL classic_logic P.
-Proof (fun h => h).
+Proof.
+  exact (fun h => h).
+Qed.
 
 End Classic.
 

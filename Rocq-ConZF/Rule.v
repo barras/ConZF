@@ -30,8 +30,8 @@ Class Rule (D : PSet -> PSet) (U : PSet)
   (*- children have targets that are elements, and stay in the class *)
   mem : forall {η l ξ}, C η -> r η l ξ -> ξ ∈ η /\ C ξ;
   (*- a target is the union of the successors of the targets of the available children *)
-  sup : forall {η G}, C η -> (forall x, x ∈ G <-> exists ζ, r η a ζ /\ x ∈ ζ) ->
-    forall x, x ∈ η <-> exists l ξ, Avail D U G l /\ r η l ξ /\ x ∈ succ ξ
+  sup : forall {η G}, C η -> (forall x, x ∈ G <-> #exists ζ, r η a ζ /\ x ∈ ζ) ->
+    forall x, x ∈ η <-> #exists l ξ, Avail D U G l /\ r η l ξ /\ x ∈ succ ξ
   }.
 
 Section Rule.
@@ -84,20 +84,20 @@ split.
  apply Tr_cons with (1:=h0).
  revert h1; apply resp; [apply Equiv_refl|trivial|apply Equiv_refl].
 *intros l p t t' h h'.
- inversion_clear h as [|? η1 ?? h0 h1].
+ inversion_clear h as [|? η1 ?  ? h0 h1].
  eapply mem_congr_right;[apply tr_func with (1:=h')(2:=h0)|].
  eapply mem with (2:=h1).
  eapply tr_C with (2:=h0); trivial.
 *intros p t G h hG x.
  rewrite @sup with (G:=G) (1:=hr).
- +apply ex_morph; intros l.
+ +apply Tr_morph; apply ex_morph; intros l.
   apply ex_morph; intros t'.
   apply and_iff_morphism; [reflexivity|].
   apply and_iff_morphism; [|reflexivity].
   symmetry; apply tr_cons_iff; trivial.
  +eapply tr_C with (2:=h); trivial.
  +intros z; red in hG; rewrite hG.
-  apply ex_morph; intros ζ.
+  apply Tr_morph; apply ex_morph; intros ζ.
   apply and_iff_morphism; [|reflexivity].
   apply tr_cons_iff; trivial.
 Qed.
@@ -107,7 +107,7 @@ Lemma replacement (s : PSet) (hU : U = s) (φ : PSet -> PSet -> Prop)
     (φ_resp : forall {x x' y y'}, x ≈ x' -> y ≈ y' -> φ x y -> φ x' y')
     (φ_func : forall {x y y'}, x ∈ s -> φ x y -> φ x y' -> y ≈ y')
     (φ_C : forall {x y}, x ∈ s -> φ x y -> C y) :
-    exists img : PSet, forall y, y ∈ img <-> exists x, x ∈ s /\ φ x y.
+    #exists img : PSet, forall y, y ∈ img <-> #exists x, x ∈ s /\ φ x y.
 subst s.
 apply @Repl.replacement with (C:=C) (D := D) (T := Tr r); trivial.
 *intros η hη; apply coherent; trivial.

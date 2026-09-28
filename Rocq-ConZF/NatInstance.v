@@ -11,12 +11,12 @@ clauses `desc`, `sup`, `IsG` are exercised with a nonempty `G`.
 Lemma succ_inj {t t' : PSet} (h : succ t ≈ succ t') : t ≈ t'.
 assert (h1 : t ∈ succ t').
 {apply mem_congr_right with (1:=h).
- rewrite mem_succ; right; apply Equiv_refl. }
+ rewrite mem_succ; Tright; apply Equiv_refl. }
 assert (h2 : t' ∈ succ t).
 {apply mem_congr_right with (1:=h).
- rewrite mem_succ; right; apply Equiv_refl. }
-apply mem_succ in h1; destruct h1 as [h1 | h1];
-  [apply mem_succ in h2; destruct h2 as [h2 | h2]|];
+ rewrite mem_succ; Tright; apply Equiv_refl. }
+apply mem_succ in h1; Tdestruct h1 as [h1 | h1];
+  [apply mem_succ in h2; Tdestruct h2 as [h2 | h2]|];
     auto using Equiv_symm.
 destruct (mem_asymm _ h1 h2).
 Qed.

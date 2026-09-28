@@ -84,11 +84,11 @@ split.
  assert (hG' : IsG (T η) r G).
  {intros z.
   rewrite (hG z).
-  apply ex_morph; intros ζ.
+  apply Tr_morph; apply ex_morph; intros ζ.
   apply and_iff_morphism; [|reflexivity].
   apply @glue_iff with (r := a :: r) (2:=hη); trivial. }
  rewrite sup with (3:=hG'); [|apply hT;apply φ_C with (2:=hη)|];trivial.
- apply ex_morph; intros l.
+ apply Tr_morph; apply ex_morph; intros l.
  apply ex_morph; intros t'.
  apply and_iff_morphism; [reflexivity|].
  apply and_iff_morphism; [|reflexivity].
@@ -97,20 +97,21 @@ Qed.
 
 (*- The union of the successors of the values of `φ` on `s` exists. The witness is the value
 of the recursion at the root. *)
-Lemma exists_sup : exists θ : PSet, forall y, y ∈ θ <-> exists x η, x ∈ s /\ φ x η /\ y ∈ succ η.
+Lemma exists_sup : #exists θ : PSet, forall y, y ∈ θ <-> #exists x η, x ∈ s /\ φ x η /\ y ∈ succ η.
 assert (coh := glue_coherent).
 assert (children : forall c, Rel Glue c nil -> forall tc, Glue c tc ->
-      Acc (Rel Glue) c /\ forall acc', F D s (Rel Glue) c acc' ≈ tc).
+      #Acc (Rel Glue) c /\ forall acc', F D s (Rel Glue) c acc' ≈ tc).
 {intros c ? tc htc.
  apply materialize with (1:=glue_coherent); trivial. }
-assert (acc : Acc (Rel Glue) nil).
-{constructor; intros c h.
+assert (acc : #Acc (Rel Glue) nil).
+{apply Acc_intro_dns; intros c h.
  generalize h; intros (? & _ & tc & htc).
  eapply children; eassumption. }
-exists (F D s (Rel Glue) nil acc).
+Telim acc; intros acc.
+Texists (F D s (Rel Glue) nil acc).
 intros y.
 rewrite F_eq, mem_step_iff; trivial.
-*split.
+*apply Tr_morph; split.
  +intros (l& t'& ?& (r& x& η& eq& hx& hη& h)& hy).
   destruct hT with η as (hc,ht); [apply φ_C with x; trivial|].
   exists x; exists η; split;[|split]; trivial.
@@ -128,18 +129,18 @@ Qed.
 
 (*- **Replacement** for `φ` on `s`, provided the values of `φ` lie in a class `C` every member
 `η` of which is the root target of a coherent assignment `T η` given uniformly in `η`. *)
-Lemma replacement : exists img : PSet, forall y, y ∈ img <-> exists x, x ∈ s /\ φ x y.
-destruct exists_sup as (θ, hθ).
-exists (sep (fun y => exists x, x ∈ s /\ φ x y) θ).
+Lemma replacement : #exists img : PSet, forall y, y ∈ img <-> #exists x, x ∈ s /\ φ x y.
+Tdestruct exists_sup as (θ, hθ).
+Texists (sep (fun y => #exists x, x ∈ s /\ φ x y) θ).
 intros y.
-rewrite mem_sep.
+rewrite mem_sep; auto.
 *split; [destruct 1; trivial|].
  intros h; split;[|trivial].
  rewrite hθ.
- destruct h as (x & hx & h).
- exists x; exists y; split;[|split]; trivial.
- apply mem_succ; right; apply Equiv_refl.
-*intros z z' e (x & hx & h); exists x; split; trivial.
+ Tdestruct h as (x & hx & h).
+ Texists x; exists y; split;[|split]; trivial.
+ apply mem_succ; Tright; apply Equiv_refl.
+*intros z z' e; Tintros (x & hx & h); Texists x; split; trivial.
  revert h; apply φ_resp; [apply Equiv_refl|trivial].
 Qed.
 

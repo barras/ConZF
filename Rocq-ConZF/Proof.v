@@ -30,6 +30,11 @@ Inductive Prf (T : Fml -> Prop) : Fml -> Prop :=
 (*- `T` is consistent: it does not prove `⊥`. *)
 Definition Con (T : Fml -> Prop) : Prop := ~ Prf T fls.
 
+Lemma isL_Con T : isL(Con T).
+  unfold Con; prove_isL.
+Qed.
+Hint Resolve isL_Con : core.
+
 (*- `φ` holds in `M` under every environment of elements of `M`. *)
 Definition Valid (M : PSet -> Prop) (φ : Fml) : Prop :=
   forall e : nat -> PSet, (forall i, M (e i)) -> Sat M φ e.
@@ -39,11 +44,11 @@ Lemma Env_cons_mem {M : PSet -> Prop} {x : PSet} {e : nat -> PSet} (hx : M x)
 destruct i; simpl; trivial.
 Qed.
 
-Lemma soundness (em : forall p : Prop, p \/ ~p) {T : Fml -> Prop} {M : PSet -> Prop}
+Lemma soundness (em : forall p : Prop, #(p \/ ~p)) {T : Fml -> Prop} {M : PSet -> Prop}
   (hT : forall φ, T φ -> Valid M φ) {φ : Fml} (h : Prf T φ) : Valid M φ.
 red in hT|-*.
 induction h; simpl; intros e he; auto.
-*apply (dne em).
+*apply (dne em); trivial.
 *simpl in IHh1; auto.
 *intros x hx; apply IHh; apply Env_cons_mem; trivial.
 *intros h.
@@ -62,7 +67,7 @@ induction h; simpl; intros e he; auto.
 Qed.
 
 (*- A theory with a nonempty class model is consistent. *)
-Lemma Con_of_model (em : forall p : Prop, p \/ ~p) {T : Fml -> Prop} {M : PSet -> Prop}
+Lemma Con_of_model (em : forall p : Prop, #(p \/ ~p)) {T : Fml -> Prop} {M : PSet -> Prop}
     (hT : forall φ, T φ -> Valid M φ) (x : PSet) (hx : M x) : Con T.
 intros h.
 eapply (soundness em) with (1:=hT) (2:=h) (e:=fun _ => x); trivial.

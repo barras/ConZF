@@ -13,29 +13,29 @@ Definition powerset (X : PSet) : PSet :=
 
 Lemma mem_powerset {X y : PSet} : y ∈ powerset X <-> forall z, z ∈ y -> z ∈ X.
 split.
-*intros (S, e) z hz.
+*Tintros (S, e); intros z hz.
  apply mem_congr_right with (1:=e) in hz.
- destruct hz as ((i,?),e').
+ Tdestruct hz as ((i,?),e').
  simpl in e'. 
- exists i; trivial.
+ Texists i; trivial.
 *intros h.
- exists (fun i => Func X i ∈ y).
+ Texists (fun i => Func X i ∈ y).
  apply ext; intros z.
  split.
  +intros hz.
-  destruct h with (1:=hz) as (i,e').
+  Tdestruct (h z hz) as (i,e').
   apply mem_congr_left with (1:=e') in hz.
-  exists (exist _ i hz); simpl; trivial.
- +intros ((i, hi), e'); simpl in e'.
+  Texists (exist (fun _=>_) i hz); simpl; trivial.
+ +Tintros ((i, hi), e'); simpl in e'.
   apply mem_congr_left with (1:=e'); trivial.
 Qed.
 
 (*- `z ∈ rank x` iff `z ≤ rank y` for some `y ∈ x`. *)
-Lemma mem_rank' {x z : PSet} : z ∈ rank x <-> exists y, y ∈ x /\ z ∈ succ (rank y).
+Lemma mem_rank' {x z : PSet} : z ∈ rank x <-> #exists y, y ∈ x /\ z ∈ succ (rank y).
 rewrite mem_rank.
 split.
-*intros (a,h); eexists; split; [eapply func_mem|eassumption].
-*intros (y & (a,e) & h); exists a.
+*Tintros (a,h); apply TrI;eexists; split; [eapply func_mem|eassumption].
+*Tintros (y & m(*(a,e)*) & h); Tdestruct m as (a,e); Texists a.
  revert h; apply mem_succ_congr; apply Equiv_symm.
  apply rank_congr; trivial. 
 Qed.
@@ -47,28 +47,28 @@ Qed.
 
 (*- The rank of an ordinal is itself. *)
 Lemma IsOrd_rank_equiv : forall {t : PSet}, IsOrd t -> rank t ≈ t.
-induction t using @mem_induction; rename H into ih.
+intros t; elim t using @mem_induction; [auto|clear t; intros t ih].
 intros ht; apply ext; intros z.
 rewrite mem_rank'.
 split.
-*intros (y & hy& hz).
+*Tintros (y & hy& hz).
  assert (ey : rank y ≈ y).
  {apply ih; trivial.
   apply IsOrd_mem with (2:=hy); trivial. }
  rewrite mem_succ_congr with (1:=ey) in hz.
- apply mem_succ in hz; destruct hz as [hz|e].
+ apply mem_succ in hz; Tdestruct hz as [hz|e].
  +revert hz; apply IsOrd_trans; trivial.
  +apply mem_congr_left with (1:=e); trivial.
-*intros hz; exists z; split; trivial.
+*intros hz; Texists z; split; trivial.
  assert (ez : rank z ≈ z).
  {apply ih; trivial.
   apply IsOrd_mem with (2:=hz); trivial. }
  rewrite mem_succ_congr with (1:=ez).
- rewrite mem_succ; right; apply Equiv_refl.
+ rewrite mem_succ; Tright; apply Equiv_refl.
 Qed.
 
 Section em.
-Hypothesis (em : forall p : Prop, p \/ ~p).
+Hypothesis (em : forall p : Prop, #(p \/ ~p)).
 
 (*- If every element of `y` has rank below the ordinal `R`, then `rank y ≤ R`. *)
 Lemma rank_mem_succ {y R : PSet} (hR : IsOrd R) (h : forall z, z ∈ y -> rank z ∈ R) :
@@ -77,8 +77,8 @@ rewrite mem_succ.
 apply (IsOrd_subset em); [apply isOrd_rank|trivial|].
 intros w hw.
 apply mem_rank' in hw.
-destruct hw as (z& hz& hw).
-apply mem_succ in hw; destruct hw as [hw|e].
+Tdestruct hw as (z& hz& hw).
+apply mem_succ in hw; Tdestruct hw as [hw|e].
 *apply IsOrd_trans with (2:=hw); auto.
 *apply mem_congr_left with (1:=e); auto.
 Qed.
@@ -97,7 +97,7 @@ Lemma rank_upair_mem {a b R : PSet} (hR : IsOrd R) (ha : rank a ∈ R) (hb : ran
 apply rank_mem_succ; trivial.
 intros z hz.
 apply mem_upair in hz.
-destruct hz as [e|e].
+Tdestruct hz as [e|e].
 *revert ha;apply mem_congr_left; apply rank_congr; trivial.
 *revert hb;apply mem_congr_left; apply rank_congr; trivial.
 Qed.
@@ -115,7 +115,7 @@ Lemma rank_triple_mem {a b c R : PSet} (hR : IsOrd R)
     rank (triple a b c) ∈ succ (succ (succ (succ R))).
 apply rank_pair_mem.
 *do 2apply IsOrd_succ; trivial.
-*do 2 (rewrite mem_succ; left); trivial.
+*do 2 (rewrite mem_succ; Tleft); trivial.
 *apply rank_pair_mem; trivial.
 Qed.
 
@@ -127,12 +127,12 @@ End em.
 Fixpoint Vl (x:PSet) : PSet :=
   iUnion (fun a => powerset (Vl (Func x a))).
 
-Lemma mem_Vl (em : forall p : Prop, p \/ ~p) : forall {x y : PSet}, y ∈ Vl x <-> rank y ∈ rank x.
+Lemma mem_Vl (em : forall p : Prop, #(p \/ ~p)) : forall {x y : PSet}, y ∈ Vl x <-> rank y ∈ rank x.
 fix mem_Vl 1.
 intros (A,F) y.
 simpl Vl.
 rewrite mem_iUnion, mem_rank.
-apply ex_morph; intros a.
+apply Tr_morph; apply ex_morph; intros a.
 rewrite mem_powerset.
 split.
 *intros h.
@@ -144,7 +144,7 @@ split.
  rewrite mem_Vl.
  apply rank_mem in hz.
  rewrite mem_succ in h.
- destruct h as [h|e]. 
+ Tdestruct h as [h|e]. 
  +assert (h1 := isOrd_rank (F a)).
   revert hz; apply (IsOrd_trans _); trivial.
  +apply mem_congr_right with (1:=e); trivial.
@@ -165,7 +165,7 @@ Qed.
 Definition omega : PSet :=
   range (ι := nat) (fun n => ofNat n).
 
-Lemma mem_omega {x : PSet} : x ∈ omega <-> exists n, x ≈ ofNat n.
+Lemma mem_omega {x : PSet} : x ∈ omega <-> #exists n, x ≈ ofNat n.
 apply mem_range.
 Qed.
 
@@ -173,15 +173,15 @@ Lemma isOrd_omega : IsOrd omega.
 split.
 *intros y hy z hz.
  rewrite mem_omega in hy.
- destruct hy as (n,e).
+ Tdestruct hy as (n,e).
  apply mem_congr_right with (1:=e) in hz.
  clear -hz.
  revert z hz; induction n; simpl ofNat; intros.
  +apply not_mem_empty in hz; contradiction.
- +rewrite mem_succ in hz; destruct hz as [h|e']; auto.
-  apply mem_omega; exists n; trivial.
+ +rewrite mem_succ in hz; Tdestruct hz as [h|e']; auto.
+  apply mem_omega; Texists n; trivial.
 *intros y hy.
- rewrite mem_omega in hy; destruct hy as (n,e).
+ rewrite mem_omega in hy; Tdestruct hy as (n,e).
  apply Trans_resp with (1:=Equiv_symm e).
  apply isOrd_ofNat.
 Qed.
@@ -198,10 +198,10 @@ Fixpoint succN (n:nat) (G:PSet) : PSet :=
 Definition D (G : PSet) : PSet :=
   iUnion (ι := nat) (fun n => Vl (succN n G)).
 
-Lemma mem_D (em : forall p : Prop, p \/ ~p) {G y : PSet} :
-    y ∈ D G <-> exists n, rank y ∈ rank (succN n G).
+Lemma mem_D (em : forall p : Prop, #(p \/ ~p)) {G y : PSet} :
+    y ∈ D G <-> #exists n, rank y ∈ rank (succN n G).
 unfold D; rewrite mem_iUnion.
-apply ex_morph; intros n.
+apply Tr_morph; apply ex_morph; intros n.
 apply (mem_Vl em).
 Qed.
 
@@ -211,10 +211,10 @@ apply IsOrd_succ; trivial.
 Qed.
 
 (*- For an ordinal `G`, a set whose rank is below `G + n` is in `D G`. *)
-Lemma mem_D_of_rank (em : forall p : Prop, p \/ ~p) {G y : PSet} (hG : IsOrd G) (n : nat)
+Lemma mem_D_of_rank (em : forall p : Prop, #(p \/ ~p)) {G y : PSet} (hG : IsOrd G) (n : nat)
     (h : rank y ∈ succN n G) : y ∈ D G.
 apply (mem_D em).
-exists n.
+Texists n.
 assert (hGn := IsOrd_iterate_succ hG n). 
 apply IsOrd_rank_equiv in hGn.
 apply mem_congr_right with (1:=hGn); trivial.

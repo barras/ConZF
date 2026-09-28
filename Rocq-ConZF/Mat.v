@@ -20,8 +20,8 @@ Inductive Label_Equiv : Label -> Label -> Prop :=
 
 (*- A path, deepest label first. The carrier of the recursion; it lives in `Type (u+1)`,
 the same universe as `PSet`. *)
-Notation Path := (list Label).
-(*Abbreviation Path := (list Label).*)
+(*Notation Path := (list Label).*)
+Abbreviation Path := (list Label).
 
 Section S.
 Variable (D : PSet -> PSet) (U : PSet).

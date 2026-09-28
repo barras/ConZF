@@ -106,6 +106,11 @@ Fixpoint Sat (M : PSet -> Prop) (f : Fml) (e : nat -> PSet) : Prop :=
   | all φ => forall x, M x -> Sat M φ (Env_cons x e)
   end.
 
+Lemma isL_Sat M f e : isL (Sat M f e).
+revert e; induction f; simpl; prove_isL.
+Qed.
+Hint Resolve isL_Sat : core.
+
 Lemma Env_cons_resp {x x' : PSet} {e e' : nat -> PSet} (hx : x ≈ x')
     (he : forall i, e i ≈ e' i) : forall i, Env_cons x e i ≈ Env_cons x' e' i.
 destruct i; simpl; auto.
@@ -174,28 +179,28 @@ Lemma sat_neg {M : PSet -> Prop} {φ : Fml} {e} : Sat M (neg φ) e <-> ~ Sat M �
 Qed.
 
 Section em.
-Hypothesis (em : forall p : Prop, p \/ ~p).
+Hypothesis (em : forall p : Prop, #(p \/ ~p)).
 
-Lemma dne {p : Prop} (h : ~~p) : p.
-destruct (em p); [trivial|].
+Lemma dne {p : Prop} (pok:isL p) (h : ~~p) : p.
+Tdestruct (em p); [trivial|].
 destruct h; trivial.
 Qed.
-Lemma dne_iff {p : Prop} :  ~~p <-> p.
-split; [apply dne|intro; auto].
+Lemma dne_iff {p : Prop} (pok:isL p):  ~~p <-> p.
+split; [apply dne; trivial|intro; auto].
 Qed.
 
 Lemma sat_and {M : PSet -> Prop} {φ ψ : Fml} {e} :
     Sat M (and φ ψ) e <-> Sat M φ e /\ Sat M ψ e.
 simpl; split; [intros|destruct 1;auto].
-edestruct em; [eassumption|].
+Tdestruct em; [eassumption|].
 destruct H; auto.
 Qed.
 
 Lemma sat_or {M : PSet -> Prop} {φ ψ : Fml} {e} :
-    Sat M (or φ ψ) e <-> Sat M φ e \/ Sat M ψ e.
+    Sat M (or φ ψ) e <-> #(Sat M φ e \/ Sat M ψ e).
 simpl; split; intros.
-*edestruct em; [left;eassumption|]; auto.
-*destruct H; [contradiction|trivial].
+*Tdestruct em; [Tleft;eassumption|]; auto.
+*Tdestruct H; [contradiction|trivial].
 Qed.
 
 Lemma sat_iff {M : PSet -> Prop} {φ ψ : Fml} {e} :
@@ -205,11 +210,11 @@ reflexivity.
 Qed.
 
 Lemma sat_ex {M : PSet -> Prop} {φ : Fml} {e} :
-    Sat M (ex φ) e <-> exists x, M x /\ Sat M φ (Env_cons x e).
+    Sat M (ex φ) e <-> #exists x, M x /\ Sat M φ (Env_cons x e).
 simpl; split; intros.
-*edestruct em; [eassumption|].
+*Tdestruct em; [eassumption|].
  destruct H; eauto.
-*destruct H as (x,(?,?)); eauto.
+*Tdestruct H as (x,(?,?)); eauto.
 Qed.
 
 End em.
@@ -222,10 +227,10 @@ induction m; destruct n; intros.
 *trivial.
 *destruct (not_mem_empty (ofNat n)).
  apply (mem_congr_right H).
- apply mem_succ; right; apply Equiv_refl.
+ apply mem_succ; Tright; apply Equiv_refl.
 *destruct (not_mem_empty (ofNat m)).
  apply (mem_congr_right H).
- apply mem_succ; right; apply Equiv_refl.
+ apply mem_succ; Tright; apply Equiv_refl.
 *f_equal; apply IHm.
  apply succ_inj; trivial.
 Qed.
